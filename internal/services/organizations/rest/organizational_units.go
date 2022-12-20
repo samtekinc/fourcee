@@ -9,7 +9,7 @@ import (
 )
 
 func (r *OrganizationsRouter) getOrganizationalUnitsByDimension(c *gin.Context) {
-	dimensionId := c.Param("dimensionId")
+	orgDimensionId := c.Param("orgDimensionId")
 	limitString := c.DefaultQuery("limit", "10")
 	cursor := c.Query("cursor")
 	limit, err := strconv.Atoi(limitString)
@@ -19,7 +19,7 @@ func (r *OrganizationsRouter) getOrganizationalUnitsByDimension(c *gin.Context) 
 		})
 		return
 	}
-	response, err := r.apiClient.GetOrganizationalUnitsByDimension(c, dimensionId, int32(limit), cursor)
+	response, err := r.apiClient.GetOrganizationalUnitsByDimension(c, orgDimensionId, int32(limit), cursor)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -30,7 +30,7 @@ func (r *OrganizationsRouter) getOrganizationalUnitsByDimension(c *gin.Context) 
 }
 
 func (r *OrganizationsRouter) getOrganizationalUnitChildren(c *gin.Context) {
-	dimensionId := c.Param("dimensionId")
+	orgDimensionId := c.Param("orgDimensionId")
 	id := c.Param("orgUnitId")
 	limitString := c.DefaultQuery("limit", "10")
 	cursor := c.Query("cursor")
@@ -41,7 +41,7 @@ func (r *OrganizationsRouter) getOrganizationalUnitChildren(c *gin.Context) {
 		})
 		return
 	}
-	response, err := r.apiClient.GetOrganizationalUnitsByParent(c, dimensionId, id, int32(limit), cursor)
+	response, err := r.apiClient.GetOrganizationalUnitsByParent(c, orgDimensionId, id, int32(limit), cursor)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -52,7 +52,7 @@ func (r *OrganizationsRouter) getOrganizationalUnitChildren(c *gin.Context) {
 }
 
 func (r *OrganizationsRouter) getOrganizationalUnitDownstream(c *gin.Context) {
-	dimensionId := c.Param("dimensionId")
+	orgDimensionId := c.Param("orgDimensionId")
 	id := c.Param("orgUnitId")
 	limitString := c.DefaultQuery("limit", "10")
 	cursor := c.Query("cursor")
@@ -73,7 +73,7 @@ func (r *OrganizationsRouter) getOrganizationalUnitDownstream(c *gin.Context) {
 	}
 	hierarchy := parent.Hierarchy + parent.OrgUnitId
 
-	response, err := r.apiClient.GetOrganizationalUnitsByHierarchy(c, dimensionId, hierarchy, int32(limit), cursor)
+	response, err := r.apiClient.GetOrganizationalUnitsByHierarchy(c, orgDimensionId, hierarchy, int32(limit), cursor)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -115,9 +115,9 @@ func (r *OrganizationsRouter) putOrganizationalUnit(c *gin.Context) {
 }
 
 func (r *OrganizationsRouter) deleteOrganizationalUnit(c *gin.Context) {
-	dimensionId := c.Param("dimensionId")
+	orgDimensionId := c.Param("orgDimensionId")
 	id := c.Param("orgUnitId")
-	err := r.apiClient.DeleteOrganizationalUnit(c, dimensionId, id)
+	err := r.apiClient.DeleteOrganizationalUnit(c, orgDimensionId, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -148,8 +148,8 @@ func (r *OrganizationsRouter) updateOrganizationalUnit(c *gin.Context) {
 }
 
 func (r *OrganizationsRouter) updateHierarchies(c *gin.Context) {
-	dimensionId := c.Param("dimensionId")
-	err := r.apiClient.UpdateOrganizationalUnitHierarchies(c, dimensionId)
+	orgDimensionId := c.Param("orgDimensionId")
+	err := r.apiClient.UpdateOrganizationalUnitHierarchies(c, orgDimensionId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

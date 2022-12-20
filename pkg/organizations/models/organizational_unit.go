@@ -3,7 +3,7 @@ package models
 type OrganizationalUnit struct {
 	OrgUnitId       string `json:"orgUnitId"`
 	Name            string `json:"name"`
-	DimensionId     string `json:"dimensionId"`
+	OrgDimensionId  string `json:"orgDimensionId"`
 	Hierarchy       string `json:"hierarchy"`
 	ParentOrgUnitId string `json:"parentOrgUnitId" dynamodbav:",omitempty"`
 }
@@ -15,7 +15,7 @@ type OrganizationalUnits struct {
 
 type NewOrganizationalUnit struct {
 	Name            string `json:"name"`
-	DimensionId     string `json:"dimensionId"`
+	OrgDimensionId  string `json:"orgDimensionId"`
 	ParentOrgUnitId string `json:"parentOrgUnitId"`
 }
 

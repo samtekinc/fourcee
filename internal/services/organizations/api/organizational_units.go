@@ -20,16 +20,16 @@ func (c *OrganizationsAPIClient) GetOrganizationalUnits(ctx context.Context, lim
 	return c.dbClient.GetOrganizationalUnits(ctx, limit, cursor)
 }
 
-func (c *OrganizationsAPIClient) GetOrganizationalUnitsByDimension(ctx context.Context, dimensionId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
-	return c.dbClient.GetOrganizationalUnitsByDimension(ctx, dimensionId, limit, cursor)
+func (c *OrganizationsAPIClient) GetOrganizationalUnitsByDimension(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
+	return c.dbClient.GetOrganizationalUnitsByDimension(ctx, orgDimensionId, limit, cursor)
 }
 
-func (c *OrganizationsAPIClient) GetOrganizationalUnitsByParent(ctx context.Context, dimensionId string, parentOrgUnitId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
-	return c.dbClient.GetOrganizationalUnitsByParent(ctx, dimensionId, parentOrgUnitId, limit, cursor)
+func (c *OrganizationsAPIClient) GetOrganizationalUnitsByParent(ctx context.Context, orgDimensionId string, parentOrgUnitId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
+	return c.dbClient.GetOrganizationalUnitsByParent(ctx, orgDimensionId, parentOrgUnitId, limit, cursor)
 }
 
-func (c *OrganizationsAPIClient) GetOrganizationalUnitsByHierarchy(ctx context.Context, dimensionId string, hierarchy string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
-	return c.dbClient.GetOrganizationalUnitsByHierarchy(ctx, dimensionId, hierarchy, limit, cursor)
+func (c *OrganizationsAPIClient) GetOrganizationalUnitsByHierarchy(ctx context.Context, orgDimensionId string, hierarchy string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
+	return c.dbClient.GetOrganizationalUnitsByHierarchy(ctx, orgDimensionId, hierarchy, limit, cursor)
 }
 
 func (c *OrganizationsAPIClient) PutOrganizationalUnit(ctx context.Context, input *models.NewOrganizationalUnit) (*models.OrganizationalUnit, error) {
@@ -38,7 +38,7 @@ func (c *OrganizationsAPIClient) PutOrganizationalUnit(ctx context.Context, inpu
 		return nil, err
 	}
 
-	if parentOrgUnit.DimensionId != input.DimensionId {
+	if parentOrgUnit.OrgDimensionId != input.OrgDimensionId {
 		return nil, errors.New("parent org unit and new org unit must be in the same dimension") // FIXME: use custom error type
 	}
 
@@ -52,7 +52,7 @@ func (c *OrganizationsAPIClient) PutOrganizationalUnit(ctx context.Context, inpu
 	orgUnit := models.OrganizationalUnit{
 		OrgUnitId:       id.String(),
 		Name:            input.Name,
-		DimensionId:     input.DimensionId,
+		OrgDimensionId:  input.OrgDimensionId,
 		Hierarchy:       hierarchy,
 		ParentOrgUnitId: input.ParentOrgUnitId,
 	}
@@ -64,8 +64,8 @@ func (c *OrganizationsAPIClient) PutOrganizationalUnit(ctx context.Context, inpu
 	}
 }
 
-func (c *OrganizationsAPIClient) DeleteOrganizationalUnit(ctx context.Context, dimensionId string, orgUnitId string) error {
-	children, err := c.dbClient.GetOrganizationalUnitsByParent(ctx, dimensionId, orgUnitId, 1, "")
+func (c *OrganizationsAPIClient) DeleteOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string) error {
+	children, err := c.dbClient.GetOrganizationalUnitsByParent(ctx, orgDimensionId, orgUnitId, 1, "")
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func (c *OrganizationsAPIClient) UpdateOrganizationalUnit(ctx context.Context, i
 		nextCursor := ""
 		for {
 			// get all OUs undernearth the old hierarchy
-			ous, err := c.dbClient.GetOrganizationalUnitsByHierarchy(ctx, originalOrgUnit.DimensionId, oldHierarchy, 100, nextCursor)
+			ous, err := c.dbClient.GetOrganizationalUnitsByHierarchy(ctx, originalOrgUnit.OrgDimensionId, oldHierarchy, 100, nextCursor)
 			if err != nil {
 				return nil, err
 			}
@@ -139,8 +139,8 @@ func (c *OrganizationsAPIClient) UpdateOrganizationalUnit(ctx context.Context, i
 	return newOrgUnit, nil
 }
 
-func (c *OrganizationsAPIClient) UpdateOrganizationalUnitHierarchies(ctx context.Context, dimensionId string) error {
-	dimension, err := c.dbClient.GetOrganizationalDimension(ctx, dimensionId)
+func (c *OrganizationsAPIClient) UpdateOrganizationalUnitHierarchies(ctx context.Context, orgDimensionId string) error {
+	dimension, err := c.dbClient.GetOrganizationalDimension(ctx, orgDimensionId)
 	if err != nil {
 		return err
 	}
@@ -171,7 +171,7 @@ func updateHierarchy(ctx context.Context, dbClient database.OrganizationsDatabas
 
 	nextCursor := ""
 	for {
-		children, err := dbClient.GetOrganizationalUnitsByParent(ctx, ou.DimensionId, ou.OrgUnitId, 100, nextCursor)
+		children, err := dbClient.GetOrganizationalUnitsByParent(ctx, ou.OrgDimensionId, ou.OrgUnitId, 100, nextCursor)
 		if err != nil {
 			return err
 		}

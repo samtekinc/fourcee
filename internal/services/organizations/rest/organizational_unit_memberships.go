@@ -51,7 +51,7 @@ func (r *OrganizationsRouter) getOrganizationalUnitMembershipsByOrgUnit(c *gin.C
 }
 
 func (r *OrganizationsRouter) getOrganizationalUnitMembershipsByDimension(c *gin.Context) {
-	dimensionId := c.Param("dimensionId")
+	orgDimensionId := c.Param("orgDimensionId")
 	limitString := c.DefaultQuery("limit", "10")
 	cursor := c.Query("cursor")
 	limit, err := strconv.Atoi(limitString)
@@ -61,7 +61,7 @@ func (r *OrganizationsRouter) getOrganizationalUnitMembershipsByDimension(c *gin
 		})
 		return
 	}
-	response, err := r.apiClient.GetOrganizationalUnitMembershipsByAccount(c, dimensionId, int32(limit), cursor)
+	response, err := r.apiClient.GetOrganizationalUnitMembershipsByAccount(c, orgDimensionId, int32(limit), cursor)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -91,9 +91,9 @@ func (r *OrganizationsRouter) putOrganizationalUnitMembership(c *gin.Context) {
 }
 
 func (r *OrganizationsRouter) deleteOrganizationalUnitMembership(c *gin.Context) {
-	dimensionId := c.Param("dimensionId")
+	orgDimensionId := c.Param("orgDimensionId")
 	accountId := c.Param("accountId")
-	err := r.apiClient.DeleteOrganizationalUnitMembership(c, dimensionId, accountId)
+	err := r.apiClient.DeleteOrganizationalUnitMembership(c, orgDimensionId, accountId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

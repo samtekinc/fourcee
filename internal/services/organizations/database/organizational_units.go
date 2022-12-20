@@ -79,13 +79,13 @@ func (c OrganizationsDatabaseClient) GetOrganizationalUnits(ctx context.Context,
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByDimension(ctx context.Context, dimensionId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
+func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByDimension(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
 	}
 
-	keyCondition := expression.Key("DimensionId").Equal(expression.Value(dimensionId))
+	keyCondition := expression.Key("OrgDimensionId").Equal(expression.Value(orgDimensionId))
 	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
 	expr, err := expressionBuilder.Build()
 	if err != nil {
@@ -94,7 +94,7 @@ func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByDimension(ctx conte
 
 	queryInput := &dynamodb.QueryInput{
 		TableName:                 &c.unitsTableName,
-		IndexName:                 aws.String("DimensionId-ParentOrgUnitId-index"),
+		IndexName:                 aws.String("OrgDimensionId-ParentOrgUnitId-index"),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		KeyConditionExpression:    expr.KeyCondition(),
@@ -129,13 +129,13 @@ func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByDimension(ctx conte
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByParent(ctx context.Context, dimensionId string, parentOrgUnitId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
+func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByParent(ctx context.Context, orgDimensionId string, parentOrgUnitId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
 	}
 
-	keyCondition := expression.Key("DimensionId").Equal(expression.Value(dimensionId)).And(expression.Key("ParentOrgUnitId").Equal(expression.Value(parentOrgUnitId)))
+	keyCondition := expression.Key("OrgDimensionId").Equal(expression.Value(orgDimensionId)).And(expression.Key("ParentOrgUnitId").Equal(expression.Value(parentOrgUnitId)))
 	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
 	expr, err := expressionBuilder.Build()
 	if err != nil {
@@ -144,7 +144,7 @@ func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByParent(ctx context.
 
 	queryInput := &dynamodb.QueryInput{
 		TableName:                 &c.unitsTableName,
-		IndexName:                 aws.String("DimensionId-ParentOrgUnitId-index"),
+		IndexName:                 aws.String("OrgDimensionId-ParentOrgUnitId-index"),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		KeyConditionExpression:    expr.KeyCondition(),
@@ -179,13 +179,13 @@ func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByParent(ctx context.
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByHierarchy(ctx context.Context, dimensionId string, hierarchy string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
+func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByHierarchy(ctx context.Context, orgDimensionId string, hierarchy string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
 	}
 
-	keyCondition := expression.Key("DimensionId").Equal(expression.Value(dimensionId)).And(expression.Key("Hierarchy").BeginsWith(hierarchy))
+	keyCondition := expression.Key("OrgDimensionId").Equal(expression.Value(orgDimensionId)).And(expression.Key("Hierarchy").BeginsWith(hierarchy))
 	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
 	expr, err := expressionBuilder.Build()
 	if err != nil {
@@ -194,7 +194,7 @@ func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByHierarchy(ctx conte
 
 	queryInput := &dynamodb.QueryInput{
 		TableName:                 &c.unitsTableName,
-		IndexName:                 aws.String("DimensionId-Hierarchy-index"),
+		IndexName:                 aws.String("OrgDimensionId-Hierarchy-index"),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		KeyConditionExpression:    expr.KeyCondition(),

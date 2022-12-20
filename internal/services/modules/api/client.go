@@ -20,11 +20,13 @@ type ModulesAPIClientInterface interface {
 }
 
 type ModulesAPIClient struct {
-	dbClient database.ModulesDatabaseClientInterface
+	dbClient         database.ModulesDatabaseClientInterface
+	workingDirectory string
 }
 
-func NewModulesAPIClient(dbClient database.ModulesDatabaseClientInterface) *ModulesAPIClient {
+func NewModulesAPIClient(dbClient database.ModulesDatabaseClientInterface, workingDirectory string) *ModulesAPIClient {
 	return &ModulesAPIClient{
-		dbClient: dbClient,
+		dbClient:         dbClient,
+		workingDirectory: workingDirectory,
 	}
 }

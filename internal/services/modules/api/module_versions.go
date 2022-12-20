@@ -21,11 +21,18 @@ func (c *ModulesAPIClient) PutModuleVersion(ctx context.Context, input *models.N
 		return nil, err
 	}
 
+	variables, err := GetVariablesFromModule(input.RemoteSource, c.workingDirectory+moduleVersionId.String())
+	if err != nil {
+		return nil, err
+	}
+
 	moduleVersion := models.ModuleVersion{
-		ModuleVersionId: moduleVersionId.String(),
-		ModuleGroupId:   input.ModuleGroupId,
-		Name:            input.Name,
-		RemoteSource:    input.RemoteSource,
+		ModuleVersionId:  moduleVersionId.String(),
+		ModuleGroupId:    input.ModuleGroupId,
+		Name:             input.Name,
+		RemoteSource:     input.RemoteSource,
+		TerraformVersion: input.TerraformVersion,
+		Variables:        variables,
 	}
 	err = c.dbClient.PutModuleVersion(ctx, &moduleVersion)
 	if err != nil {

@@ -29,7 +29,7 @@ func (r *OrganizationsRouter) getOrganizationalDimensions(c *gin.Context) {
 }
 
 func (r *OrganizationsRouter) getOrganizationalDimension(c *gin.Context) {
-	id := c.Param("dimensionId")
+	id := c.Param("orgDimensionId")
 	response, err := r.apiClient.GetOrganizationalDimension(c, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -60,7 +60,7 @@ func (r *OrganizationsRouter) putOrganizationalDimension(c *gin.Context) {
 }
 
 func (r *OrganizationsRouter) deleteOrganizationalDimension(c *gin.Context) {
-	id := c.Param("dimensionId")
+	id := c.Param("orgDimensionId")
 	err := r.apiClient.DeleteOrganizationalDimension(c, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

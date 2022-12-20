@@ -13,17 +13,17 @@ import (
 	"github.com/sheacloud/tfom/pkg/organizations/models"
 )
 
-func (c *OrganizationsDatabaseClient) GetOrganizationalDimension(ctx context.Context, dimensionId string) (*models.OrganizationalDimension, error) {
+func (c *OrganizationsDatabaseClient) GetOrganizationalDimension(ctx context.Context, orgDimensionId string) (*models.OrganizationalDimension, error) {
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &c.dimensionsTableName,
 		Key: map[string]types.AttributeValue{
-			"DimensionId": &types.AttributeValueMemberS{Value: dimensionId},
+			"OrgDimensionId": &types.AttributeValueMemberS{Value: orgDimensionId},
 		},
 	})
 	if err != nil {
 		return nil, err
 	} else if response.Item == nil {
-		return nil, helpers.NotFoundError{Message: fmt.Sprintf("Organizational Dimension %q not found", dimensionId)}
+		return nil, helpers.NotFoundError{Message: fmt.Sprintf("Organizational Dimension %q not found", orgDimensionId)}
 	}
 
 	orgDimension := models.OrganizationalDimension{}
@@ -46,7 +46,7 @@ func (c OrganizationsDatabaseClient) GetOrganizationalDimensions(ctx context.Con
 		ExclusiveStartKey: startKey,
 	}
 
-	resultItems, lastEvaluatedKey, err := helpers.ScanDynamoDBUntilLimit(ctx, c.dynamodb, scanInput, limit, []string{"DimensionId"})
+	resultItems, lastEvaluatedKey, err := helpers.ScanDynamoDBUntilLimit(ctx, c.dynamodb, scanInput, limit, []string{"OrgDimensionId"})
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (c *OrganizationsDatabaseClient) PutOrganizationalDimension(ctx context.Con
 		return err
 	}
 
-	condition := expression.AttributeNotExists(expression.Name("DimensionId"))
+	condition := expression.AttributeNotExists(expression.Name("OrgDimensionId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()
 	if err != nil {
@@ -96,14 +96,14 @@ func (c *OrganizationsDatabaseClient) PutOrganizationalDimension(ctx context.Con
 	ccfe := &types.ConditionalCheckFailedException{}
 	switch {
 	case errors.As(err, &ccfe):
-		return helpers.AlreadyExistsError{Message: fmt.Sprintf("Organizational Dimension %q already exists", input.DimensionId)}
+		return helpers.AlreadyExistsError{Message: fmt.Sprintf("Organizational Dimension %q already exists", input.OrgDimensionId)}
 	default:
 		return err
 	}
 }
 
-func (c *OrganizationsDatabaseClient) DeleteOrganizationalDimension(ctx context.Context, dimensionId string) error {
-	condition := expression.AttributeExists(expression.Name("DimensionId"))
+func (c *OrganizationsDatabaseClient) DeleteOrganizationalDimension(ctx context.Context, orgDimensionId string) error {
+	condition := expression.AttributeExists(expression.Name("OrgDimensionId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()
 	if err != nil {
@@ -113,7 +113,7 @@ func (c *OrganizationsDatabaseClient) DeleteOrganizationalDimension(ctx context.
 	_, err = c.dynamodb.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: &c.dimensionsTableName,
 		Key: map[string]types.AttributeValue{
-			"DimensionId": &types.AttributeValueMemberS{Value: dimensionId},
+			"OrgDimensionId": &types.AttributeValueMemberS{Value: orgDimensionId},
 		},
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
@@ -122,7 +122,7 @@ func (c *OrganizationsDatabaseClient) DeleteOrganizationalDimension(ctx context.
 	ccfe := &types.ConditionalCheckFailedException{}
 	switch {
 	case errors.As(err, &ccfe):
-		return helpers.NotFoundError{Message: fmt.Sprintf("Organizational Dimension %q not found", dimensionId)}
+		return helpers.NotFoundError{Message: fmt.Sprintf("Organizational Dimension %q not found", orgDimensionId)}
 	default:
 		return err
 	}

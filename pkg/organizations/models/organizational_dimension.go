@@ -1,9 +1,9 @@
 package models
 
 type OrganizationalDimension struct {
-	DimensionId   string `json:"dimensionId"`
-	Name          string `json:"name"`
-	RootOrgUnitId string `json:"rootOrgUnitId"`
+	OrgDimensionId string `json:"orgDimensionId"`
+	Name           string `json:"name"`
+	RootOrgUnitId  string `json:"rootOrgUnitId"`
 }
 
 type OrganizationalDimensions struct {

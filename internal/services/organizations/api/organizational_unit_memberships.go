@@ -14,15 +14,15 @@ func (c *OrganizationsAPIClient) GetOrganizationalUnitMembershipsByOrgUnit(ctx c
 	return c.dbClient.GetOrganizationalUnitMembershipsByOrgUnit(ctx, orgUnitId, limit, cursor)
 }
 
-func (c *OrganizationsAPIClient) GetOrganizationalUnitMembershipsByDimension(ctx context.Context, dimensionId string, limit int32, cursor string) (*models.OrganizationalUnitMemberships, error) {
-	return c.dbClient.GetOrganizationalUnitMembershipsByDimension(ctx, dimensionId, limit, cursor)
+func (c *OrganizationsAPIClient) GetOrganizationalUnitMembershipsByDimension(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.OrganizationalUnitMemberships, error) {
+	return c.dbClient.GetOrganizationalUnitMembershipsByDimension(ctx, orgDimensionId, limit, cursor)
 }
 
 func (c *OrganizationsAPIClient) PutOrganizationalUnitMembership(ctx context.Context, input *models.NewOrganizationalUnitMembership) (*models.OrganizationalUnitMembership, error) {
 	orgUnitMembership := models.OrganizationalUnitMembership{
-		OrgAccountId: input.OrgAccountId,
-		DimensionId:  input.DimensionId,
-		OrgUnitId:    input.OrgUnitId,
+		OrgAccountId:   input.OrgAccountId,
+		OrgDimensionId: input.OrgDimensionId,
+		OrgUnitId:      input.OrgUnitId,
 	}
 	err := c.dbClient.PutOrganizationalUnitMembership(ctx, &orgUnitMembership)
 	if err != nil {
@@ -32,6 +32,6 @@ func (c *OrganizationsAPIClient) PutOrganizationalUnitMembership(ctx context.Con
 	}
 }
 
-func (c *OrganizationsAPIClient) DeleteOrganizationalUnitMembership(ctx context.Context, dimensionId string, accountId string) error {
-	return c.dbClient.DeleteOrganizationalUnitMembership(ctx, dimensionId, accountId)
+func (c *OrganizationsAPIClient) DeleteOrganizationalUnitMembership(ctx context.Context, orgDimensionId string, accountId string) error {
+	return c.dbClient.DeleteOrganizationalUnitMembership(ctx, orgDimensionId, accountId)
 }

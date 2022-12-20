@@ -114,13 +114,13 @@ func (c OrganizationsDatabaseClient) GetOrganizationalUnitMembershipsByOrgUnit(c
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetOrganizationalUnitMembershipsByDimension(ctx context.Context, dimensionId string, limit int32, cursor string) (*models.OrganizationalUnitMemberships, error) {
+func (c OrganizationsDatabaseClient) GetOrganizationalUnitMembershipsByDimension(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.OrganizationalUnitMemberships, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
 	}
 
-	keyCondition := expression.Key("DimensionId").Equal(expression.Value(dimensionId))
+	keyCondition := expression.Key("OrgDimensionId").Equal(expression.Value(orgDimensionId))
 	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
 	expr, err := expressionBuilder.Build()
 	if err != nil {
@@ -137,7 +137,7 @@ func (c OrganizationsDatabaseClient) GetOrganizationalUnitMembershipsByDimension
 		ExclusiveStartKey:         startKey,
 	}
 
-	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"DimensionId", "OrgAccountId"})
+	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"OrgDimensionId", "OrgAccountId"})
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func (c *OrganizationsDatabaseClient) PutOrganizationalUnitMembership(ctx contex
 		return err
 	}
 
-	condition := expression.AttributeNotExists(expression.Name("DimensionId"))
+	condition := expression.AttributeNotExists(expression.Name("OrgDimensionId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()
 	if err != nil {
@@ -187,14 +187,14 @@ func (c *OrganizationsDatabaseClient) PutOrganizationalUnitMembership(ctx contex
 	ccfe := &types.ConditionalCheckFailedException{}
 	switch {
 	case errors.As(err, &ccfe):
-		return helpers.AlreadyExistsError{Message: fmt.Sprintf("Organizational UnitMembership between %q and %q already exists", input.DimensionId, input.OrgAccountId)}
+		return helpers.AlreadyExistsError{Message: fmt.Sprintf("Organizational UnitMembership between %q and %q already exists", input.OrgDimensionId, input.OrgAccountId)}
 	default:
 		return err
 	}
 }
 
-func (c *OrganizationsDatabaseClient) DeleteOrganizationalUnitMembership(ctx context.Context, dimensionId string, accountId string) error {
-	condition := expression.AttributeExists(expression.Name("DimensionId"))
+func (c *OrganizationsDatabaseClient) DeleteOrganizationalUnitMembership(ctx context.Context, orgDimensionId string, accountId string) error {
+	condition := expression.AttributeExists(expression.Name("OrgDimensionId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()
 	if err != nil {
@@ -204,8 +204,8 @@ func (c *OrganizationsDatabaseClient) DeleteOrganizationalUnitMembership(ctx con
 	_, err = c.dynamodb.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: &c.membershipsTableName,
 		Key: map[string]types.AttributeValue{
-			"DimensionId":  &types.AttributeValueMemberS{Value: dimensionId},
-			"OrgAccountId": &types.AttributeValueMemberS{Value: accountId},
+			"OrgDimensionId": &types.AttributeValueMemberS{Value: orgDimensionId},
+			"OrgAccountId":   &types.AttributeValueMemberS{Value: accountId},
 		},
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
@@ -214,7 +214,7 @@ func (c *OrganizationsDatabaseClient) DeleteOrganizationalUnitMembership(ctx con
 	ccfe := &types.ConditionalCheckFailedException{}
 	switch {
 	case errors.As(err, &ccfe):
-		return helpers.NotFoundError{Message: fmt.Sprintf("Organizational UnitMembership between %q and %q not found", dimensionId, accountId)}
+		return helpers.NotFoundError{Message: fmt.Sprintf("Organizational UnitMembership between %q and %q not found", orgDimensionId, accountId)}
 	default:
 		return err
 	}

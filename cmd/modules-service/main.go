@@ -21,7 +21,7 @@ func main() {
 	dynamodbClient := dynamodb.NewFromConfig(cfg)
 
 	orgDbClient := database.NewModulesDatabaseClient(dynamodbClient, "tfom-modules-service-module-groups", "tfom-modules-service-module-versions")
-	orgApiClient := api.NewModulesAPIClient(orgDbClient)
+	orgApiClient := api.NewModulesAPIClient(orgDbClient, "./tmp/")
 	orgRouter := rest.NewModulesRouter(orgApiClient)
 
 	router := gin.Default()

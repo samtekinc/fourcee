@@ -8,8 +8,8 @@ import (
 	"github.com/sheacloud/tfom/pkg/organizations/models"
 )
 
-func (c *OrganizationsAPIClient) GetOrganizationalDimension(ctx context.Context, id string) (*models.OrganizationalDimension, error) {
-	return c.dbClient.GetOrganizationalDimension(ctx, id)
+func (c *OrganizationsAPIClient) GetOrganizationalDimension(ctx context.Context, orgDimensionId string) (*models.OrganizationalDimension, error) {
+	return c.dbClient.GetOrganizationalDimension(ctx, orgDimensionId)
 }
 
 func (c *OrganizationsAPIClient) GetOrganizationalDimensions(ctx context.Context, limit int32, cursor string) (*models.OrganizationalDimensions, error) {
@@ -17,7 +17,7 @@ func (c *OrganizationsAPIClient) GetOrganizationalDimensions(ctx context.Context
 }
 
 func (c *OrganizationsAPIClient) PutOrganizationalDimension(ctx context.Context, input *models.NewOrganizationalDimension) (*models.OrganizationalDimension, error) {
-	dimensionId, err := identifiers.NewIdentifier(identifiers.ResourceTypeOrganizationalDimension)
+	orgDimensionId, err := identifiers.NewIdentifier(identifiers.ResourceTypeOrganizationalDimension)
 	if err != nil {
 		return nil, err
 	}
@@ -29,10 +29,10 @@ func (c *OrganizationsAPIClient) PutOrganizationalDimension(ctx context.Context,
 
 	// create the root OU for the dimension
 	rootOu := models.OrganizationalUnit{
-		OrgUnitId:   rootOuId.String(),
-		Name:        fmt.Sprintf("%s Root", input.Name),
-		DimensionId: dimensionId.String(),
-		Hierarchy:   "/",
+		OrgUnitId:      rootOuId.String(),
+		Name:           fmt.Sprintf("%s Root", input.Name),
+		OrgDimensionId: orgDimensionId.String(),
+		Hierarchy:      "/",
 	}
 	err = c.dbClient.PutOrganizationalUnit(ctx, &rootOu)
 	if err != nil {
@@ -40,9 +40,9 @@ func (c *OrganizationsAPIClient) PutOrganizationalDimension(ctx context.Context,
 	}
 
 	orgDimension := models.OrganizationalDimension{
-		DimensionId:   dimensionId.String(),
-		Name:          input.Name,
-		RootOrgUnitId: rootOuId.String(),
+		OrgDimensionId: orgDimensionId.String(),
+		Name:           input.Name,
+		RootOrgUnitId:  rootOuId.String(),
 	}
 	err = c.dbClient.PutOrganizationalDimension(ctx, &orgDimension)
 	if err != nil {

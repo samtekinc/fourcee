@@ -1,10 +1,10 @@
 resource "aws_dynamodb_table" "org_dimensions" {
   name         = "${var.prefix}-organizational-dimensions"
   billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "DimensionId"
+  hash_key     = "OrgDimensionId"
 
   attribute {
-    name = "DimensionId"
+    name = "OrgDimensionId"
     type = "S"
   }
 }
@@ -20,7 +20,7 @@ resource "aws_dynamodb_table" "org_units" {
   }
 
   attribute {
-    name = "DimensionId"
+    name = "OrgDimensionId"
     type = "S"
   }
 
@@ -35,15 +35,15 @@ resource "aws_dynamodb_table" "org_units" {
   }
 
   global_secondary_index {
-    name            = "DimensionId-Hierarchy-index"
-    hash_key        = "DimensionId"
+    name            = "OrgDimensionId-Hierarchy-index"
+    hash_key        = "OrgDimensionId"
     range_key       = "Hierarchy"
     projection_type = "ALL"
   }
 
   global_secondary_index {
-    name            = "DimensionId-ParentOrgUnitId-index"
-    hash_key        = "DimensionId"
+    name            = "OrgDimensionId-ParentOrgUnitId-index"
+    hash_key        = "OrgDimensionId"
     range_key       = "ParentOrgUnitId"
     projection_type = "ALL"
   }
@@ -63,7 +63,7 @@ resource "aws_dynamodb_table" "org_accounts" {
 resource "aws_dynamodb_table" "org_unit_memberships" {
   name         = "${var.prefix}-organizational-unit-memberships"
   billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "DimensionId"
+  hash_key     = "OrgDimensionId"
   range_key    = "OrgAccountId"
 
   attribute {
@@ -72,7 +72,7 @@ resource "aws_dynamodb_table" "org_unit_memberships" {
   }
 
   attribute {
-    name = "DimensionId"
+    name = "OrgDimensionId"
     type = "S"
   }
 
