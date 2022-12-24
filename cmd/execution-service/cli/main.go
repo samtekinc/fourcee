@@ -3,17 +3,34 @@ package main
 import (
 	"context"
 	"os"
+	"path/filepath"
+	"runtime"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/sheacloud/tfom/internal/services/execution/api"
 	"github.com/sheacloud/tfom/internal/services/execution/database"
 	"github.com/sheacloud/tfom/internal/services/execution/terraform"
 	"github.com/sheacloud/tfom/pkg/execution/models"
+	"go.uber.org/zap"
+)
+
+var (
+	TF_INSTALLATION_DIRECTORY = os.Getenv("TF_INSTALLATION_DIRECTORY")
+	TF_WORKING_DIRECTORY      = os.Getenv("TF_WORKING_DIRECTORY")
 )
 
 func main() {
+	logger, err := zap.NewProduction()
+	if err != nil {
+		panic("unable to create logger, " + err.Error())
+	}
+	defer logger.Sync()
+	undo := zap.ReplaceGlobals(logger)
+	defer undo()
+
 	ctx := context.Background()
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
@@ -22,6 +39,7 @@ func main() {
 
 	dynamodbClient := dynamodb.NewFromConfig(cfg)
 	s3Client := s3.NewFromConfig(cfg)
+	sfnClient := sfn.NewFromConfig(cfg)
 
 	dbInput := database.ExecutionDatabaseClientInput{
 		DynamoDB:                 dynamodbClient,
@@ -31,9 +49,9 @@ func main() {
 		ResultsBucketName:        "tfom-exec-service-execution-results",
 	}
 	execDbClient := database.NewExecutionDatabaseClient(&dbInput)
-	execApiClient := api.NewExecutionAPIClient(execDbClient)
+	execApiClient := api.NewExecutionAPIClient(execDbClient, sfnClient, "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-exec-service-terraform-execution")
 
-	installationDirectory, err := terraform.NewTerraformInstallationDirectory("./tf-installation")
+	installationDirectory, err := terraform.NewTerraformInstallationDirectory(TF_INSTALLATION_DIRECTORY)
 	if err != nil {
 		panic("unable to create terraform installation directory, " + err.Error())
 	}
@@ -42,42 +60,44 @@ func main() {
 	requestType := os.Getenv("REQUEST_TYPE")
 	requestID := os.Getenv("REQUEST_ID")
 
+	zap.L().Sugar().Infow("processing request", "requestType", requestType, "requestID", requestID)
+
 	// get the request from the database
 	switch requestType {
 	case "plan":
 		planRequest, err := execApiClient.GetPlanExecutionRequest(ctx, requestID)
 		if err != nil {
-			panic("unable to get plan execution request, " + err.Error())
+			zap.L().Panic("unable to get plan execution request", zap.Error(err))
 		}
 		// execute the plan
 		err = runPlan(ctx, planRequest, execApiClient, installationDirectory)
 		if err != nil {
-			panic("unable to run plan, " + err.Error())
+			zap.L().Panic("unable to run plan", zap.Error(err))
 		}
 	case "apply":
 		applyRequest, err := execApiClient.GetApplyExecutionRequest(ctx, requestID)
 		if err != nil {
-			panic("unable to get apply execution request, " + err.Error())
+			zap.L().Panic("unable to get apply execution request", zap.Error(err))
 		}
 		// execute the apply
 		err = runApply(ctx, applyRequest, execApiClient, installationDirectory)
 		if err != nil {
-			panic("unable to run apply, " + err.Error())
+			zap.L().Panic("unable to run apply", zap.Error(err))
 		}
 	default:
-		panic("invalid request type")
+		zap.L().Panic("invalid request type", zap.String("requestType", requestType))
 	}
 }
 
 func runPlan(ctx context.Context, request *models.PlanExecutionRequest, apiClient *api.ExecutionAPIClient, installDirectory *terraform.TerraformInstallationDirectory) error {
-	workingDirectory, err := terraform.NewWorkingDirectory("./example-tf/" + request.PlanExecutionRequestId)
+	workingDirectory, err := terraform.NewWorkingDirectory(filepath.Join(TF_WORKING_DIRECTORY, request.PlanExecutionRequestId))
 	if err != nil {
 		return err
 	}
 	defer workingDirectory.DeleteDirectory()
 
 	// install terraform
-	executable, err := installDirectory.InstallTerraform(request.TerraformVersion, "darwin", "arm64")
+	executable, err := installDirectory.InstallTerraform(request.TerraformVersion, runtime.GOOS, runtime.GOARCH)
 	if err != nil {
 		return err
 	}
@@ -128,14 +148,14 @@ func runPlan(ctx context.Context, request *models.PlanExecutionRequest, apiClien
 }
 
 func runApply(ctx context.Context, request *models.ApplyExecutionRequest, apiClient *api.ExecutionAPIClient, installDirectory *terraform.TerraformInstallationDirectory) error {
-	workingDirectory, err := terraform.NewWorkingDirectory("./example-tf/" + request.ApplyExecutionRequestId)
+	workingDirectory, err := terraform.NewWorkingDirectory(filepath.Join(TF_WORKING_DIRECTORY, request.ApplyExecutionRequestId))
 	if err != nil {
 		return err
 	}
 	defer workingDirectory.DeleteDirectory()
 
 	// install terraform
-	executable, err := installDirectory.InstallTerraform(request.TerraformVersion, "darwin", "arm64")
+	executable, err := installDirectory.InstallTerraform(request.TerraformVersion, runtime.GOOS, runtime.GOARCH)
 	if err != nil {
 		return err
 	}

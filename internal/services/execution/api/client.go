@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 
+	"github.com/sheacloud/tfom/internal/awsclients"
 	"github.com/sheacloud/tfom/internal/services/execution/database"
 	"github.com/sheacloud/tfom/pkg/execution/models"
 )
@@ -32,11 +33,15 @@ type ExecutionAPIClientInterface interface {
 }
 
 type ExecutionAPIClient struct {
-	dbClient database.ExecutionDatabaseClientInterface
+	dbClient                      database.ExecutionDatabaseClientInterface
+	sfnClient                     awsclients.StepFunctionsInterface
+	terraformExecutionWorkflowArn string
 }
 
-func NewExecutionAPIClient(dbClient database.ExecutionDatabaseClientInterface) *ExecutionAPIClient {
+func NewExecutionAPIClient(dbClient database.ExecutionDatabaseClientInterface, sfnClient awsclients.StepFunctionsInterface, terraformExecutionWorkflowArn string) *ExecutionAPIClient {
 	return &ExecutionAPIClient{
-		dbClient: dbClient,
+		dbClient:                      dbClient,
+		sfnClient:                     sfnClient,
+		terraformExecutionWorkflowArn: terraformExecutionWorkflowArn,
 	}
 }

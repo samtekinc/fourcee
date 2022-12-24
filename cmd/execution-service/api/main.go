@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/gin-gonic/gin"
 	"github.com/sheacloud/tfom/internal/services/execution/api"
 	"github.com/sheacloud/tfom/internal/services/execution/database"
@@ -21,6 +22,7 @@ func main() {
 
 	dynamodbClient := dynamodb.NewFromConfig(cfg)
 	s3Client := s3.NewFromConfig(cfg)
+	sfnClient := sfn.NewFromConfig(cfg)
 
 	dbInput := database.ExecutionDatabaseClientInput{
 		DynamoDB:                 dynamodbClient,
@@ -30,7 +32,7 @@ func main() {
 		ResultsBucketName:        "tfom-exec-service-execution-results",
 	}
 	execDbClient := database.NewExecutionDatabaseClient(&dbInput)
-	execApiClient := api.NewExecutionAPIClient(execDbClient)
+	execApiClient := api.NewExecutionAPIClient(execDbClient, sfnClient, "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-exec-service-terraform-execution")
 	execRouter := rest.NewExecutionRouter(execApiClient)
 
 	router := gin.Default()

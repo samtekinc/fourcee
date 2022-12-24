@@ -4,13 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/sheacloud/tfom/internal/identifiers"
 	"github.com/sheacloud/tfom/pkg/execution/models"
 )
 
 func (c *ExecutionAPIClient) GetPlanExecutionRequest(ctx context.Context, planExecutionRequestId string) (*models.PlanExecutionRequest, error) {
-	// TODO: fetch outputs from S3
 	planExecutionRequest, err := c.dbClient.GetPlanExecutionRequest(ctx, planExecutionRequestId)
 	if err != nil {
 		return nil, err
@@ -52,15 +50,12 @@ func (c *ExecutionAPIClient) PutPlanExecutionRequest(ctx context.Context, input 
 		return nil, err
 	}
 
-	workflowExecutionId := uuid.New().String()
-
 	planExecutionRequest := models.PlanExecutionRequest{
 		PlanExecutionRequestId:       planExecutionRequestId.String(),
 		TerraformVersion:             input.TerraformVersion,
 		StateKey:                     input.StateKey,
 		TerraformConfigurationBase64: input.TerraformConfigurationBase64,
 		AdditionalArguments:          input.AdditionalArguments,
-		WorkflowExecutionId:          workflowExecutionId,
 		Status:                       models.PlanExecutionStatusPending,
 		RequestTime:                  time.Now().UTC(),
 	}
@@ -69,7 +64,14 @@ func (c *ExecutionAPIClient) PutPlanExecutionRequest(ctx context.Context, input 
 		return nil, err
 	}
 
-	// TODO: Start Workflow
+	// Start Workflow
+	err = c.startTerraformExecutionWorkflow(ctx, &TerraformExecutionWorkflowInput{
+		RequestType: "plan",
+		RequestId:   planExecutionRequestId.String(),
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	return &planExecutionRequest, nil
 }

@@ -20,10 +20,10 @@ type ApplyExecutionRequest struct {
 	AdditionalArguments          []string              `json:"additionalArguments"`
 	WorkflowExecutionId          string                `json:"-"`
 	Status                       ApplyExecutionStatus  `json:"status"`
-	InitOutputKey                string                `json:"-"`                                   // for internal use only
-	InitOutput                   *TerraformInitOutput  `json:"initOutput,omitempty" dynamodbav:"-"` // fetched from S3 on request
-	ApplyOutputKey               string                `json:"-"`                                   // for internal use only
-	ApplyOutput                  *TerraformApplyOutput `json:"planOutput,omitempty" dynamodbav:"-"` // fetched from S3 on request
+	InitOutputKey                string                `json:"-"`                                    // for internal use only
+	InitOutput                   *TerraformInitOutput  `json:"initOutput,omitempty" dynamodbav:"-"`  // fetched from S3 on request
+	ApplyOutputKey               string                `json:"-"`                                    // for internal use only
+	ApplyOutput                  *TerraformApplyOutput `json:"applyOutput,omitempty" dynamodbav:"-"` // fetched from S3 on request
 	RequestTime                  time.Time             `json:"requestTime"`
 }
 

@@ -10,8 +10,29 @@ import (
 )
 
 func (c *ExecutionAPIClient) GetApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string) (*models.ApplyExecutionRequest, error) {
-	// TODO: fetch outputs from S3
-	return c.dbClient.GetApplyExecutionRequest(ctx, applyExecutionRequestId)
+	applyExecutionRequest, err := c.dbClient.GetApplyExecutionRequest(ctx, applyExecutionRequestId)
+	if err != nil {
+		return nil, err
+	}
+
+	// fetch init and apply outputs from S3
+	if applyExecutionRequest.InitOutputKey != "" {
+		initOutput, err := c.DownloadTerraformApplyInitResults(ctx, applyExecutionRequest.InitOutputKey)
+		if err != nil {
+			return nil, err
+		}
+		applyExecutionRequest.InitOutput = initOutput
+	}
+
+	if applyExecutionRequest.ApplyOutputKey != "" {
+		applyOutput, err := c.DownloadTerraformApplyResults(ctx, applyExecutionRequest.ApplyOutputKey)
+		if err != nil {
+			return nil, err
+		}
+		applyExecutionRequest.ApplyOutput = applyOutput
+	}
+
+	return applyExecutionRequest, nil
 }
 
 func (c *ExecutionAPIClient) GetApplyExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
@@ -48,7 +69,14 @@ func (c *ExecutionAPIClient) PutApplyExecutionRequest(ctx context.Context, input
 		return nil, err
 	}
 
-	// TODO: Start Workflow
+	// Start Workflow
+	err = c.startTerraformExecutionWorkflow(ctx, &TerraformExecutionWorkflowInput{
+		RequestType: "apply",
+		RequestId:   applyExecutionRequestId.String(),
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	return &applyExecutionRequest, nil
 }

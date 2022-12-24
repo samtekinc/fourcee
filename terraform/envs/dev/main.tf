@@ -10,4 +10,8 @@ module "organizations_service" {
 module "execution_service" {
   source = "../../modules/execution-service"
   prefix = "tfom-exec-service"
+
+  vpc_id          = var.vpc_id
+  efs_subnet_ids  = var.efs_subnet_ids
+  task_subnet_ids = var.task_subnet_ids
 }
