@@ -5,10 +5,10 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sheacloud/tfom/pkg/modules/models"
+	"github.com/sheacloud/tfom/pkg/execution/models"
 )
 
-func (r *ModulesRouter) getModuleGroups(c *gin.Context) {
+func (r *ExecutionRouter) getPlanExecutionRequests(c *gin.Context) {
 	limitString := c.DefaultQuery("limit", "10")
 	cursor := c.Query("cursor")
 	limit, err := strconv.Atoi(limitString)
@@ -18,7 +18,7 @@ func (r *ModulesRouter) getModuleGroups(c *gin.Context) {
 		})
 		return
 	}
-	response, err := r.apiClient.GetModuleGroups(c, int32(limit), cursor)
+	response, err := r.apiClient.GetPlanExecutionRequests(c, int32(limit), cursor)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -28,9 +28,9 @@ func (r *ModulesRouter) getModuleGroups(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (r *ModulesRouter) getModuleGroup(c *gin.Context) {
-	id := c.Param("moduleGroupId")
-	response, err := r.apiClient.GetModuleGroup(c, id)
+func (r *ExecutionRouter) getPlanExecutionRequest(c *gin.Context) {
+	id := c.Param("planExecutionRequestId")
+	response, err := r.apiClient.GetPlanExecutionRequest(c, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -40,16 +40,16 @@ func (r *ModulesRouter) getModuleGroup(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (r *ModulesRouter) putModuleGroup(c *gin.Context) {
-	var newOd models.NewModuleGroup
-	err := c.BindJSON(&newOd)
+func (r *ExecutionRouter) putPlanExecutionRequest(c *gin.Context) {
+	var newPlanRequest models.NewPlanExecutionRequest
+	err := c.BindJSON(&newPlanRequest)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-	response, err := r.apiClient.PutModuleGroup(c, &newOd)
+	response, err := r.apiClient.PutPlanExecutionRequest(c, &newPlanRequest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -57,16 +57,4 @@ func (r *ModulesRouter) putModuleGroup(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, response)
-}
-
-func (r *ModulesRouter) deleteModuleGroup(c *gin.Context) {
-	id := c.Param("moduleGroupId")
-	err := r.apiClient.DeleteModuleGroup(c, id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-	c.Status(http.StatusOK)
 }

@@ -95,3 +95,88 @@ resource "aws_dynamodb_table" "org_unit_memberships" {
     projection_type = "ALL"
   }
 }
+
+resource "aws_dynamodb_table" "module_groups" {
+  name         = "${var.prefix}-module-groups"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "ModuleGroupId"
+
+  attribute {
+    name = "ModuleGroupId"
+    type = "S"
+  }
+}
+
+resource "aws_dynamodb_table" "module_versions" {
+  name         = "${var.prefix}-module-versions"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "ModuleGroupId"
+  range_key    = "ModuleVersionId"
+
+  attribute {
+    name = "ModuleGroupId"
+    type = "S"
+  }
+
+  attribute {
+    name = "ModuleVersionId"
+    type = "S"
+  }
+}
+
+resource "aws_dynamodb_table" "module_propagations" {
+  name         = "${var.prefix}-module-propagations"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "ModulePropagationId"
+
+  attribute {
+    name = "ModulePropagationId"
+    type = "S"
+  }
+
+  attribute {
+    name = "ModuleGroupId"
+    type = "S"
+  }
+
+  attribute {
+    name = "ModuleVersionId"
+    type = "S"
+  }
+
+  attribute {
+    name = "OrgUnitId"
+    type = "S"
+  }
+
+  attribute {
+    name = "OrgDimensionId"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "ModuleGroupId-ModuleVersionId-index"
+    hash_key        = "ModuleGroupId"
+    range_key       = "ModuleVersionId"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "ModuleVersionId-index"
+    hash_key        = "ModuleVersionId"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "OrgUnitId-index"
+    hash_key        = "OrgUnitId"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "OrgDimensionId-OrgUnitId-index"
+    hash_key        = "OrgDimensionId"
+    range_key       = "OrgUnitId"
+    projection_type = "ALL"
+  }
+}

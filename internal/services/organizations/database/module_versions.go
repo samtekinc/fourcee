@@ -10,10 +10,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/sheacloud/tfom/internal/helpers"
-	"github.com/sheacloud/tfom/pkg/modules/models"
+	"github.com/sheacloud/tfom/pkg/organizations/models"
 )
 
-func (c *ModulesDatabaseClient) GetModuleVersion(ctx context.Context, moduleGroupId string, moduleVersionId string) (*models.ModuleVersion, error) {
+func (c *OrganizationsDatabaseClient) GetModuleVersion(ctx context.Context, moduleGroupId string, moduleVersionId string) (*models.ModuleVersion, error) {
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &c.versionsTableName,
 		Key: map[string]types.AttributeValue{
@@ -35,7 +35,7 @@ func (c *ModulesDatabaseClient) GetModuleVersion(ctx context.Context, moduleGrou
 	return &moduleVersion, nil
 }
 
-func (c ModulesDatabaseClient) GetModuleVersions(ctx context.Context, moduleGroupId string, limit int32, cursor string) (*models.ModuleVersions, error) {
+func (c OrganizationsDatabaseClient) GetModuleVersions(ctx context.Context, moduleGroupId string, limit int32, cursor string) (*models.ModuleVersions, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (c ModulesDatabaseClient) GetModuleVersions(ctx context.Context, moduleGrou
 	}, nil
 }
 
-func (c *ModulesDatabaseClient) PutModuleVersion(ctx context.Context, input *models.ModuleVersion) error {
+func (c *OrganizationsDatabaseClient) PutModuleVersion(ctx context.Context, input *models.ModuleVersion) error {
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
@@ -114,7 +114,7 @@ func (c *ModulesDatabaseClient) PutModuleVersion(ctx context.Context, input *mod
 	}
 }
 
-func (c *ModulesDatabaseClient) DeleteModuleVersion(ctx context.Context, moduleGroupId string, moduleVersionId string) error {
+func (c *OrganizationsDatabaseClient) DeleteModuleVersion(ctx context.Context, moduleGroupId string, moduleVersionId string) error {
 	condition := expression.AttributeExists(expression.Name("ModuleVersionId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()

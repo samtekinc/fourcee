@@ -10,10 +10,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/sheacloud/tfom/internal/helpers"
-	"github.com/sheacloud/tfom/pkg/modules/models"
+	"github.com/sheacloud/tfom/pkg/organizations/models"
 )
 
-func (c *ModulesDatabaseClient) GetModuleGroup(ctx context.Context, moduleGroupId string) (*models.ModuleGroup, error) {
+func (c *OrganizationsDatabaseClient) GetModuleGroup(ctx context.Context, moduleGroupId string) (*models.ModuleGroup, error) {
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &c.groupsTableName,
 		Key: map[string]types.AttributeValue{
@@ -34,7 +34,7 @@ func (c *ModulesDatabaseClient) GetModuleGroup(ctx context.Context, moduleGroupI
 	return &moduleGroup, nil
 }
 
-func (c ModulesDatabaseClient) GetModuleGroups(ctx context.Context, limit int32, cursor string) (*models.ModuleGroups, error) {
+func (c OrganizationsDatabaseClient) GetModuleGroups(ctx context.Context, limit int32, cursor string) (*models.ModuleGroups, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (c ModulesDatabaseClient) GetModuleGroups(ctx context.Context, limit int32,
 	}, nil
 }
 
-func (c *ModulesDatabaseClient) PutModuleGroup(ctx context.Context, input *models.ModuleGroup) error {
+func (c *OrganizationsDatabaseClient) PutModuleGroup(ctx context.Context, input *models.ModuleGroup) error {
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
@@ -102,7 +102,7 @@ func (c *ModulesDatabaseClient) PutModuleGroup(ctx context.Context, input *model
 	}
 }
 
-func (c *ModulesDatabaseClient) DeleteModuleGroup(ctx context.Context, moduleGroupId string) error {
+func (c *OrganizationsDatabaseClient) DeleteModuleGroup(ctx context.Context, moduleGroupId string) error {
 	condition := expression.AttributeExists(expression.Name("ModuleGroupId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()

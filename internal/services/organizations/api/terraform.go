@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/go-getter"
 	hcl "github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/sheacloud/tfom/pkg/modules/models"
+	"github.com/sheacloud/tfom/pkg/organizations/models"
 )
 
 func attributeToValue(attr *hclwrite.Attribute) string {

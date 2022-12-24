@@ -4,18 +4,18 @@ import (
 	"context"
 
 	"github.com/sheacloud/tfom/internal/identifiers"
-	"github.com/sheacloud/tfom/pkg/modules/models"
+	"github.com/sheacloud/tfom/pkg/organizations/models"
 )
 
-func (c *ModulesAPIClient) GetModuleGroup(ctx context.Context, id string) (*models.ModuleGroup, error) {
+func (c *OrganizationsAPIClient) GetModuleGroup(ctx context.Context, id string) (*models.ModuleGroup, error) {
 	return c.dbClient.GetModuleGroup(ctx, id)
 }
 
-func (c *ModulesAPIClient) GetModuleGroups(ctx context.Context, limit int32, cursor string) (*models.ModuleGroups, error) {
+func (c *OrganizationsAPIClient) GetModuleGroups(ctx context.Context, limit int32, cursor string) (*models.ModuleGroups, error) {
 	return c.dbClient.GetModuleGroups(ctx, limit, cursor)
 }
 
-func (c *ModulesAPIClient) PutModuleGroup(ctx context.Context, input *models.NewModuleGroup) (*models.ModuleGroup, error) {
+func (c *OrganizationsAPIClient) PutModuleGroup(ctx context.Context, input *models.NewModuleGroup) (*models.ModuleGroup, error) {
 	moduleGroupId, err := identifiers.NewIdentifier(identifiers.ResourceTypeModuleGroup)
 	if err != nil {
 		return nil, err
@@ -33,6 +33,6 @@ func (c *ModulesAPIClient) PutModuleGroup(ctx context.Context, input *models.New
 	}
 }
 
-func (c *ModulesAPIClient) DeleteModuleGroup(ctx context.Context, id string) error {
+func (c *OrganizationsAPIClient) DeleteModuleGroup(ctx context.Context, id string) error {
 	return c.dbClient.DeleteModuleGroup(ctx, id)
 }

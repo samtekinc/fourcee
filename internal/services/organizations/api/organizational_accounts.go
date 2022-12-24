@@ -22,8 +22,10 @@ func (c *OrganizationsAPIClient) PutOrganizationalAccount(ctx context.Context, i
 	}
 
 	orgAccount := models.OrganizationalAccount{
-		OrgAccountId: accountId.String(),
-		Name:         input.Name,
+		OrgAccountId:    accountId.String(),
+		Name:            input.Name,
+		CloudPlatform:   input.CloudPlatform,
+		CloudIdentifier: input.CloudIdentifier,
 	}
 	err = c.dbClient.PutOrganizationalAccount(ctx, &orgAccount)
 	if err != nil {

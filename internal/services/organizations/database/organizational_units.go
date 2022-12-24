@@ -286,7 +286,7 @@ func (c *OrganizationsDatabaseClient) DeleteOrganizationalUnit(ctx context.Conte
 }
 
 func (c *OrganizationsDatabaseClient) UpdateOrganizationalUnit(ctx context.Context, orgUnitId string, update *OrganizationalUnitUpdate) (*models.OrganizationalUnit, error) {
-	condition := expression.AttributeExists(expression.Name("Id"))
+	condition := expression.AttributeExists(expression.Name("OrgUnitId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()
 	if err != nil {
@@ -311,7 +311,7 @@ func (c *OrganizationsDatabaseClient) UpdateOrganizationalUnit(ctx context.Conte
 
 	updateInput := &dynamodb.UpdateItemInput{
 		TableName:                 &c.unitsTableName,
-		Key:                       map[string]types.AttributeValue{"Id": &types.AttributeValueMemberS{Value: orgUnitId}},
+		Key:                       map[string]types.AttributeValue{"OrgUnitId": &types.AttributeValueMemberS{Value: orgUnitId}},
 		ExpressionAttributeNames:  updateExpression.Names(),
 		ExpressionAttributeValues: updateExpression.Values(),
 		UpdateExpression:          updateExpression.Update(),

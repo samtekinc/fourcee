@@ -32,22 +32,58 @@ type OrganizationsDatabaseClientInterface interface {
 	GetOrganizationalUnitMembershipsByDimension(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.OrganizationalUnitMemberships, error)
 	PutOrganizationalUnitMembership(ctx context.Context, input *models.OrganizationalUnitMembership) error
 	DeleteOrganizationalUnitMembership(ctx context.Context, orgDimensionId string, accountId string) error
+
+	GetModuleGroup(ctx context.Context, moduleGroupId string) (*models.ModuleGroup, error)
+	GetModuleGroups(ctx context.Context, limit int32, cursor string) (*models.ModuleGroups, error)
+	PutModuleGroup(ctx context.Context, input *models.ModuleGroup) error
+	DeleteModuleGroup(ctx context.Context, moduleGroupId string) error
+
+	GetModuleVersion(ctx context.Context, moduleGroupId string, moduleVersionId string) (*models.ModuleVersion, error)
+	GetModuleVersions(ctx context.Context, moduleGroupId string, limit int32, cursor string) (*models.ModuleVersions, error)
+	PutModuleVersion(ctx context.Context, input *models.ModuleVersion) error
+	DeleteModuleVersion(ctx context.Context, moduleGroupId string, moduleVersionId string) error
+
+	GetModulePropagation(ctx context.Context, modulePropagationId string) (*models.ModulePropagation, error)
+	GetModulePropagations(ctx context.Context, limit int32, cursor string) (*models.ModulePropagations, error)
+	GetModulePropagationsByModuleGroupId(ctx context.Context, moduleGroupId string, limit int32, cursor string) (*models.ModulePropagations, error)
+	GetModulePropagationsByModuleVersionId(ctx context.Context, moduleVersionId string, limit int32, cursor string) (*models.ModulePropagations, error)
+	GetModulePropagationsByOrgUnitId(ctx context.Context, orgUnitId string, limit int32, cursor string) (*models.ModulePropagations, error)
+	GetModulePropagationsByOrgDimensionId(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.ModulePropagations, error)
+	PutModulePropagation(ctx context.Context, input *models.ModulePropagation) error
+	DeleteModulePropagation(ctx context.Context, modulePropagationId string) error
 }
 
 type OrganizationsDatabaseClient struct {
-	dynamodb             awsclients.DynamoDBInterface
-	dimensionsTableName  string
-	unitsTableName       string
-	accountsTableName    string
-	membershipsTableName string
+	dynamodb              awsclients.DynamoDBInterface
+	dimensionsTableName   string
+	unitsTableName        string
+	accountsTableName     string
+	membershipsTableName  string
+	groupsTableName       string
+	versionsTableName     string
+	propagationsTableName string
 }
 
-func NewOrganizationsDatabaseClient(dynamodb awsclients.DynamoDBInterface, dimensionsTableName string, unitsTableName string, accountsTableName string, membershipsTableName string) *OrganizationsDatabaseClient {
+type OrganizationsDatabaseClientInput struct {
+	DynamoDB              awsclients.DynamoDBInterface
+	DimensionsTableName   string
+	UnitsTableName        string
+	AccountsTableName     string
+	MembershipsTableName  string
+	GroupsTableName       string
+	VersionsTableName     string
+	PropagationsTableName string
+}
+
+func NewOrganizationsDatabaseClient(input *OrganizationsDatabaseClientInput) *OrganizationsDatabaseClient {
 	return &OrganizationsDatabaseClient{
-		dynamodb:             dynamodb,
-		dimensionsTableName:  dimensionsTableName,
-		unitsTableName:       unitsTableName,
-		accountsTableName:    accountsTableName,
-		membershipsTableName: membershipsTableName,
+		dynamodb:              input.DynamoDB,
+		dimensionsTableName:   input.DimensionsTableName,
+		unitsTableName:        input.UnitsTableName,
+		accountsTableName:     input.AccountsTableName,
+		membershipsTableName:  input.MembershipsTableName,
+		groupsTableName:       input.GroupsTableName,
+		versionsTableName:     input.VersionsTableName,
+		propagationsTableName: input.PropagationsTableName,
 	}
 }

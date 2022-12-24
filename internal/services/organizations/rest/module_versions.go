@@ -5,10 +5,10 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sheacloud/tfom/pkg/modules/models"
+	"github.com/sheacloud/tfom/pkg/organizations/models"
 )
 
-func (r *ModulesRouter) getModuleVersions(c *gin.Context) {
+func (r *OrganizationsRouter) getModuleVersions(c *gin.Context) {
 	moduleGroupId := c.Param("moduleGroupId")
 	limitString := c.DefaultQuery("limit", "10")
 	cursor := c.Query("cursor")
@@ -29,7 +29,7 @@ func (r *ModulesRouter) getModuleVersions(c *gin.Context) {
 	c.JSON(http.StatusOK, ods)
 }
 
-func (r *ModulesRouter) getModuleVersion(c *gin.Context) {
+func (r *OrganizationsRouter) getModuleVersion(c *gin.Context) {
 	moduleGroupId := c.Param("moduleGroupId")
 	moduleVersionId := c.Param("moduleVersionId")
 	od, err := r.apiClient.GetModuleVersion(c, moduleGroupId, moduleVersionId)
@@ -42,7 +42,7 @@ func (r *ModulesRouter) getModuleVersion(c *gin.Context) {
 	c.JSON(http.StatusOK, od)
 }
 
-func (r *ModulesRouter) putModuleVersion(c *gin.Context) {
+func (r *OrganizationsRouter) putModuleVersion(c *gin.Context) {
 	var input models.NewModuleVersion
 	err := c.BindJSON(&input)
 	if err != nil {
@@ -61,7 +61,7 @@ func (r *ModulesRouter) putModuleVersion(c *gin.Context) {
 	c.JSON(http.StatusOK, od)
 }
 
-func (r *ModulesRouter) deleteModuleVersion(c *gin.Context) {
+func (r *OrganizationsRouter) deleteModuleVersion(c *gin.Context) {
 	moduleGroupId := c.Param("moduleGroupId")
 	moduleVersionId := c.Param("moduleVersionId")
 	err := r.apiClient.DeleteModuleVersion(c, moduleGroupId, moduleVersionId)

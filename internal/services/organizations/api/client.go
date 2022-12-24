@@ -33,14 +33,35 @@ type OrganizationsAPIClientInterface interface {
 	GetOrganizationalUnitMembershipsByDimension(ctx context.Context, dimensionId string, limit int32, cursor string) (*models.OrganizationalUnitMemberships, error)
 	PutOrganizationalUnitMembership(ctx context.Context, input *models.NewOrganizationalUnitMembership) (*models.OrganizationalUnitMembership, error)
 	DeleteOrganizationalUnitMembership(ctx context.Context, dimensionId string, accountId string) error
+
+	GetModuleGroup(ctx context.Context, moduleGroupId string) (*models.ModuleGroup, error)
+	GetModuleGroups(ctx context.Context, limit int32, cursor string) (*models.ModuleGroups, error)
+	PutModuleGroup(ctx context.Context, input *models.NewModuleGroup) (*models.ModuleGroup, error)
+	DeleteModuleGroup(ctx context.Context, moduleGroupId string) error
+
+	GetModuleVersion(ctx context.Context, moduleGroupId string, moduleVersionId string) (*models.ModuleVersion, error)
+	GetModuleVersions(ctx context.Context, moduleGroupId string, limit int32, cursor string) (*models.ModuleVersions, error)
+	PutModuleVersion(ctx context.Context, input *models.NewModuleVersion) (*models.ModuleVersion, error)
+	DeleteModuleVersion(ctx context.Context, moduleGroupId string, moduleVersionId string) error
+
+	GetModulePropagation(ctx context.Context, modulePropagationId string) (*models.ModulePropagation, error)
+	GetModulePropagations(ctx context.Context, limit int32, cursor string) (*models.ModulePropagations, error)
+	GetModulePropagationsByModuleGroupId(ctx context.Context, moduleGroupId string, limit int32, cursor string) (*models.ModulePropagations, error)
+	GetModulePropagationsByModuleVersionId(ctx context.Context, moduleVersionId string, limit int32, cursor string) (*models.ModulePropagations, error)
+	GetModulePropagationsByOrgUnitId(ctx context.Context, orgUnitId string, limit int32, cursor string) (*models.ModulePropagations, error)
+	GetModulePropagationsByOrgDimensionId(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.ModulePropagations, error)
+	PutModulePropagation(ctx context.Context, input *models.NewModulePropagation) (*models.ModulePropagation, error)
+	DeleteModulePropagation(ctx context.Context, modulePropagationId string) error
 }
 
 type OrganizationsAPIClient struct {
-	dbClient database.OrganizationsDatabaseClientInterface
+	dbClient         database.OrganizationsDatabaseClientInterface
+	workingDirectory string
 }
 
-func NewOrganizationsAPIClient(dbClient database.OrganizationsDatabaseClientInterface) *OrganizationsAPIClient {
+func NewOrganizationsAPIClient(dbClient database.OrganizationsDatabaseClientInterface, workingDirectory string) *OrganizationsAPIClient {
 	return &OrganizationsAPIClient{
-		dbClient: dbClient,
+		dbClient:         dbClient,
+		workingDirectory: workingDirectory,
 	}
 }

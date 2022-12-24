@@ -20,13 +20,23 @@ func main() {
 
 	dynamodbClient := dynamodb.NewFromConfig(cfg)
 
-	orgDbClient := database.NewOrganizationsDatabaseClient(dynamodbClient, "tfom-org-service-organizational-dimensions", "tfom-org-service-organizational-units", "tfom-org-service-organizational-accounts", "tfom-org-service-organizational-unit-memberships")
-	orgApiClient := api.NewOrganizationsAPIClient(orgDbClient)
+	dbInput := database.OrganizationsDatabaseClientInput{
+		DynamoDB:              dynamodbClient,
+		DimensionsTableName:   "tfom-org-service-organizational-dimensions",
+		UnitsTableName:        "tfom-org-service-organizational-units",
+		AccountsTableName:     "tfom-org-service-organizational-accounts",
+		MembershipsTableName:  "tfom-org-service-organizational-unit-memberships",
+		GroupsTableName:       "tfom-org-service-module-groups",
+		VersionsTableName:     "tfom-org-service-module-versions",
+		PropagationsTableName: "tfom-org-service-module-propagations",
+	}
+	orgDbClient := database.NewOrganizationsDatabaseClient(&dbInput)
+	orgApiClient := api.NewOrganizationsAPIClient(orgDbClient, "./tmp/")
 	orgRouter := rest.NewOrganizationsRouter(orgApiClient)
 
 	router := gin.Default()
 
-	orgRouter.RegisterRoutes(router.Group("/organizations"))
+	orgRouter.RegisterRoutes(&router.RouterGroup)
 
 	router.Run(":8080")
 }

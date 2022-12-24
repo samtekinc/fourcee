@@ -7,7 +7,7 @@ module "organizations_service" {
   prefix = "tfom-org-service"
 }
 
-module "modules_service" {
-  source = "../../modules/modules-service"
-  prefix = "tfom-modules-service"
+module "execution_service" {
+  source = "../../modules/execution-service"
+  prefix = "tfom-exec-service"
 }

@@ -1,8 +1,10 @@
 package models
 
 type OrganizationalAccount struct {
-	OrgAccountId string `json:"orgAccountId"`
-	Name         string `json:"name"`
+	OrgAccountId    string `json:"orgAccountId"`
+	Name            string `json:"name"`
+	CloudPlatform   string `json:"cloudPlatform"`
+	CloudIdentifier string `json:"cloudIdentifier"`
 }
 
 type OrganizationalAccounts struct {
@@ -11,5 +13,7 @@ type OrganizationalAccounts struct {
 }
 
 type NewOrganizationalAccount struct {
-	Name string `json:"name"`
+	Name            string `json:"name"`
+	CloudPlatform   string `json:"cloudPlatform"`
+	CloudIdentifier string `json:"cloudIdentifier"`
 }
