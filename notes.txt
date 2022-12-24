@@ -1,13 +1,20 @@
 
- - module service
-assign module to OU
-
-
- - orchestration service
  trigger an execution of a module propagation
   - pull list of downstream OUs from propagation
   - extract all associated accounts from OUs
-  - extract list of all accounts with active tf states for the module propagation
-  - for all new accounts, create a tf state entry and execute the terraform
-  - for all existing accounts which still have propagation, execute the terraform
-  - for all existing accounts which are no longer in propagation, execute a terraform destroy
+  - fetch all active module-account-associations for the propagation
+  - determine diff between associated accounts and active module-account associations:
+    - for associated accounts with no active module-account-association, create one
+    - for active associations with no corresponding associated account in the propagation, deactivate the association & run tf destroy
+  - for all active (new or existing) module-account-associations:
+    - execute terraform plan/apply
+
+module-account-associations
+ - primary keys are module propagation ID & org account ID
+ - tracks the association status of a module to an account, based on some propagation
+ - gets created when a module propagation is executed
+ - is never deleted, only transitioned into a deleted status while maintaining record
+
+module-propagation-executions
+ - primary keys are module propagation and execution id
+ - tracks tf executions via grouping key

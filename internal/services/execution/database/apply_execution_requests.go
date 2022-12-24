@@ -126,6 +126,56 @@ func (c ExecutionDatabaseClient) GetApplyExecutionRequestsByStateKey(ctx context
 	}, nil
 }
 
+func (c ExecutionDatabaseClient) GetApplyExecutionRequestsByGroupingKey(ctx context.Context, groupingKey string, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
+	startKey, err := helpers.GetKeyFromCursor(cursor)
+	if err != nil {
+		return nil, err
+	}
+
+	keyCondition := expression.Key("GroupingKey").Equal(expression.Value(groupingKey))
+	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
+	expr, err := expressionBuilder.Build()
+	if err != nil {
+		return nil, err
+	}
+
+	queryInput := &dynamodb.QueryInput{
+		TableName:                 &c.applyExecutionsTableName,
+		IndexName:                 aws.String("GroupingKey-RequestTime-index"),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		KeyConditionExpression:    expr.KeyCondition(),
+		FilterExpression:          expr.Filter(),
+		Limit:                     &limit,
+		ExclusiveStartKey:         startKey,
+	}
+
+	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"GroupingKey", "RequestTime"})
+	if err != nil {
+		return nil, err
+	}
+
+	applyExecutionRequests := []models.ApplyExecutionRequest{}
+	var nextCursor string
+
+	err = attributevalue.UnmarshalListOfMaps(resultItems, &applyExecutionRequests)
+	if err != nil {
+		return nil, err
+	}
+
+	if lastEvaluatedKey != nil {
+		nextCursor, err = helpers.GetCursorFromKey(lastEvaluatedKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &models.ApplyExecutionRequests{
+		Items:      applyExecutionRequests,
+		NextCursor: nextCursor,
+	}, nil
+}
+
 func (c *ExecutionDatabaseClient) PutApplyExecutionRequest(ctx context.Context, input *models.ApplyExecutionRequest) error {
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {

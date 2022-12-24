@@ -44,6 +44,11 @@ func (c *ExecutionAPIClient) GetPlanExecutionRequestsByStateKey(ctx context.Cont
 	return c.dbClient.GetPlanExecutionRequestsByStateKey(ctx, stateKey, limit, cursor)
 }
 
+func (c *ExecutionAPIClient) GetPlanExecutionRequestsByGroupingKey(ctx context.Context, groupingKey string, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
+	// TODO: fetch outputs from S3
+	return c.dbClient.GetPlanExecutionRequestsByGroupingKey(ctx, groupingKey, limit, cursor)
+}
+
 func (c *ExecutionAPIClient) PutPlanExecutionRequest(ctx context.Context, input *models.NewPlanExecutionRequest) (*models.PlanExecutionRequest, error) {
 	planExecutionRequestId, err := identifiers.NewIdentifier(identifiers.ResourceTypePlanExecutionRequest)
 	if err != nil {
@@ -54,6 +59,7 @@ func (c *ExecutionAPIClient) PutPlanExecutionRequest(ctx context.Context, input 
 		PlanExecutionRequestId:       planExecutionRequestId.String(),
 		TerraformVersion:             input.TerraformVersion,
 		StateKey:                     input.StateKey,
+		GroupingKey:                  input.GroupingKey,
 		TerraformConfigurationBase64: input.TerraformConfigurationBase64,
 		AdditionalArguments:          input.AdditionalArguments,
 		Status:                       models.PlanExecutionStatusPending,

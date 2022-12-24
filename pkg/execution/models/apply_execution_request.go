@@ -15,6 +15,7 @@ type ApplyExecutionRequest struct {
 	ApplyExecutionRequestId      string                `json:"applyExecutionRequestId"`
 	TerraformVersion             string                `json:"terraformVersion"`
 	StateKey                     string                `json:"stateKey"`
+	GroupingKey                  string                `json:"groupingKey" dynamodbav:",omitempty"`
 	TerraformConfigurationBase64 string                `json:"terraformConfigurationBase64"`
 	TerraformPlanBase64          string                `json:"terraformPlanBase64"`
 	AdditionalArguments          []string              `json:"additionalArguments"`
@@ -35,6 +36,7 @@ type ApplyExecutionRequests struct {
 type NewApplyExecutionRequest struct {
 	TerraformVersion             string   `json:"terraformVersion"`
 	StateKey                     string   `json:"stateKey"`
+	GroupingKey                  string   `json:"groupingKey"`
 	TerraformConfigurationBase64 string   `json:"terraformConfigurationBase64"`
 	TerraformPlanBase64          string   `json:"terraformPlanBase64"`
 	AdditionalArguments          []string `json:"additionalArguments"`

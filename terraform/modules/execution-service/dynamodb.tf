@@ -14,6 +14,11 @@ resource "aws_dynamodb_table" "plan_execution_requests" {
   }
 
   attribute {
+    name = "GroupingKey"
+    type = "S"
+  }
+
+  attribute {
     name = "RequestTime"
     type = "S"
   }
@@ -21,6 +26,13 @@ resource "aws_dynamodb_table" "plan_execution_requests" {
   global_secondary_index {
     name            = "StateKey-RequestTime-index"
     hash_key        = "StateKey"
+    range_key       = "RequestTime"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "GroupingKey-RequestTime-index"
+    hash_key        = "GroupingKey"
     range_key       = "RequestTime"
     projection_type = "ALL"
   }
@@ -43,6 +55,11 @@ resource "aws_dynamodb_table" "apply_execution_requests" {
   }
 
   attribute {
+    name = "GroupingKey"
+    type = "S"
+  }
+
+  attribute {
     name = "RequestTime"
     type = "S"
   }
@@ -50,6 +67,13 @@ resource "aws_dynamodb_table" "apply_execution_requests" {
   global_secondary_index {
     name            = "StateKey-RequestTime-index"
     hash_key        = "StateKey"
+    range_key       = "RequestTime"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "GroupingKey-RequestTime-index"
+    hash_key        = "GroupingKey"
     range_key       = "RequestTime"
     projection_type = "ALL"
   }

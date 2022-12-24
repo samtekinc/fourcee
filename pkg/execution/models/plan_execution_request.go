@@ -15,6 +15,7 @@ type PlanExecutionRequest struct {
 	PlanExecutionRequestId       string               `json:"planExecutionRequestId"`
 	TerraformVersion             string               `json:"terraformVersion"`
 	StateKey                     string               `json:"stateKey"`
+	GroupingKey                  string               `json:"groupingKey" dynamodbav:",omitempty"`
 	TerraformConfigurationBase64 string               `json:"terraformConfigurationBase64"`
 	AdditionalArguments          []string             `json:"additionalArguments"`
 	WorkflowExecutionId          string               `json:"-"`
@@ -34,6 +35,7 @@ type PlanExecutionRequests struct {
 type NewPlanExecutionRequest struct {
 	TerraformVersion             string   `json:"terraformVersion"`
 	StateKey                     string   `json:"stateKey"`
+	GroupingKey                  string   `json:"groupingKey"`
 	TerraformConfigurationBase64 string   `json:"terraformConfigurationBase64"`
 	AdditionalArguments          []string `json:"additionalArguments"`
 }

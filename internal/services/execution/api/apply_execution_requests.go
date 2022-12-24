@@ -45,6 +45,11 @@ func (c *ExecutionAPIClient) GetApplyExecutionRequestsByStateKey(ctx context.Con
 	return c.dbClient.GetApplyExecutionRequestsByStateKey(ctx, stateKey, limit, cursor)
 }
 
+func (c *ExecutionAPIClient) GetApplyExecutionRequestsByGroupingKey(ctx context.Context, groupingKey string, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
+	// TODO: fetch outputs from S3
+	return c.dbClient.GetApplyExecutionRequestsByGroupingKey(ctx, groupingKey, limit, cursor)
+}
+
 func (c *ExecutionAPIClient) PutApplyExecutionRequest(ctx context.Context, input *models.NewApplyExecutionRequest) (*models.ApplyExecutionRequest, error) {
 	applyExecutionRequestId, err := identifiers.NewIdentifier(identifiers.ResourceTypeApplyExecutionRequest)
 	if err != nil {
@@ -57,6 +62,7 @@ func (c *ExecutionAPIClient) PutApplyExecutionRequest(ctx context.Context, input
 		ApplyExecutionRequestId:      applyExecutionRequestId.String(),
 		TerraformVersion:             input.TerraformVersion,
 		StateKey:                     input.StateKey,
+		GroupingKey:                  input.GroupingKey,
 		TerraformConfigurationBase64: input.TerraformConfigurationBase64,
 		TerraformPlanBase64:          input.TerraformPlanBase64,
 		AdditionalArguments:          input.AdditionalArguments,
