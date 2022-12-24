@@ -180,3 +180,21 @@ resource "aws_dynamodb_table" "module_propagations" {
     projection_type = "ALL"
   }
 }
+
+
+resource "aws_dynamodb_table" "module_propagation_execution_requests" {
+  name         = "${var.prefix}-module-propagation-execution-requests"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "ModulePropagationId"
+  range_key    = "ModulePropagationExecutionRequestId"
+
+  attribute {
+    name = "ModulePropagationId"
+    type = "S"
+  }
+
+  attribute {
+    name = "ModulePropagationExecutionRequestId"
+    type = "S"
+  }
+}

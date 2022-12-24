@@ -62,4 +62,8 @@ func (r *OrganizationsRouter) RegisterRoutes(router *gin.RouterGroup) {
 	modules.GET("/propagations/:modulePropagationId", r.getModulePropagation)
 	modules.GET("/propagations/:modulePropagationId/downstream-ous", r.getModulePropagationDownstreamOUs)
 	modules.DELETE("/propagations/:modulePropagationId", r.deleteModulePropagation)
+
+	modules.GET("/propagations/:modulePropagationId/executions", r.getModulePropagationExecutionRequestsByModulePropagationId)
+	modules.GET("/propagations/:modulePropagationId/executions/:modulePropagationExecutionRequestId", r.getModulePropagationExecutionRequest)
+	modules.POST("/propagations/:modulePropagationId/executions", r.putModulePropagationExecutionRequest)
 }

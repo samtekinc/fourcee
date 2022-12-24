@@ -51,28 +51,36 @@ type OrganizationsDatabaseClientInterface interface {
 	GetModulePropagationsByOrgDimensionId(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.ModulePropagations, error)
 	PutModulePropagation(ctx context.Context, input *models.ModulePropagation) error
 	DeleteModulePropagation(ctx context.Context, modulePropagationId string) error
+
+	GetModulePropagationExecutionRequest(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string) (*models.ModulePropagationExecutionRequest, error)
+	GetModulePropagationExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationExecutionRequests, error)
+	GetModulePropagationExecutionRequestsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationExecutionRequests, error)
+	PutModulePropagationExecutionRequest(ctx context.Context, input *models.ModulePropagationExecutionRequest) error
+	UpdateModulePropagationExecutionRequest(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string, update *models.ModulePropagationExecutionRequestUpdate) (*models.ModulePropagationExecutionRequest, error)
 }
 
 type OrganizationsDatabaseClient struct {
-	dynamodb              awsclients.DynamoDBInterface
-	dimensionsTableName   string
-	unitsTableName        string
-	accountsTableName     string
-	membershipsTableName  string
-	groupsTableName       string
-	versionsTableName     string
-	propagationsTableName string
+	dynamodb                                    awsclients.DynamoDBInterface
+	dimensionsTableName                         string
+	unitsTableName                              string
+	accountsTableName                           string
+	membershipsTableName                        string
+	groupsTableName                             string
+	versionsTableName                           string
+	propagationsTableName                       string
+	modulePropagationExecutionRequestsTableName string
 }
 
 type OrganizationsDatabaseClientInput struct {
-	DynamoDB              awsclients.DynamoDBInterface
-	DimensionsTableName   string
-	UnitsTableName        string
-	AccountsTableName     string
-	MembershipsTableName  string
-	GroupsTableName       string
-	VersionsTableName     string
-	PropagationsTableName string
+	DynamoDB                                    awsclients.DynamoDBInterface
+	DimensionsTableName                         string
+	UnitsTableName                              string
+	AccountsTableName                           string
+	MembershipsTableName                        string
+	GroupsTableName                             string
+	VersionsTableName                           string
+	PropagationsTableName                       string
+	ModulePropagationExecutionRequestsTableName string
 }
 
 func NewOrganizationsDatabaseClient(input *OrganizationsDatabaseClientInput) *OrganizationsDatabaseClient {
@@ -85,5 +93,6 @@ func NewOrganizationsDatabaseClient(input *OrganizationsDatabaseClientInput) *Or
 		groupsTableName:       input.GroupsTableName,
 		versionsTableName:     input.VersionsTableName,
 		propagationsTableName: input.PropagationsTableName,
+		modulePropagationExecutionRequestsTableName: input.ModulePropagationExecutionRequestsTableName,
 	}
 }

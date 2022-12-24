@@ -29,6 +29,7 @@ func main() {
 		GroupsTableName:       "tfom-org-service-module-groups",
 		VersionsTableName:     "tfom-org-service-module-versions",
 		PropagationsTableName: "tfom-org-service-module-propagations",
+		ModulePropagationExecutionRequestsTableName: "tfom-org-service-module-propagation-execution-requests",
 	}
 	orgDbClient := database.NewOrganizationsDatabaseClient(&dbInput)
 	orgApiClient := api.NewOrganizationsAPIClient(orgDbClient, "./tmp/")
