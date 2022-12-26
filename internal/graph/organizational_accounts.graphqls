@@ -1,0 +1,36 @@
+type OrganizationalAccount {
+  orgAccountId: ID!
+  name: String!
+  cloudPlatform: String!
+  cloudIdentifier: String!
+  orgUnitMemberships(
+    limit: Int
+    nextCursor: String
+  ): OrganizationalUnitMemberships!
+}
+
+type OrganizationalAccounts {
+  items: [OrganizationalAccount]!
+  nextCursor: String
+}
+
+input NewOrganizationalAccount {
+  name: String!
+  cloudPlatform: String!
+  cloudIdentifier: String!
+}
+
+extend type Query {
+  organizationalAccount(orgAccountId: ID!): OrganizationalAccount!
+  organizationalAccounts(
+    limit: Int
+    nextCursor: String
+  ): OrganizationalAccounts!
+}
+
+extend type Mutation {
+  createOrganizationalAccount(
+    orgAccount: NewOrganizationalAccount!
+  ): OrganizationalAccount!
+  deleteOrganizationalAccount(orgAccountId: ID!): Boolean!
+}

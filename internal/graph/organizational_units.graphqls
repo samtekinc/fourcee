@@ -1,0 +1,62 @@
+type OrganizationalUnit {
+  orgUnitId: ID!
+  name: String!
+  orgDimensionId: String!
+  hierarchy: String!
+  parentOrgUnitId: ID
+  parentOrgUnit: OrganizationalUnit
+  children(limit: Int, nextCursor: String): OrganizationalUnits!
+  downstreamOrgUnits(limit: Int, nextCursor: String): OrganizationalUnits!
+  orgUnitMemberships(
+    limit: Int
+    nextCursor: String
+  ): OrganizationalUnitMemberships!
+}
+
+type OrganizationalUnits {
+  items: [OrganizationalUnit]!
+  nextCursor: String
+}
+
+input OrganizationalUnitUpdate {
+  Name: String
+  ParentOrgUnitId: ID
+}
+
+input NewOrganizationalUnit {
+  name: String!
+  orgDimensionId: String!
+  parentOrgUnitId: ID!
+}
+
+extend type Query {
+  organizationalUnit(orgDimensionId: ID!, orgUnitId: ID!): OrganizationalUnit!
+  organizationalUnits(limit: Int, nextCursor: String): OrganizationalUnits!
+  organizationalUnitsByDimension(
+    orgDimensionId: ID!
+    limit: Int
+    nextCursor: String
+  ): OrganizationalUnits!
+  organizationalUnitsByParent(
+    orgDimensionId: ID!
+    parentOrgUnitId: ID!
+    limit: Int
+    nextCursor: String
+  ): OrganizationalUnits!
+  organizationalUnitsByHierarchy(
+    orgDimensionId: ID!
+    hierarchy: String!
+    limit: Int
+    nextCursor: String
+  ): OrganizationalUnits!
+}
+
+extend type Mutation {
+  createOrganizationalUnit(orgUnit: NewOrganizationalUnit!): OrganizationalUnit!
+  deleteOrganizationalUnit(orgDimensionId: ID!, orgUnitId: ID!): Boolean!
+  updateOrganizationalUnit(
+    orgDimensionId: ID!
+    orgUnitId: ID!
+    update: OrganizationalUnitUpdate!
+  ): OrganizationalUnit!
+}

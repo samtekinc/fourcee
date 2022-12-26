@@ -1,0 +1,35 @@
+type OrganizationalDimension {
+  orgDimensionId: ID!
+  name: String!
+  rootOrgUnitId: ID!
+  rootOrgUnit: OrganizationalUnit!
+  orgUnits(limit: Int, nextCursor: String): OrganizationalUnits!
+  orgUnitMemberships(
+    limit: Int
+    nextCursor: String
+  ): OrganizationalUnitMemberships!
+}
+
+type OrganizationalDimensions {
+  items: [OrganizationalDimension]!
+  nextCursor: String
+}
+
+input NewOrganizationalDimension {
+  name: String!
+}
+
+extend type Query {
+  organizationalDimension(orgDimensionId: ID!): OrganizationalDimension!
+  organizationalDimensions(
+    limit: Int
+    nextCursor: String
+  ): OrganizationalDimensions!
+}
+
+extend type Mutation {
+  createOrganizationalDimension(
+    orgDimension: NewOrganizationalDimension!
+  ): OrganizationalDimension!
+  deleteOrganizationalDimension(orgDimensionId: ID!): Boolean!
+}

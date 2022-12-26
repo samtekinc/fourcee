@@ -12,7 +12,8 @@ resource "aws_dynamodb_table" "org_dimensions" {
 resource "aws_dynamodb_table" "org_units" {
   name         = "${var.prefix}-organizational-units"
   billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "OrgUnitId"
+  hash_key     = "OrgDimensionId"
+  range_key    = "OrgUnitId"
 
   attribute {
     name = "OrgUnitId"
@@ -196,5 +197,104 @@ resource "aws_dynamodb_table" "module_propagation_execution_requests" {
   attribute {
     name = "ModulePropagationExecutionRequestId"
     type = "S"
+  }
+}
+
+resource "aws_dynamodb_table" "module_account_associations" {
+  name         = "${var.prefix}-module-account-associations"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "ModulePropagationId"
+  range_key    = "OrgAccountId"
+
+  attribute {
+    name = "ModulePropagationId"
+    type = "S"
+  }
+
+  attribute {
+    name = "OrgAccountId"
+    type = "S"
+  }
+}
+
+
+resource "aws_dynamodb_table" "plan_execution_requests" {
+  name         = "${var.prefix}-plan-execution-requests"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "PlanExecutionRequestId"
+
+  attribute {
+    name = "PlanExecutionRequestId"
+    type = "S"
+  }
+
+  attribute {
+    name = "StateKey"
+    type = "S"
+  }
+
+  attribute {
+    name = "GroupingKey"
+    type = "S"
+  }
+
+  attribute {
+    name = "RequestTime"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "StateKey-RequestTime-index"
+    hash_key        = "StateKey"
+    range_key       = "RequestTime"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "GroupingKey-RequestTime-index"
+    hash_key        = "GroupingKey"
+    range_key       = "RequestTime"
+    projection_type = "ALL"
+  }
+}
+
+
+resource "aws_dynamodb_table" "apply_execution_requests" {
+  name         = "${var.prefix}-apply-execution-requests"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "ApplyExecutionRequestId"
+
+  attribute {
+    name = "ApplyExecutionRequestId"
+    type = "S"
+  }
+
+  attribute {
+    name = "StateKey"
+    type = "S"
+  }
+
+  attribute {
+    name = "GroupingKey"
+    type = "S"
+  }
+
+  attribute {
+    name = "RequestTime"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "StateKey-RequestTime-index"
+    hash_key        = "StateKey"
+    range_key       = "RequestTime"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "GroupingKey-RequestTime-index"
+    hash_key        = "GroupingKey"
+    range_key       = "RequestTime"
+    projection_type = "ALL"
   }
 }

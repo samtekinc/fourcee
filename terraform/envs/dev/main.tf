@@ -4,12 +4,7 @@ provider "aws" {
 
 module "organizations_service" {
   source = "../../modules/organizations-service"
-  prefix = "tfom-org-service"
-}
-
-module "execution_service" {
-  source = "../../modules/execution-service"
-  prefix = "tfom-exec-service"
+  prefix = "tfom"
 
   vpc_id          = var.vpc_id
   efs_subnet_ids  = var.efs_subnet_ids
