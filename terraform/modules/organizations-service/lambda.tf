@@ -6,7 +6,7 @@ resource "aws_lambda_function" "workflow_handler" {
   role          = aws_iam_role.workflow_handler_lambda_role.arn
   architectures = ["x86_64"]
   memory_size   = 4096
-  handler       = "organizations-workflow-handler"
+  handler       = "workflow-handler"
   runtime       = "go1.x"
   package_type  = "Zip"
   timeout       = 900

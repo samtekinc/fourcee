@@ -219,6 +219,8 @@ data "aws_iam_policy_document" "step_functions_policy" {
     ]
     resources = [
       aws_dynamodb_table.module_propagation_execution_requests.arn,
+      aws_dynamodb_table.plan_execution_requests.arn,
+      aws_dynamodb_table.apply_execution_requests.arn,
     ]
   }
 
@@ -226,6 +228,27 @@ data "aws_iam_policy_document" "step_functions_policy" {
     effect    = "Allow"
     actions   = ["iam:PassRole"]
     resources = ["*"]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "ecs:RunTask",
+      "ecs:StopTask",
+      "ecs:DescribeTasks"
+    ]
+    resources = [
+      aws_ecs_task_definition.executor.arn,
+      aws_ecs_cluster.tfom.arn
+    ]
+  }
+
+  statement {
+    effect  = "Allow"
+    actions = ["lambda:InvokeFunction"]
+    resources = [
+      "*"
+    ]
   }
 }
 

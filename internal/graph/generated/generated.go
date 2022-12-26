@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -36,6 +37,8 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	ModuleGroup() ModuleGroupResolver
+	ModulePropagation() ModulePropagationResolver
 	Mutation() MutationResolver
 	OrganizationalAccount() OrganizationalAccountResolver
 	OrganizationalDimension() OrganizationalDimensionResolver
@@ -48,16 +51,103 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Argument struct {
+		Name  func(childComplexity int) int
+		Value func(childComplexity int) int
+	}
+
+	ModuleAccountAssociation struct {
+		ModulePropagationId func(childComplexity int) int
+		OrgAccountId        func(childComplexity int) int
+		RemoteStateBucket   func(childComplexity int) int
+		RemoteStateKey      func(childComplexity int) int
+		Status              func(childComplexity int) int
+	}
+
+	ModuleAccountAssociations struct {
+		Items      func(childComplexity int) int
+		NextCursor func(childComplexity int) int
+	}
+
+	ModuleGroup struct {
+		ModuleGroupId func(childComplexity int) int
+		Name          func(childComplexity int) int
+		Versions      func(childComplexity int, limit *int, nextCursor *string) int
+	}
+
+	ModuleGroups struct {
+		Items      func(childComplexity int) int
+		NextCursor func(childComplexity int) int
+	}
+
+	ModulePropagation struct {
+		Arguments                 func(childComplexity int) int
+		Description               func(childComplexity int) int
+		ModuleAccountAssociations func(childComplexity int, limit *int, nextCursor *string) int
+		ModuleGroupId             func(childComplexity int) int
+		ModulePropagationId       func(childComplexity int) int
+		ModuleVersionId           func(childComplexity int) int
+		Name                      func(childComplexity int) int
+		OrgDimensionId            func(childComplexity int) int
+		OrgUnitId                 func(childComplexity int) int
+		Providers                 func(childComplexity int) int
+	}
+
+	ModulePropagationExecutionRequest struct {
+		ModulePropagationExecutionRequestId func(childComplexity int) int
+		ModulePropagationId                 func(childComplexity int) int
+		RequestTime                         func(childComplexity int) int
+		Status                              func(childComplexity int) int
+	}
+
+	ModulePropagationExecutionRequests struct {
+		Items      func(childComplexity int) int
+		NextCursor func(childComplexity int) int
+	}
+
+	ModulePropagations struct {
+		Items      func(childComplexity int) int
+		NextCursor func(childComplexity int) int
+	}
+
+	ModuleVariable struct {
+		Default     func(childComplexity int) int
+		Description func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Type        func(childComplexity int) int
+	}
+
+	ModuleVersion struct {
+		ModuleGroupId    func(childComplexity int) int
+		ModuleVersionId  func(childComplexity int) int
+		Name             func(childComplexity int) int
+		RemoteSource     func(childComplexity int) int
+		TerraformVersion func(childComplexity int) int
+		Variables        func(childComplexity int) int
+	}
+
+	ModuleVersions struct {
+		Items      func(childComplexity int) int
+		NextCursor func(childComplexity int) int
+	}
+
 	Mutation struct {
-		CreateOrganizationalAccount        func(childComplexity int, orgAccount models.NewOrganizationalAccount) int
-		CreateOrganizationalDimension      func(childComplexity int, orgDimension models.NewOrganizationalDimension) int
-		CreateOrganizationalUnit           func(childComplexity int, orgUnit models.NewOrganizationalUnit) int
-		CreateOrganizationalUnitMembership func(childComplexity int, orgUnitMembership models.NewOrganizationalUnitMembership) int
-		DeleteOrganizationalAccount        func(childComplexity int, orgAccountID string) int
-		DeleteOrganizationalDimension      func(childComplexity int, orgDimensionID string) int
-		DeleteOrganizationalUnit           func(childComplexity int, orgDimensionID string, orgUnitID string) int
-		DeleteOrganizationalUnitMembership func(childComplexity int, orgDimensionID string, orgAccountID string) int
-		UpdateOrganizationalUnit           func(childComplexity int, orgDimensionID string, orgUnitID string, update models.OrganizationalUnitUpdate) int
+		CreateModuleGroup                       func(childComplexity int, moduleGroup models.NewModuleGroup) int
+		CreateModulePropagation                 func(childComplexity int, modulePropagation models.NewModulePropagation) int
+		CreateModulePropagationExecutionRequest func(childComplexity int, modulePropagationExecutionRequest models.NewModulePropagationExecutionRequest) int
+		CreateModuleVersion                     func(childComplexity int, moduleVersion models.NewModuleVersion) int
+		CreateOrganizationalAccount             func(childComplexity int, orgAccount models.NewOrganizationalAccount) int
+		CreateOrganizationalDimension           func(childComplexity int, orgDimension models.NewOrganizationalDimension) int
+		CreateOrganizationalUnit                func(childComplexity int, orgUnit models.NewOrganizationalUnit) int
+		CreateOrganizationalUnitMembership      func(childComplexity int, orgUnitMembership models.NewOrganizationalUnitMembership) int
+		DeleteModuleGroup                       func(childComplexity int, moduleGroupID string) int
+		DeleteModulePropagation                 func(childComplexity int, modulePropagationID string) int
+		DeleteModuleVersion                     func(childComplexity int, moduleGroupID string, moduleVersionID string) int
+		DeleteOrganizationalAccount             func(childComplexity int, orgAccountID string) int
+		DeleteOrganizationalDimension           func(childComplexity int, orgDimensionID string) int
+		DeleteOrganizationalUnit                func(childComplexity int, orgDimensionID string, orgUnitID string) int
+		DeleteOrganizationalUnitMembership      func(childComplexity int, orgDimensionID string, orgAccountID string) int
+		UpdateOrganizationalUnit                func(childComplexity int, orgDimensionID string, orgUnitID string, update models.OrganizationalUnitUpdate) int
 	}
 
 	OrganizationalAccount struct {
@@ -118,7 +208,22 @@ type ComplexityRoot struct {
 		NextCursor func(childComplexity int) int
 	}
 
+	Provider struct {
+		Arguments func(childComplexity int) int
+		Name      func(childComplexity int) int
+	}
+
 	Query struct {
+		ModuleAccountAssociation                    func(childComplexity int, modulePropagationID string, moduleAccountAssociationID string) int
+		ModuleAccountAssociations                   func(childComplexity int, limit *int, nextCursor *string) int
+		ModuleGroup                                 func(childComplexity int, moduleGroupID string) int
+		ModuleGroups                                func(childComplexity int, limit *int, nextCursor *string) int
+		ModulePropagation                           func(childComplexity int, modulePropagationID string) int
+		ModulePropagationExecutionRequest           func(childComplexity int, modulePropagationID string, modulePropagationExecutionRequestID string) int
+		ModulePropagationExecutionRequests          func(childComplexity int, limit *int, nextCursor *string) int
+		ModulePropagations                          func(childComplexity int, limit *int, nextCursor *string) int
+		ModuleVersion                               func(childComplexity int, moduleGroupID string, moduleVersionID string) int
+		ModuleVersions                              func(childComplexity int, moduleGroupID string, limit *int, nextCursor *string) int
 		OrganizationalAccount                       func(childComplexity int, orgAccountID string) int
 		OrganizationalAccounts                      func(childComplexity int, limit *int, nextCursor *string) int
 		OrganizationalDimension                     func(childComplexity int, orgDimensionID string) int
@@ -134,7 +239,20 @@ type ComplexityRoot struct {
 	}
 }
 
+type ModuleGroupResolver interface {
+	Versions(ctx context.Context, obj *models.ModuleGroup, limit *int, nextCursor *string) (*models.ModuleVersions, error)
+}
+type ModulePropagationResolver interface {
+	ModuleAccountAssociations(ctx context.Context, obj *models.ModulePropagation, limit *int, nextCursor *string) (*models.ModuleAccountAssociations, error)
+}
 type MutationResolver interface {
+	CreateModuleGroup(ctx context.Context, moduleGroup models.NewModuleGroup) (*models.ModuleGroup, error)
+	DeleteModuleGroup(ctx context.Context, moduleGroupID string) (bool, error)
+	CreateModulePropagationExecutionRequest(ctx context.Context, modulePropagationExecutionRequest models.NewModulePropagationExecutionRequest) (*models.ModulePropagationExecutionRequest, error)
+	CreateModulePropagation(ctx context.Context, modulePropagation models.NewModulePropagation) (*models.ModulePropagation, error)
+	DeleteModulePropagation(ctx context.Context, modulePropagationID string) (bool, error)
+	CreateModuleVersion(ctx context.Context, moduleVersion models.NewModuleVersion) (*models.ModuleVersion, error)
+	DeleteModuleVersion(ctx context.Context, moduleGroupID string, moduleVersionID string) (bool, error)
 	CreateOrganizationalAccount(ctx context.Context, orgAccount models.NewOrganizationalAccount) (*models.OrganizationalAccount, error)
 	DeleteOrganizationalAccount(ctx context.Context, orgAccountID string) (bool, error)
 	CreateOrganizationalDimension(ctx context.Context, orgDimension models.NewOrganizationalDimension) (*models.OrganizationalDimension, error)
@@ -167,6 +285,16 @@ type OrganizationalUnitMembershipResolver interface {
 	OrgDimension(ctx context.Context, obj *models.OrganizationalUnitMembership) (*models.OrganizationalDimension, error)
 }
 type QueryResolver interface {
+	ModuleAccountAssociation(ctx context.Context, modulePropagationID string, moduleAccountAssociationID string) (*models.ModuleAccountAssociation, error)
+	ModuleAccountAssociations(ctx context.Context, limit *int, nextCursor *string) (*models.ModuleAccountAssociations, error)
+	ModuleGroup(ctx context.Context, moduleGroupID string) (*models.ModuleGroup, error)
+	ModuleGroups(ctx context.Context, limit *int, nextCursor *string) (*models.ModuleGroups, error)
+	ModulePropagationExecutionRequest(ctx context.Context, modulePropagationID string, modulePropagationExecutionRequestID string) (*models.ModulePropagationExecutionRequest, error)
+	ModulePropagationExecutionRequests(ctx context.Context, limit *int, nextCursor *string) (*models.ModulePropagationExecutionRequests, error)
+	ModulePropagation(ctx context.Context, modulePropagationID string) (*models.ModulePropagation, error)
+	ModulePropagations(ctx context.Context, limit *int, nextCursor *string) (*models.ModulePropagations, error)
+	ModuleVersion(ctx context.Context, moduleGroupID string, moduleVersionID string) (*models.ModuleVersion, error)
+	ModuleVersions(ctx context.Context, moduleGroupID string, limit *int, nextCursor *string) (*models.ModuleVersions, error)
 	OrganizationalAccount(ctx context.Context, orgAccountID string) (*models.OrganizationalAccount, error)
 	OrganizationalAccounts(ctx context.Context, limit *int, nextCursor *string) (*models.OrganizationalAccounts, error)
 	OrganizationalDimension(ctx context.Context, orgDimensionID string) (*models.OrganizationalDimension, error)
@@ -195,6 +323,372 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Argument.name":
+		if e.complexity.Argument.Name == nil {
+			break
+		}
+
+		return e.complexity.Argument.Name(childComplexity), true
+
+	case "Argument.value":
+		if e.complexity.Argument.Value == nil {
+			break
+		}
+
+		return e.complexity.Argument.Value(childComplexity), true
+
+	case "ModuleAccountAssociation.modulePropagationId":
+		if e.complexity.ModuleAccountAssociation.ModulePropagationId == nil {
+			break
+		}
+
+		return e.complexity.ModuleAccountAssociation.ModulePropagationId(childComplexity), true
+
+	case "ModuleAccountAssociation.orgAccountId":
+		if e.complexity.ModuleAccountAssociation.OrgAccountId == nil {
+			break
+		}
+
+		return e.complexity.ModuleAccountAssociation.OrgAccountId(childComplexity), true
+
+	case "ModuleAccountAssociation.remoteStateBucket":
+		if e.complexity.ModuleAccountAssociation.RemoteStateBucket == nil {
+			break
+		}
+
+		return e.complexity.ModuleAccountAssociation.RemoteStateBucket(childComplexity), true
+
+	case "ModuleAccountAssociation.remoteStateKey":
+		if e.complexity.ModuleAccountAssociation.RemoteStateKey == nil {
+			break
+		}
+
+		return e.complexity.ModuleAccountAssociation.RemoteStateKey(childComplexity), true
+
+	case "ModuleAccountAssociation.status":
+		if e.complexity.ModuleAccountAssociation.Status == nil {
+			break
+		}
+
+		return e.complexity.ModuleAccountAssociation.Status(childComplexity), true
+
+	case "ModuleAccountAssociations.items":
+		if e.complexity.ModuleAccountAssociations.Items == nil {
+			break
+		}
+
+		return e.complexity.ModuleAccountAssociations.Items(childComplexity), true
+
+	case "ModuleAccountAssociations.nextCursor":
+		if e.complexity.ModuleAccountAssociations.NextCursor == nil {
+			break
+		}
+
+		return e.complexity.ModuleAccountAssociations.NextCursor(childComplexity), true
+
+	case "ModuleGroup.moduleGroupId":
+		if e.complexity.ModuleGroup.ModuleGroupId == nil {
+			break
+		}
+
+		return e.complexity.ModuleGroup.ModuleGroupId(childComplexity), true
+
+	case "ModuleGroup.name":
+		if e.complexity.ModuleGroup.Name == nil {
+			break
+		}
+
+		return e.complexity.ModuleGroup.Name(childComplexity), true
+
+	case "ModuleGroup.versions":
+		if e.complexity.ModuleGroup.Versions == nil {
+			break
+		}
+
+		args, err := ec.field_ModuleGroup_versions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ModuleGroup.Versions(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+
+	case "ModuleGroups.items":
+		if e.complexity.ModuleGroups.Items == nil {
+			break
+		}
+
+		return e.complexity.ModuleGroups.Items(childComplexity), true
+
+	case "ModuleGroups.nextCursor":
+		if e.complexity.ModuleGroups.NextCursor == nil {
+			break
+		}
+
+		return e.complexity.ModuleGroups.NextCursor(childComplexity), true
+
+	case "ModulePropagation.arguments":
+		if e.complexity.ModulePropagation.Arguments == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagation.Arguments(childComplexity), true
+
+	case "ModulePropagation.description":
+		if e.complexity.ModulePropagation.Description == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagation.Description(childComplexity), true
+
+	case "ModulePropagation.moduleAccountAssociations":
+		if e.complexity.ModulePropagation.ModuleAccountAssociations == nil {
+			break
+		}
+
+		args, err := ec.field_ModulePropagation_moduleAccountAssociations_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ModulePropagation.ModuleAccountAssociations(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+
+	case "ModulePropagation.moduleGroupId":
+		if e.complexity.ModulePropagation.ModuleGroupId == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagation.ModuleGroupId(childComplexity), true
+
+	case "ModulePropagation.modulePropagationId":
+		if e.complexity.ModulePropagation.ModulePropagationId == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagation.ModulePropagationId(childComplexity), true
+
+	case "ModulePropagation.moduleVersionId":
+		if e.complexity.ModulePropagation.ModuleVersionId == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagation.ModuleVersionId(childComplexity), true
+
+	case "ModulePropagation.name":
+		if e.complexity.ModulePropagation.Name == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagation.Name(childComplexity), true
+
+	case "ModulePropagation.orgDimensionId":
+		if e.complexity.ModulePropagation.OrgDimensionId == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagation.OrgDimensionId(childComplexity), true
+
+	case "ModulePropagation.orgUnitId":
+		if e.complexity.ModulePropagation.OrgUnitId == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagation.OrgUnitId(childComplexity), true
+
+	case "ModulePropagation.providers":
+		if e.complexity.ModulePropagation.Providers == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagation.Providers(childComplexity), true
+
+	case "ModulePropagationExecutionRequest.modulePropagationExecutionRequestId":
+		if e.complexity.ModulePropagationExecutionRequest.ModulePropagationExecutionRequestId == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagationExecutionRequest.ModulePropagationExecutionRequestId(childComplexity), true
+
+	case "ModulePropagationExecutionRequest.modulePropagationId":
+		if e.complexity.ModulePropagationExecutionRequest.ModulePropagationId == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagationExecutionRequest.ModulePropagationId(childComplexity), true
+
+	case "ModulePropagationExecutionRequest.requestTime":
+		if e.complexity.ModulePropagationExecutionRequest.RequestTime == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagationExecutionRequest.RequestTime(childComplexity), true
+
+	case "ModulePropagationExecutionRequest.status":
+		if e.complexity.ModulePropagationExecutionRequest.Status == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagationExecutionRequest.Status(childComplexity), true
+
+	case "ModulePropagationExecutionRequests.items":
+		if e.complexity.ModulePropagationExecutionRequests.Items == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagationExecutionRequests.Items(childComplexity), true
+
+	case "ModulePropagationExecutionRequests.nextCursor":
+		if e.complexity.ModulePropagationExecutionRequests.NextCursor == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagationExecutionRequests.NextCursor(childComplexity), true
+
+	case "ModulePropagations.items":
+		if e.complexity.ModulePropagations.Items == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagations.Items(childComplexity), true
+
+	case "ModulePropagations.nextCursor":
+		if e.complexity.ModulePropagations.NextCursor == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagations.NextCursor(childComplexity), true
+
+	case "ModuleVariable.Default":
+		if e.complexity.ModuleVariable.Default == nil {
+			break
+		}
+
+		return e.complexity.ModuleVariable.Default(childComplexity), true
+
+	case "ModuleVariable.Description":
+		if e.complexity.ModuleVariable.Description == nil {
+			break
+		}
+
+		return e.complexity.ModuleVariable.Description(childComplexity), true
+
+	case "ModuleVariable.Name":
+		if e.complexity.ModuleVariable.Name == nil {
+			break
+		}
+
+		return e.complexity.ModuleVariable.Name(childComplexity), true
+
+	case "ModuleVariable.Type":
+		if e.complexity.ModuleVariable.Type == nil {
+			break
+		}
+
+		return e.complexity.ModuleVariable.Type(childComplexity), true
+
+	case "ModuleVersion.moduleGroupId":
+		if e.complexity.ModuleVersion.ModuleGroupId == nil {
+			break
+		}
+
+		return e.complexity.ModuleVersion.ModuleGroupId(childComplexity), true
+
+	case "ModuleVersion.moduleVersionId":
+		if e.complexity.ModuleVersion.ModuleVersionId == nil {
+			break
+		}
+
+		return e.complexity.ModuleVersion.ModuleVersionId(childComplexity), true
+
+	case "ModuleVersion.name":
+		if e.complexity.ModuleVersion.Name == nil {
+			break
+		}
+
+		return e.complexity.ModuleVersion.Name(childComplexity), true
+
+	case "ModuleVersion.remoteSource":
+		if e.complexity.ModuleVersion.RemoteSource == nil {
+			break
+		}
+
+		return e.complexity.ModuleVersion.RemoteSource(childComplexity), true
+
+	case "ModuleVersion.terraformVersion":
+		if e.complexity.ModuleVersion.TerraformVersion == nil {
+			break
+		}
+
+		return e.complexity.ModuleVersion.TerraformVersion(childComplexity), true
+
+	case "ModuleVersion.variables":
+		if e.complexity.ModuleVersion.Variables == nil {
+			break
+		}
+
+		return e.complexity.ModuleVersion.Variables(childComplexity), true
+
+	case "ModuleVersions.items":
+		if e.complexity.ModuleVersions.Items == nil {
+			break
+		}
+
+		return e.complexity.ModuleVersions.Items(childComplexity), true
+
+	case "ModuleVersions.nextCursor":
+		if e.complexity.ModuleVersions.NextCursor == nil {
+			break
+		}
+
+		return e.complexity.ModuleVersions.NextCursor(childComplexity), true
+
+	case "Mutation.createModuleGroup":
+		if e.complexity.Mutation.CreateModuleGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createModuleGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateModuleGroup(childComplexity, args["moduleGroup"].(models.NewModuleGroup)), true
+
+	case "Mutation.createModulePropagation":
+		if e.complexity.Mutation.CreateModulePropagation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createModulePropagation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateModulePropagation(childComplexity, args["modulePropagation"].(models.NewModulePropagation)), true
+
+	case "Mutation.createModulePropagationExecutionRequest":
+		if e.complexity.Mutation.CreateModulePropagationExecutionRequest == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createModulePropagationExecutionRequest_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateModulePropagationExecutionRequest(childComplexity, args["modulePropagationExecutionRequest"].(models.NewModulePropagationExecutionRequest)), true
+
+	case "Mutation.createModuleVersion":
+		if e.complexity.Mutation.CreateModuleVersion == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createModuleVersion_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateModuleVersion(childComplexity, args["moduleVersion"].(models.NewModuleVersion)), true
 
 	case "Mutation.createOrganizationalAccount":
 		if e.complexity.Mutation.CreateOrganizationalAccount == nil {
@@ -243,6 +737,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateOrganizationalUnitMembership(childComplexity, args["orgUnitMembership"].(models.NewOrganizationalUnitMembership)), true
+
+	case "Mutation.deleteModuleGroup":
+		if e.complexity.Mutation.DeleteModuleGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteModuleGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteModuleGroup(childComplexity, args["moduleGroupId"].(string)), true
+
+	case "Mutation.deleteModulePropagation":
+		if e.complexity.Mutation.DeleteModulePropagation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteModulePropagation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteModulePropagation(childComplexity, args["modulePropagationId"].(string)), true
+
+	case "Mutation.deleteModuleVersion":
+		if e.complexity.Mutation.DeleteModuleVersion == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteModuleVersion_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteModuleVersion(childComplexity, args["moduleGroupId"].(string), args["moduleVersionId"].(string)), true
 
 	case "Mutation.deleteOrganizationalAccount":
 		if e.complexity.Mutation.DeleteOrganizationalAccount == nil {
@@ -572,6 +1102,140 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.OrganizationalUnits.NextCursor(childComplexity), true
 
+	case "Provider.arguments":
+		if e.complexity.Provider.Arguments == nil {
+			break
+		}
+
+		return e.complexity.Provider.Arguments(childComplexity), true
+
+	case "Provider.name":
+		if e.complexity.Provider.Name == nil {
+			break
+		}
+
+		return e.complexity.Provider.Name(childComplexity), true
+
+	case "Query.moduleAccountAssociation":
+		if e.complexity.Query.ModuleAccountAssociation == nil {
+			break
+		}
+
+		args, err := ec.field_Query_moduleAccountAssociation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ModuleAccountAssociation(childComplexity, args["modulePropagationId"].(string), args["moduleAccountAssociationId"].(string)), true
+
+	case "Query.moduleAccountAssociations":
+		if e.complexity.Query.ModuleAccountAssociations == nil {
+			break
+		}
+
+		args, err := ec.field_Query_moduleAccountAssociations_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ModuleAccountAssociations(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+
+	case "Query.moduleGroup":
+		if e.complexity.Query.ModuleGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Query_moduleGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ModuleGroup(childComplexity, args["moduleGroupId"].(string)), true
+
+	case "Query.moduleGroups":
+		if e.complexity.Query.ModuleGroups == nil {
+			break
+		}
+
+		args, err := ec.field_Query_moduleGroups_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ModuleGroups(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+
+	case "Query.modulePropagation":
+		if e.complexity.Query.ModulePropagation == nil {
+			break
+		}
+
+		args, err := ec.field_Query_modulePropagation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ModulePropagation(childComplexity, args["modulePropagationId"].(string)), true
+
+	case "Query.modulePropagationExecutionRequest":
+		if e.complexity.Query.ModulePropagationExecutionRequest == nil {
+			break
+		}
+
+		args, err := ec.field_Query_modulePropagationExecutionRequest_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ModulePropagationExecutionRequest(childComplexity, args["modulePropagationId"].(string), args["modulePropagationExecutionRequestId"].(string)), true
+
+	case "Query.modulePropagationExecutionRequests":
+		if e.complexity.Query.ModulePropagationExecutionRequests == nil {
+			break
+		}
+
+		args, err := ec.field_Query_modulePropagationExecutionRequests_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ModulePropagationExecutionRequests(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+
+	case "Query.modulePropagations":
+		if e.complexity.Query.ModulePropagations == nil {
+			break
+		}
+
+		args, err := ec.field_Query_modulePropagations_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ModulePropagations(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+
+	case "Query.moduleVersion":
+		if e.complexity.Query.ModuleVersion == nil {
+			break
+		}
+
+		args, err := ec.field_Query_moduleVersion_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ModuleVersion(childComplexity, args["moduleGroupId"].(string), args["moduleVersionId"].(string)), true
+
+	case "Query.moduleVersions":
+		if e.complexity.Query.ModuleVersions == nil {
+			break
+		}
+
+		args, err := ec.field_Query_moduleVersions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ModuleVersions(childComplexity, args["moduleGroupId"].(string), args["limit"].(*int), args["nextCursor"].(*string)), true
+
 	case "Query.organizationalAccount":
 		if e.complexity.Query.OrganizationalAccount == nil {
 			break
@@ -724,11 +1388,17 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputArgumentInput,
+		ec.unmarshalInputNewModuleGroup,
+		ec.unmarshalInputNewModulePropagation,
+		ec.unmarshalInputNewModulePropagationExecutionRequest,
+		ec.unmarshalInputNewModuleVersion,
 		ec.unmarshalInputNewOrganizationalAccount,
 		ec.unmarshalInputNewOrganizationalDimension,
 		ec.unmarshalInputNewOrganizationalUnit,
 		ec.unmarshalInputNewOrganizationalUnitMembership,
 		ec.unmarshalInputOrganizationalUnitUpdate,
+		ec.unmarshalInputProviderInput,
 	)
 	first := true
 
@@ -789,6 +1459,206 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
+	{Name: "../module_account_associations.graphqls", Input: `type ModuleAccountAssociation {
+  modulePropagationId: ID!
+  orgAccountId: ID!
+  remoteStateBucket: String!
+  remoteStateKey: String!
+  status: ModuleAccountAssociationStatus
+}
+
+type ModuleAccountAssociations {
+  items: [ModuleAccountAssociation]!
+  nextCursor: String
+}
+
+extend type Query {
+  moduleAccountAssociation(
+    modulePropagationId: ID!
+    moduleAccountAssociationId: ID!
+  ): ModuleAccountAssociation!
+  moduleAccountAssociations(
+    limit: Int
+    nextCursor: String
+  ): ModuleAccountAssociations!
+}
+
+enum ModuleAccountAssociationStatus {
+  ACTIVE
+  INACTIVE
+}
+`, BuiltIn: false},
+	{Name: "../module_groups.graphqls", Input: `type ModuleGroup {
+  moduleGroupId: ID!
+  name: String!
+  versions(limit: Int, nextCursor: String): ModuleVersions!
+}
+
+type ModuleGroups {
+  items: [ModuleGroup]!
+  nextCursor: String
+}
+
+input NewModuleGroup {
+  name: String!
+}
+
+extend type Query {
+  moduleGroup(moduleGroupId: ID!): ModuleGroup!
+  moduleGroups(limit: Int, nextCursor: String): ModuleGroups!
+}
+
+extend type Mutation {
+  createModuleGroup(moduleGroup: NewModuleGroup!): ModuleGroup!
+  deleteModuleGroup(moduleGroupId: ID!): Boolean!
+}
+`, BuiltIn: false},
+	{Name: "../module_propagation_execution_requests.graphqls", Input: `type ModulePropagationExecutionRequest {
+  modulePropagationExecutionRequestId: ID!
+  modulePropagationId: ID!
+  requestTime: Time!
+  status: ModulePropagationExecutionRequestStatus!
+}
+
+type ModulePropagationExecutionRequests {
+  items: [ModulePropagationExecutionRequest]!
+  nextCursor: String
+}
+
+input NewModulePropagationExecutionRequest {
+  modulePropagationId: ID!
+}
+
+extend type Query {
+  modulePropagationExecutionRequest(
+    modulePropagationId: ID!
+    modulePropagationExecutionRequestId: ID!
+  ): ModulePropagationExecutionRequest!
+  modulePropagationExecutionRequests(
+    limit: Int
+    nextCursor: String
+  ): ModulePropagationExecutionRequests!
+}
+
+extend type Mutation {
+  createModulePropagationExecutionRequest(
+    modulePropagationExecutionRequest: NewModulePropagationExecutionRequest!
+  ): ModulePropagationExecutionRequest!
+}
+
+enum ModulePropagationExecutionRequestStatus {
+  PENDING
+  RUNNING
+  FAILED
+  SUCCEEDED
+}
+`, BuiltIn: false},
+	{Name: "../module_propagations.graphqls", Input: `type ModulePropagation {
+  modulePropagationId: ID!
+  moduleVersionId: ID!
+  moduleGroupId: ID!
+  orgUnitId: ID!
+  orgDimensionId: ID!
+  name: String!
+  description: String!
+  arguments: [Argument!]!
+  providers: [Provider!]!
+  moduleAccountAssociations(
+    limit: Int
+    nextCursor: String
+  ): ModuleAccountAssociations!
+}
+
+type Argument {
+  name: String!
+  value: String!
+}
+
+type Provider {
+  name: String!
+  arguments: [Argument!]!
+}
+
+type ModulePropagations {
+  items: [ModulePropagation]!
+  nextCursor: String
+}
+
+input NewModulePropagation {
+  moduleVersionId: ID!
+  moduleGroupId: ID!
+  orgUnitId: ID!
+  orgDimensionId: ID!
+  name: String!
+  description: String!
+  arguments: [ArgumentInput!]!
+  providers: [ProviderInput!]!
+}
+
+input ArgumentInput {
+  name: String!
+  value: String!
+}
+
+input ProviderInput {
+  name: String!
+  arguments: [ArgumentInput!]!
+}
+
+extend type Query {
+  modulePropagation(modulePropagationId: ID!): ModulePropagation!
+  modulePropagations(limit: Int, nextCursor: String): ModulePropagations!
+}
+
+extend type Mutation {
+  createModulePropagation(
+    modulePropagation: NewModulePropagation!
+  ): ModulePropagation!
+  deleteModulePropagation(modulePropagationId: ID!): Boolean!
+}
+`, BuiltIn: false},
+	{Name: "../module_versions.graphqls", Input: `type ModuleVersion {
+  moduleVersionId: ID!
+  moduleGroupId: ID!
+  name: String!
+  remoteSource: String!
+  terraformVersion: String!
+  variables: [ModuleVariable]!
+}
+
+type ModuleVariable {
+  Name: String!
+  Type: String!
+  Description: String!
+  Default: String
+}
+
+type ModuleVersions {
+  items: [ModuleVersion]!
+  nextCursor: String
+}
+
+input NewModuleVersion {
+  moduleGroupId: ID!
+  name: String!
+  remoteSource: String!
+  terraformVersion: String!
+}
+
+extend type Query {
+  moduleVersion(moduleGroupId: ID!, moduleVersionId: ID!): ModuleVersion!
+  moduleVersions(
+    moduleGroupId: ID!
+    limit: Int
+    nextCursor: String
+  ): ModuleVersions!
+}
+
+extend type Mutation {
+  createModuleVersion(moduleVersion: NewModuleVersion!): ModuleVersion!
+  deleteModuleVersion(moduleGroupId: ID!, moduleVersionId: ID!): Boolean!
+}
+`, BuiltIn: false},
 	{Name: "../organizational_accounts.graphqls", Input: `type OrganizationalAccount {
   orgAccountId: ID!
   name: String!
@@ -975,12 +1845,122 @@ extend type Mutation {
   ): OrganizationalUnit!
 }
 `, BuiltIn: false},
+	{Name: "../scalar.graphqls", Input: `scalar Time
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_ModuleGroup_versions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["nextCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nextCursor"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_ModulePropagation_moduleAccountAssociations_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["nextCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nextCursor"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createModuleGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.NewModuleGroup
+	if tmp, ok := rawArgs["moduleGroup"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleGroup"))
+		arg0, err = ec.unmarshalNNewModuleGroup2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewModuleGroup(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["moduleGroup"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createModulePropagationExecutionRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.NewModulePropagationExecutionRequest
+	if tmp, ok := rawArgs["modulePropagationExecutionRequest"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("modulePropagationExecutionRequest"))
+		arg0, err = ec.unmarshalNNewModulePropagationExecutionRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewModulePropagationExecutionRequest(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["modulePropagationExecutionRequest"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createModulePropagation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.NewModulePropagation
+	if tmp, ok := rawArgs["modulePropagation"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("modulePropagation"))
+		arg0, err = ec.unmarshalNNewModulePropagation2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewModulePropagation(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["modulePropagation"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createModuleVersion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.NewModuleVersion
+	if tmp, ok := rawArgs["moduleVersion"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleVersion"))
+		arg0, err = ec.unmarshalNNewModuleVersion2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewModuleVersion(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["moduleVersion"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createOrganizationalAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1039,6 +2019,60 @@ func (ec *executionContext) field_Mutation_createOrganizationalUnit_args(ctx con
 		}
 	}
 	args["orgUnit"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteModuleGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["moduleGroupId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleGroupId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["moduleGroupId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteModulePropagation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["modulePropagationId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("modulePropagationId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["modulePropagationId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteModuleVersion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["moduleGroupId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleGroupId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["moduleGroupId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["moduleVersionId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleVersionId"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["moduleVersionId"] = arg1
 	return args, nil
 }
 
@@ -1309,6 +2343,237 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_moduleAccountAssociation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["modulePropagationId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("modulePropagationId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["modulePropagationId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["moduleAccountAssociationId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleAccountAssociationId"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["moduleAccountAssociationId"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_moduleAccountAssociations_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["nextCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nextCursor"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_moduleGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["moduleGroupId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleGroupId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["moduleGroupId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_moduleGroups_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["nextCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nextCursor"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_modulePropagationExecutionRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["modulePropagationId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("modulePropagationId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["modulePropagationId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["modulePropagationExecutionRequestId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("modulePropagationExecutionRequestId"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["modulePropagationExecutionRequestId"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_modulePropagationExecutionRequests_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["nextCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nextCursor"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_modulePropagation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["modulePropagationId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("modulePropagationId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["modulePropagationId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_modulePropagations_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["nextCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nextCursor"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_moduleVersion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["moduleGroupId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleGroupId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["moduleGroupId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["moduleVersionId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleVersionId"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["moduleVersionId"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_moduleVersions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["moduleGroupId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleGroupId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["moduleGroupId"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["nextCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nextCursor"] = arg2
 	return args, nil
 }
 
@@ -1691,6 +2956,2482 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _Argument_name(ctx context.Context, field graphql.CollectedField, obj *models.Argument) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Argument_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Argument_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Argument",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Argument_value(ctx context.Context, field graphql.CollectedField, obj *models.Argument) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Argument_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Argument_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Argument",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleAccountAssociation_modulePropagationId(ctx context.Context, field graphql.CollectedField, obj *models.ModuleAccountAssociation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleAccountAssociation_modulePropagationId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModulePropagationId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleAccountAssociation_modulePropagationId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleAccountAssociation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleAccountAssociation_orgAccountId(ctx context.Context, field graphql.CollectedField, obj *models.ModuleAccountAssociation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleAccountAssociation_orgAccountId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrgAccountId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleAccountAssociation_orgAccountId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleAccountAssociation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleAccountAssociation_remoteStateBucket(ctx context.Context, field graphql.CollectedField, obj *models.ModuleAccountAssociation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleAccountAssociation_remoteStateBucket(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RemoteStateBucket, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleAccountAssociation_remoteStateBucket(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleAccountAssociation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleAccountAssociation_remoteStateKey(ctx context.Context, field graphql.CollectedField, obj *models.ModuleAccountAssociation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleAccountAssociation_remoteStateKey(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RemoteStateKey, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleAccountAssociation_remoteStateKey(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleAccountAssociation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleAccountAssociation_status(ctx context.Context, field graphql.CollectedField, obj *models.ModuleAccountAssociation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleAccountAssociation_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(models.ModuleAccountAssociationStatus)
+	fc.Result = res
+	return ec.marshalOModuleAccountAssociationStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociationStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleAccountAssociation_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleAccountAssociation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ModuleAccountAssociationStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleAccountAssociations_items(ctx context.Context, field graphql.CollectedField, obj *models.ModuleAccountAssociations) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleAccountAssociations_items(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Items, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]models.ModuleAccountAssociation)
+	fc.Result = res
+	return ec.marshalNModuleAccountAssociation2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleAccountAssociations_items(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleAccountAssociations",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationId":
+				return ec.fieldContext_ModuleAccountAssociation_modulePropagationId(ctx, field)
+			case "orgAccountId":
+				return ec.fieldContext_ModuleAccountAssociation_orgAccountId(ctx, field)
+			case "remoteStateBucket":
+				return ec.fieldContext_ModuleAccountAssociation_remoteStateBucket(ctx, field)
+			case "remoteStateKey":
+				return ec.fieldContext_ModuleAccountAssociation_remoteStateKey(ctx, field)
+			case "status":
+				return ec.fieldContext_ModuleAccountAssociation_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleAccountAssociation", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleAccountAssociations_nextCursor(ctx context.Context, field graphql.CollectedField, obj *models.ModuleAccountAssociations) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleAccountAssociations_nextCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NextCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleAccountAssociations_nextCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleAccountAssociations",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleGroup_moduleGroupId(ctx context.Context, field graphql.CollectedField, obj *models.ModuleGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleGroup_moduleGroupId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModuleGroupId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleGroup_moduleGroupId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleGroup_name(ctx context.Context, field graphql.CollectedField, obj *models.ModuleGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleGroup_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleGroup_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleGroup_versions(ctx context.Context, field graphql.CollectedField, obj *models.ModuleGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleGroup_versions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ModuleGroup().Versions(rctx, obj, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleVersions)
+	fc.Result = res
+	return ec.marshalNModuleVersions2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVersions(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleGroup_versions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleGroup",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_ModuleVersions_items(ctx, field)
+			case "nextCursor":
+				return ec.fieldContext_ModuleVersions_nextCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleVersions", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_ModuleGroup_versions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleGroups_items(ctx context.Context, field graphql.CollectedField, obj *models.ModuleGroups) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleGroups_items(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Items, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]models.ModuleGroup)
+	fc.Result = res
+	return ec.marshalNModuleGroup2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleGroup(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleGroups_items(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleGroups",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "moduleGroupId":
+				return ec.fieldContext_ModuleGroup_moduleGroupId(ctx, field)
+			case "name":
+				return ec.fieldContext_ModuleGroup_name(ctx, field)
+			case "versions":
+				return ec.fieldContext_ModuleGroup_versions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleGroup", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleGroups_nextCursor(ctx context.Context, field graphql.CollectedField, obj *models.ModuleGroups) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleGroups_nextCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NextCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleGroups_nextCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleGroups",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagation_modulePropagationId(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagation_modulePropagationId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModulePropagationId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagation_modulePropagationId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagation_moduleVersionId(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagation_moduleVersionId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModuleVersionId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagation_moduleVersionId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagation_moduleGroupId(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagation_moduleGroupId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModuleGroupId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagation_moduleGroupId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagation_orgUnitId(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagation_orgUnitId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrgUnitId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagation_orgUnitId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagation_orgDimensionId(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagation_orgDimensionId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrgDimensionId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagation_orgDimensionId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagation_name(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagation_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagation_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagation_description(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagation_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagation_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagation_arguments(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagation_arguments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Arguments, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]models.Argument)
+	fc.Result = res
+	return ec.marshalNArgument2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐArgumentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagation_arguments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_Argument_name(ctx, field)
+			case "value":
+				return ec.fieldContext_Argument_value(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Argument", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagation_providers(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagation_providers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Providers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]models.Provider)
+	fc.Result = res
+	return ec.marshalNProvider2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐProviderᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagation_providers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_Provider_name(ctx, field)
+			case "arguments":
+				return ec.fieldContext_Provider_arguments(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Provider", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagation_moduleAccountAssociations(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ModulePropagation().ModuleAccountAssociations(rctx, obj, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleAccountAssociations)
+	fc.Result = res
+	return ec.marshalNModuleAccountAssociations2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociations(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagation_moduleAccountAssociations(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_ModuleAccountAssociations_items(ctx, field)
+			case "nextCursor":
+				return ec.fieldContext_ModuleAccountAssociations_nextCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleAccountAssociations", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_ModulePropagation_moduleAccountAssociations_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagationExecutionRequest_modulePropagationExecutionRequestId(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationExecutionRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagationExecutionRequest_modulePropagationExecutionRequestId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModulePropagationExecutionRequestId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagationExecutionRequest_modulePropagationExecutionRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagationExecutionRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagationExecutionRequest_modulePropagationId(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationExecutionRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagationExecutionRequest_modulePropagationId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModulePropagationId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagationExecutionRequest_modulePropagationId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagationExecutionRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagationExecutionRequest_requestTime(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationExecutionRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagationExecutionRequest_requestTime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RequestTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagationExecutionRequest_requestTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagationExecutionRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagationExecutionRequest_status(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationExecutionRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagationExecutionRequest_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.ModulePropagationExecutionRequestStatus)
+	fc.Result = res
+	return ec.marshalNModulePropagationExecutionRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequestStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagationExecutionRequest_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagationExecutionRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ModulePropagationExecutionRequestStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagationExecutionRequests_items(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationExecutionRequests) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagationExecutionRequests_items(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Items, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]models.ModulePropagationExecutionRequest)
+	fc.Result = res
+	return ec.marshalNModulePropagationExecutionRequest2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequest(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagationExecutionRequests_items(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagationExecutionRequests",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationExecutionRequestId":
+				return ec.fieldContext_ModulePropagationExecutionRequest_modulePropagationExecutionRequestId(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_ModulePropagationExecutionRequest_modulePropagationId(ctx, field)
+			case "requestTime":
+				return ec.fieldContext_ModulePropagationExecutionRequest_requestTime(ctx, field)
+			case "status":
+				return ec.fieldContext_ModulePropagationExecutionRequest_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagationExecutionRequest", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagationExecutionRequests_nextCursor(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationExecutionRequests) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagationExecutionRequests_nextCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NextCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagationExecutionRequests_nextCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagationExecutionRequests",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagations_items(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagations) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagations_items(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Items, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]models.ModulePropagation)
+	fc.Result = res
+	return ec.marshalNModulePropagation2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagations_items(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagations",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationId":
+				return ec.fieldContext_ModulePropagation_modulePropagationId(ctx, field)
+			case "moduleVersionId":
+				return ec.fieldContext_ModulePropagation_moduleVersionId(ctx, field)
+			case "moduleGroupId":
+				return ec.fieldContext_ModulePropagation_moduleGroupId(ctx, field)
+			case "orgUnitId":
+				return ec.fieldContext_ModulePropagation_orgUnitId(ctx, field)
+			case "orgDimensionId":
+				return ec.fieldContext_ModulePropagation_orgDimensionId(ctx, field)
+			case "name":
+				return ec.fieldContext_ModulePropagation_name(ctx, field)
+			case "description":
+				return ec.fieldContext_ModulePropagation_description(ctx, field)
+			case "arguments":
+				return ec.fieldContext_ModulePropagation_arguments(ctx, field)
+			case "providers":
+				return ec.fieldContext_ModulePropagation_providers(ctx, field)
+			case "moduleAccountAssociations":
+				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagation", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagations_nextCursor(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagations) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagations_nextCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NextCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagations_nextCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagations",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleVariable_Name(ctx context.Context, field graphql.CollectedField, obj *models.ModuleVariable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleVariable_Name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleVariable_Name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleVariable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleVariable_Type(ctx context.Context, field graphql.CollectedField, obj *models.ModuleVariable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleVariable_Type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleVariable_Type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleVariable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleVariable_Description(ctx context.Context, field graphql.CollectedField, obj *models.ModuleVariable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleVariable_Description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleVariable_Description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleVariable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleVariable_Default(ctx context.Context, field graphql.CollectedField, obj *models.ModuleVariable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleVariable_Default(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Default, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleVariable_Default(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleVariable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleVersion_moduleVersionId(ctx context.Context, field graphql.CollectedField, obj *models.ModuleVersion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleVersion_moduleVersionId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModuleVersionId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleVersion_moduleVersionId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleVersion_moduleGroupId(ctx context.Context, field graphql.CollectedField, obj *models.ModuleVersion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleVersion_moduleGroupId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModuleGroupId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleVersion_moduleGroupId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleVersion_name(ctx context.Context, field graphql.CollectedField, obj *models.ModuleVersion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleVersion_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleVersion_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleVersion_remoteSource(ctx context.Context, field graphql.CollectedField, obj *models.ModuleVersion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleVersion_remoteSource(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RemoteSource, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleVersion_remoteSource(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleVersion_terraformVersion(ctx context.Context, field graphql.CollectedField, obj *models.ModuleVersion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleVersion_terraformVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TerraformVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleVersion_terraformVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleVersion_variables(ctx context.Context, field graphql.CollectedField, obj *models.ModuleVersion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleVersion_variables(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Variables, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.ModuleVariable)
+	fc.Result = res
+	return ec.marshalNModuleVariable2ᚕᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVariable(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleVersion_variables(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Name":
+				return ec.fieldContext_ModuleVariable_Name(ctx, field)
+			case "Type":
+				return ec.fieldContext_ModuleVariable_Type(ctx, field)
+			case "Description":
+				return ec.fieldContext_ModuleVariable_Description(ctx, field)
+			case "Default":
+				return ec.fieldContext_ModuleVariable_Default(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleVariable", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleVersions_items(ctx context.Context, field graphql.CollectedField, obj *models.ModuleVersions) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleVersions_items(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Items, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]models.ModuleVersion)
+	fc.Result = res
+	return ec.marshalNModuleVersion2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVersion(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleVersions_items(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleVersions",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "moduleVersionId":
+				return ec.fieldContext_ModuleVersion_moduleVersionId(ctx, field)
+			case "moduleGroupId":
+				return ec.fieldContext_ModuleVersion_moduleGroupId(ctx, field)
+			case "name":
+				return ec.fieldContext_ModuleVersion_name(ctx, field)
+			case "remoteSource":
+				return ec.fieldContext_ModuleVersion_remoteSource(ctx, field)
+			case "terraformVersion":
+				return ec.fieldContext_ModuleVersion_terraformVersion(ctx, field)
+			case "variables":
+				return ec.fieldContext_ModuleVersion_variables(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleVersion", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModuleVersions_nextCursor(ctx context.Context, field graphql.CollectedField, obj *models.ModuleVersions) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleVersions_nextCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NextCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleVersions_nextCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleVersions",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createModuleGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createModuleGroup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateModuleGroup(rctx, fc.Args["moduleGroup"].(models.NewModuleGroup))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleGroup)
+	fc.Result = res
+	return ec.marshalNModuleGroup2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleGroup(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createModuleGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "moduleGroupId":
+				return ec.fieldContext_ModuleGroup_moduleGroupId(ctx, field)
+			case "name":
+				return ec.fieldContext_ModuleGroup_name(ctx, field)
+			case "versions":
+				return ec.fieldContext_ModuleGroup_versions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleGroup", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createModuleGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteModuleGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteModuleGroup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteModuleGroup(rctx, fc.Args["moduleGroupId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteModuleGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteModuleGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createModulePropagationExecutionRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createModulePropagationExecutionRequest(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateModulePropagationExecutionRequest(rctx, fc.Args["modulePropagationExecutionRequest"].(models.NewModulePropagationExecutionRequest))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModulePropagationExecutionRequest)
+	fc.Result = res
+	return ec.marshalNModulePropagationExecutionRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequest(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createModulePropagationExecutionRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationExecutionRequestId":
+				return ec.fieldContext_ModulePropagationExecutionRequest_modulePropagationExecutionRequestId(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_ModulePropagationExecutionRequest_modulePropagationId(ctx, field)
+			case "requestTime":
+				return ec.fieldContext_ModulePropagationExecutionRequest_requestTime(ctx, field)
+			case "status":
+				return ec.fieldContext_ModulePropagationExecutionRequest_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagationExecutionRequest", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createModulePropagationExecutionRequest_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createModulePropagation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createModulePropagation(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateModulePropagation(rctx, fc.Args["modulePropagation"].(models.NewModulePropagation))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModulePropagation)
+	fc.Result = res
+	return ec.marshalNModulePropagation2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createModulePropagation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationId":
+				return ec.fieldContext_ModulePropagation_modulePropagationId(ctx, field)
+			case "moduleVersionId":
+				return ec.fieldContext_ModulePropagation_moduleVersionId(ctx, field)
+			case "moduleGroupId":
+				return ec.fieldContext_ModulePropagation_moduleGroupId(ctx, field)
+			case "orgUnitId":
+				return ec.fieldContext_ModulePropagation_orgUnitId(ctx, field)
+			case "orgDimensionId":
+				return ec.fieldContext_ModulePropagation_orgDimensionId(ctx, field)
+			case "name":
+				return ec.fieldContext_ModulePropagation_name(ctx, field)
+			case "description":
+				return ec.fieldContext_ModulePropagation_description(ctx, field)
+			case "arguments":
+				return ec.fieldContext_ModulePropagation_arguments(ctx, field)
+			case "providers":
+				return ec.fieldContext_ModulePropagation_providers(ctx, field)
+			case "moduleAccountAssociations":
+				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagation", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createModulePropagation_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteModulePropagation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteModulePropagation(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteModulePropagation(rctx, fc.Args["modulePropagationId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteModulePropagation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteModulePropagation_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createModuleVersion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createModuleVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateModuleVersion(rctx, fc.Args["moduleVersion"].(models.NewModuleVersion))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleVersion)
+	fc.Result = res
+	return ec.marshalNModuleVersion2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVersion(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createModuleVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "moduleVersionId":
+				return ec.fieldContext_ModuleVersion_moduleVersionId(ctx, field)
+			case "moduleGroupId":
+				return ec.fieldContext_ModuleVersion_moduleGroupId(ctx, field)
+			case "name":
+				return ec.fieldContext_ModuleVersion_name(ctx, field)
+			case "remoteSource":
+				return ec.fieldContext_ModuleVersion_remoteSource(ctx, field)
+			case "terraformVersion":
+				return ec.fieldContext_ModuleVersion_terraformVersion(ctx, field)
+			case "variables":
+				return ec.fieldContext_ModuleVersion_variables(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleVersion", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createModuleVersion_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteModuleVersion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteModuleVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteModuleVersion(rctx, fc.Args["moduleGroupId"].(string), fc.Args["moduleVersionId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteModuleVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteModuleVersion_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Mutation_createOrganizationalAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createOrganizationalAccount(ctx, field)
@@ -3989,6 +7730,746 @@ func (ec *executionContext) fieldContext_OrganizationalUnits_nextCursor(ctx cont
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Provider_name(ctx context.Context, field graphql.CollectedField, obj *models.Provider) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Provider_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Provider_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Provider",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Provider_arguments(ctx context.Context, field graphql.CollectedField, obj *models.Provider) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Provider_arguments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Arguments, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]models.Argument)
+	fc.Result = res
+	return ec.marshalNArgument2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐArgumentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Provider_arguments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Provider",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_Argument_name(ctx, field)
+			case "value":
+				return ec.fieldContext_Argument_value(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Argument", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_moduleAccountAssociation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_moduleAccountAssociation(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ModuleAccountAssociation(rctx, fc.Args["modulePropagationId"].(string), fc.Args["moduleAccountAssociationId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleAccountAssociation)
+	fc.Result = res
+	return ec.marshalNModuleAccountAssociation2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_moduleAccountAssociation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationId":
+				return ec.fieldContext_ModuleAccountAssociation_modulePropagationId(ctx, field)
+			case "orgAccountId":
+				return ec.fieldContext_ModuleAccountAssociation_orgAccountId(ctx, field)
+			case "remoteStateBucket":
+				return ec.fieldContext_ModuleAccountAssociation_remoteStateBucket(ctx, field)
+			case "remoteStateKey":
+				return ec.fieldContext_ModuleAccountAssociation_remoteStateKey(ctx, field)
+			case "status":
+				return ec.fieldContext_ModuleAccountAssociation_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleAccountAssociation", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_moduleAccountAssociation_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_moduleAccountAssociations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_moduleAccountAssociations(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ModuleAccountAssociations(rctx, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleAccountAssociations)
+	fc.Result = res
+	return ec.marshalNModuleAccountAssociations2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociations(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_moduleAccountAssociations(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_ModuleAccountAssociations_items(ctx, field)
+			case "nextCursor":
+				return ec.fieldContext_ModuleAccountAssociations_nextCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleAccountAssociations", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_moduleAccountAssociations_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_moduleGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_moduleGroup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ModuleGroup(rctx, fc.Args["moduleGroupId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleGroup)
+	fc.Result = res
+	return ec.marshalNModuleGroup2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleGroup(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_moduleGroup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "moduleGroupId":
+				return ec.fieldContext_ModuleGroup_moduleGroupId(ctx, field)
+			case "name":
+				return ec.fieldContext_ModuleGroup_name(ctx, field)
+			case "versions":
+				return ec.fieldContext_ModuleGroup_versions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleGroup", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_moduleGroup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_moduleGroups(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_moduleGroups(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ModuleGroups(rctx, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleGroups)
+	fc.Result = res
+	return ec.marshalNModuleGroups2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleGroups(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_moduleGroups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_ModuleGroups_items(ctx, field)
+			case "nextCursor":
+				return ec.fieldContext_ModuleGroups_nextCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleGroups", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_moduleGroups_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_modulePropagationExecutionRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_modulePropagationExecutionRequest(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ModulePropagationExecutionRequest(rctx, fc.Args["modulePropagationId"].(string), fc.Args["modulePropagationExecutionRequestId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModulePropagationExecutionRequest)
+	fc.Result = res
+	return ec.marshalNModulePropagationExecutionRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequest(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_modulePropagationExecutionRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationExecutionRequestId":
+				return ec.fieldContext_ModulePropagationExecutionRequest_modulePropagationExecutionRequestId(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_ModulePropagationExecutionRequest_modulePropagationId(ctx, field)
+			case "requestTime":
+				return ec.fieldContext_ModulePropagationExecutionRequest_requestTime(ctx, field)
+			case "status":
+				return ec.fieldContext_ModulePropagationExecutionRequest_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagationExecutionRequest", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_modulePropagationExecutionRequest_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_modulePropagationExecutionRequests(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_modulePropagationExecutionRequests(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ModulePropagationExecutionRequests(rctx, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModulePropagationExecutionRequests)
+	fc.Result = res
+	return ec.marshalNModulePropagationExecutionRequests2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequests(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_modulePropagationExecutionRequests(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_ModulePropagationExecutionRequests_items(ctx, field)
+			case "nextCursor":
+				return ec.fieldContext_ModulePropagationExecutionRequests_nextCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagationExecutionRequests", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_modulePropagationExecutionRequests_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_modulePropagation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_modulePropagation(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ModulePropagation(rctx, fc.Args["modulePropagationId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModulePropagation)
+	fc.Result = res
+	return ec.marshalNModulePropagation2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_modulePropagation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationId":
+				return ec.fieldContext_ModulePropagation_modulePropagationId(ctx, field)
+			case "moduleVersionId":
+				return ec.fieldContext_ModulePropagation_moduleVersionId(ctx, field)
+			case "moduleGroupId":
+				return ec.fieldContext_ModulePropagation_moduleGroupId(ctx, field)
+			case "orgUnitId":
+				return ec.fieldContext_ModulePropagation_orgUnitId(ctx, field)
+			case "orgDimensionId":
+				return ec.fieldContext_ModulePropagation_orgDimensionId(ctx, field)
+			case "name":
+				return ec.fieldContext_ModulePropagation_name(ctx, field)
+			case "description":
+				return ec.fieldContext_ModulePropagation_description(ctx, field)
+			case "arguments":
+				return ec.fieldContext_ModulePropagation_arguments(ctx, field)
+			case "providers":
+				return ec.fieldContext_ModulePropagation_providers(ctx, field)
+			case "moduleAccountAssociations":
+				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagation", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_modulePropagation_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_modulePropagations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_modulePropagations(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ModulePropagations(rctx, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModulePropagations)
+	fc.Result = res
+	return ec.marshalNModulePropagations2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagations(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_modulePropagations(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_ModulePropagations_items(ctx, field)
+			case "nextCursor":
+				return ec.fieldContext_ModulePropagations_nextCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagations", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_modulePropagations_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_moduleVersion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_moduleVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ModuleVersion(rctx, fc.Args["moduleGroupId"].(string), fc.Args["moduleVersionId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleVersion)
+	fc.Result = res
+	return ec.marshalNModuleVersion2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVersion(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_moduleVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "moduleVersionId":
+				return ec.fieldContext_ModuleVersion_moduleVersionId(ctx, field)
+			case "moduleGroupId":
+				return ec.fieldContext_ModuleVersion_moduleGroupId(ctx, field)
+			case "name":
+				return ec.fieldContext_ModuleVersion_name(ctx, field)
+			case "remoteSource":
+				return ec.fieldContext_ModuleVersion_remoteSource(ctx, field)
+			case "terraformVersion":
+				return ec.fieldContext_ModuleVersion_terraformVersion(ctx, field)
+			case "variables":
+				return ec.fieldContext_ModuleVersion_variables(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleVersion", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_moduleVersion_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_moduleVersions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_moduleVersions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ModuleVersions(rctx, fc.Args["moduleGroupId"].(string), fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleVersions)
+	fc.Result = res
+	return ec.marshalNModuleVersions2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVersions(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_moduleVersions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_ModuleVersions_items(ctx, field)
+			case "nextCursor":
+				return ec.fieldContext_ModuleVersions_nextCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleVersions", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_moduleVersions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -6655,6 +11136,234 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputArgumentInput(ctx context.Context, obj interface{}) (models.ArgumentInput, error) {
+	var it models.ArgumentInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			it.Value, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewModuleGroup(ctx context.Context, obj interface{}) (models.NewModuleGroup, error) {
+	var it models.NewModuleGroup
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewModulePropagation(ctx context.Context, obj interface{}) (models.NewModulePropagation, error) {
+	var it models.NewModulePropagation
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"moduleVersionId", "moduleGroupId", "orgUnitId", "orgDimensionId", "name", "description", "arguments", "providers"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "moduleVersionId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleVersionId"))
+			it.ModuleVersionId, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "moduleGroupId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleGroupId"))
+			it.ModuleGroupId, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "orgUnitId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orgUnitId"))
+			it.OrgUnitId, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "orgDimensionId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orgDimensionId"))
+			it.OrgDimensionId, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "arguments":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("arguments"))
+			it.Arguments, err = ec.unmarshalNArgumentInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐArgumentInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "providers":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("providers"))
+			it.Providers, err = ec.unmarshalNProviderInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐProviderInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewModulePropagationExecutionRequest(ctx context.Context, obj interface{}) (models.NewModulePropagationExecutionRequest, error) {
+	var it models.NewModulePropagationExecutionRequest
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"modulePropagationId"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "modulePropagationId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("modulePropagationId"))
+			it.ModulePropagationId, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewModuleVersion(ctx context.Context, obj interface{}) (models.NewModuleVersion, error) {
+	var it models.NewModuleVersion
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"moduleGroupId", "name", "remoteSource", "terraformVersion"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "moduleGroupId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleGroupId"))
+			it.ModuleGroupId, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "remoteSource":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("remoteSource"))
+			it.RemoteSource, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "terraformVersion":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("terraformVersion"))
+			it.TerraformVersion, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewOrganizationalAccount(ctx context.Context, obj interface{}) (models.NewOrganizationalAccount, error) {
 	var it models.NewOrganizationalAccount
 	asMap := map[string]interface{}{}
@@ -6851,6 +11560,42 @@ func (ec *executionContext) unmarshalInputOrganizationalUnitUpdate(ctx context.C
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputProviderInput(ctx context.Context, obj interface{}) (models.ProviderInput, error) {
+	var it models.ProviderInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "arguments"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "arguments":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("arguments"))
+			it.Arguments, err = ec.unmarshalNArgumentInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐArgumentInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -6858,6 +11603,571 @@ func (ec *executionContext) unmarshalInputOrganizationalUnitUpdate(ctx context.C
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var argumentImplementors = []string{"Argument"}
+
+func (ec *executionContext) _Argument(ctx context.Context, sel ast.SelectionSet, obj *models.Argument) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, argumentImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Argument")
+		case "name":
+
+			out.Values[i] = ec._Argument_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+
+			out.Values[i] = ec._Argument_value(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var moduleAccountAssociationImplementors = []string{"ModuleAccountAssociation"}
+
+func (ec *executionContext) _ModuleAccountAssociation(ctx context.Context, sel ast.SelectionSet, obj *models.ModuleAccountAssociation) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, moduleAccountAssociationImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ModuleAccountAssociation")
+		case "modulePropagationId":
+
+			out.Values[i] = ec._ModuleAccountAssociation_modulePropagationId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "orgAccountId":
+
+			out.Values[i] = ec._ModuleAccountAssociation_orgAccountId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "remoteStateBucket":
+
+			out.Values[i] = ec._ModuleAccountAssociation_remoteStateBucket(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "remoteStateKey":
+
+			out.Values[i] = ec._ModuleAccountAssociation_remoteStateKey(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "status":
+
+			out.Values[i] = ec._ModuleAccountAssociation_status(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var moduleAccountAssociationsImplementors = []string{"ModuleAccountAssociations"}
+
+func (ec *executionContext) _ModuleAccountAssociations(ctx context.Context, sel ast.SelectionSet, obj *models.ModuleAccountAssociations) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, moduleAccountAssociationsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ModuleAccountAssociations")
+		case "items":
+
+			out.Values[i] = ec._ModuleAccountAssociations_items(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "nextCursor":
+
+			out.Values[i] = ec._ModuleAccountAssociations_nextCursor(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var moduleGroupImplementors = []string{"ModuleGroup"}
+
+func (ec *executionContext) _ModuleGroup(ctx context.Context, sel ast.SelectionSet, obj *models.ModuleGroup) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, moduleGroupImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ModuleGroup")
+		case "moduleGroupId":
+
+			out.Values[i] = ec._ModuleGroup_moduleGroupId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "name":
+
+			out.Values[i] = ec._ModuleGroup_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "versions":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ModuleGroup_versions(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var moduleGroupsImplementors = []string{"ModuleGroups"}
+
+func (ec *executionContext) _ModuleGroups(ctx context.Context, sel ast.SelectionSet, obj *models.ModuleGroups) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, moduleGroupsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ModuleGroups")
+		case "items":
+
+			out.Values[i] = ec._ModuleGroups_items(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "nextCursor":
+
+			out.Values[i] = ec._ModuleGroups_nextCursor(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var modulePropagationImplementors = []string{"ModulePropagation"}
+
+func (ec *executionContext) _ModulePropagation(ctx context.Context, sel ast.SelectionSet, obj *models.ModulePropagation) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, modulePropagationImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ModulePropagation")
+		case "modulePropagationId":
+
+			out.Values[i] = ec._ModulePropagation_modulePropagationId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "moduleVersionId":
+
+			out.Values[i] = ec._ModulePropagation_moduleVersionId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "moduleGroupId":
+
+			out.Values[i] = ec._ModulePropagation_moduleGroupId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "orgUnitId":
+
+			out.Values[i] = ec._ModulePropagation_orgUnitId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "orgDimensionId":
+
+			out.Values[i] = ec._ModulePropagation_orgDimensionId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "name":
+
+			out.Values[i] = ec._ModulePropagation_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "description":
+
+			out.Values[i] = ec._ModulePropagation_description(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "arguments":
+
+			out.Values[i] = ec._ModulePropagation_arguments(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "providers":
+
+			out.Values[i] = ec._ModulePropagation_providers(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "moduleAccountAssociations":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ModulePropagation_moduleAccountAssociations(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var modulePropagationExecutionRequestImplementors = []string{"ModulePropagationExecutionRequest"}
+
+func (ec *executionContext) _ModulePropagationExecutionRequest(ctx context.Context, sel ast.SelectionSet, obj *models.ModulePropagationExecutionRequest) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, modulePropagationExecutionRequestImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ModulePropagationExecutionRequest")
+		case "modulePropagationExecutionRequestId":
+
+			out.Values[i] = ec._ModulePropagationExecutionRequest_modulePropagationExecutionRequestId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "modulePropagationId":
+
+			out.Values[i] = ec._ModulePropagationExecutionRequest_modulePropagationId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "requestTime":
+
+			out.Values[i] = ec._ModulePropagationExecutionRequest_requestTime(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "status":
+
+			out.Values[i] = ec._ModulePropagationExecutionRequest_status(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var modulePropagationExecutionRequestsImplementors = []string{"ModulePropagationExecutionRequests"}
+
+func (ec *executionContext) _ModulePropagationExecutionRequests(ctx context.Context, sel ast.SelectionSet, obj *models.ModulePropagationExecutionRequests) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, modulePropagationExecutionRequestsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ModulePropagationExecutionRequests")
+		case "items":
+
+			out.Values[i] = ec._ModulePropagationExecutionRequests_items(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "nextCursor":
+
+			out.Values[i] = ec._ModulePropagationExecutionRequests_nextCursor(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var modulePropagationsImplementors = []string{"ModulePropagations"}
+
+func (ec *executionContext) _ModulePropagations(ctx context.Context, sel ast.SelectionSet, obj *models.ModulePropagations) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, modulePropagationsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ModulePropagations")
+		case "items":
+
+			out.Values[i] = ec._ModulePropagations_items(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "nextCursor":
+
+			out.Values[i] = ec._ModulePropagations_nextCursor(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var moduleVariableImplementors = []string{"ModuleVariable"}
+
+func (ec *executionContext) _ModuleVariable(ctx context.Context, sel ast.SelectionSet, obj *models.ModuleVariable) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, moduleVariableImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ModuleVariable")
+		case "Name":
+
+			out.Values[i] = ec._ModuleVariable_Name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Type":
+
+			out.Values[i] = ec._ModuleVariable_Type(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Description":
+
+			out.Values[i] = ec._ModuleVariable_Description(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Default":
+
+			out.Values[i] = ec._ModuleVariable_Default(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var moduleVersionImplementors = []string{"ModuleVersion"}
+
+func (ec *executionContext) _ModuleVersion(ctx context.Context, sel ast.SelectionSet, obj *models.ModuleVersion) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, moduleVersionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ModuleVersion")
+		case "moduleVersionId":
+
+			out.Values[i] = ec._ModuleVersion_moduleVersionId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "moduleGroupId":
+
+			out.Values[i] = ec._ModuleVersion_moduleGroupId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._ModuleVersion_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "remoteSource":
+
+			out.Values[i] = ec._ModuleVersion_remoteSource(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "terraformVersion":
+
+			out.Values[i] = ec._ModuleVersion_terraformVersion(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "variables":
+
+			out.Values[i] = ec._ModuleVersion_variables(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var moduleVersionsImplementors = []string{"ModuleVersions"}
+
+func (ec *executionContext) _ModuleVersions(ctx context.Context, sel ast.SelectionSet, obj *models.ModuleVersions) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, moduleVersionsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ModuleVersions")
+		case "items":
+
+			out.Values[i] = ec._ModuleVersions_items(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "nextCursor":
+
+			out.Values[i] = ec._ModuleVersions_nextCursor(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
 
 var mutationImplementors = []string{"Mutation"}
 
@@ -6878,6 +12188,69 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "createModuleGroup":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createModuleGroup(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteModuleGroup":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteModuleGroup(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createModulePropagationExecutionRequest":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createModulePropagationExecutionRequest(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createModulePropagation":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createModulePropagation(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteModulePropagation":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteModulePropagation(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createModuleVersion":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createModuleVersion(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteModuleVersion":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteModuleVersion(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createOrganizationalAccount":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -7501,6 +12874,41 @@ func (ec *executionContext) _OrganizationalUnits(ctx context.Context, sel ast.Se
 	return out
 }
 
+var providerImplementors = []string{"Provider"}
+
+func (ec *executionContext) _Provider(ctx context.Context, sel ast.SelectionSet, obj *models.Provider) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, providerImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Provider")
+		case "name":
+
+			out.Values[i] = ec._Provider_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "arguments":
+
+			out.Values[i] = ec._Provider_arguments(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -7520,6 +12928,236 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "moduleAccountAssociation":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_moduleAccountAssociation(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "moduleAccountAssociations":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_moduleAccountAssociations(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "moduleGroup":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_moduleGroup(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "moduleGroups":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_moduleGroups(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "modulePropagationExecutionRequest":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_modulePropagationExecutionRequest(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "modulePropagationExecutionRequests":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_modulePropagationExecutionRequests(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "modulePropagation":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_modulePropagation(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "modulePropagations":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_modulePropagations(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "moduleVersion":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_moduleVersion(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "moduleVersions":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_moduleVersions(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "organizationalAccount":
 			field := field
 
@@ -8137,6 +13775,76 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) marshalNArgument2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐArgument(ctx context.Context, sel ast.SelectionSet, v models.Argument) graphql.Marshaler {
+	return ec._Argument(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNArgument2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐArgumentᚄ(ctx context.Context, sel ast.SelectionSet, v []models.Argument) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNArgument2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐArgument(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNArgumentInput2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐArgumentInput(ctx context.Context, v interface{}) (models.ArgumentInput, error) {
+	res, err := ec.unmarshalInputArgumentInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNArgumentInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐArgumentInputᚄ(ctx context.Context, v interface{}) ([]models.ArgumentInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]models.ArgumentInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNArgumentInput2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐArgumentInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -8165,6 +13873,410 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNModuleAccountAssociation2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociation(ctx context.Context, sel ast.SelectionSet, v models.ModuleAccountAssociation) graphql.Marshaler {
+	return ec._ModuleAccountAssociation(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNModuleAccountAssociation2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociation(ctx context.Context, sel ast.SelectionSet, v []models.ModuleAccountAssociation) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOModuleAccountAssociation2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociation(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalNModuleAccountAssociation2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociation(ctx context.Context, sel ast.SelectionSet, v *models.ModuleAccountAssociation) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ModuleAccountAssociation(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNModuleAccountAssociations2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociations(ctx context.Context, sel ast.SelectionSet, v models.ModuleAccountAssociations) graphql.Marshaler {
+	return ec._ModuleAccountAssociations(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNModuleAccountAssociations2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociations(ctx context.Context, sel ast.SelectionSet, v *models.ModuleAccountAssociations) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ModuleAccountAssociations(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNModuleGroup2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleGroup(ctx context.Context, sel ast.SelectionSet, v models.ModuleGroup) graphql.Marshaler {
+	return ec._ModuleGroup(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNModuleGroup2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleGroup(ctx context.Context, sel ast.SelectionSet, v []models.ModuleGroup) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOModuleGroup2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleGroup(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalNModuleGroup2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleGroup(ctx context.Context, sel ast.SelectionSet, v *models.ModuleGroup) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ModuleGroup(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNModuleGroups2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleGroups(ctx context.Context, sel ast.SelectionSet, v models.ModuleGroups) graphql.Marshaler {
+	return ec._ModuleGroups(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNModuleGroups2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleGroups(ctx context.Context, sel ast.SelectionSet, v *models.ModuleGroups) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ModuleGroups(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNModulePropagation2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagation(ctx context.Context, sel ast.SelectionSet, v models.ModulePropagation) graphql.Marshaler {
+	return ec._ModulePropagation(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNModulePropagation2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagation(ctx context.Context, sel ast.SelectionSet, v []models.ModulePropagation) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOModulePropagation2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagation(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalNModulePropagation2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagation(ctx context.Context, sel ast.SelectionSet, v *models.ModulePropagation) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ModulePropagation(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNModulePropagationExecutionRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequest(ctx context.Context, sel ast.SelectionSet, v models.ModulePropagationExecutionRequest) graphql.Marshaler {
+	return ec._ModulePropagationExecutionRequest(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNModulePropagationExecutionRequest2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequest(ctx context.Context, sel ast.SelectionSet, v []models.ModulePropagationExecutionRequest) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOModulePropagationExecutionRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequest(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalNModulePropagationExecutionRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequest(ctx context.Context, sel ast.SelectionSet, v *models.ModulePropagationExecutionRequest) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ModulePropagationExecutionRequest(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNModulePropagationExecutionRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequestStatus(ctx context.Context, v interface{}) (models.ModulePropagationExecutionRequestStatus, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := models.ModulePropagationExecutionRequestStatus(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNModulePropagationExecutionRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequestStatus(ctx context.Context, sel ast.SelectionSet, v models.ModulePropagationExecutionRequestStatus) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) marshalNModulePropagationExecutionRequests2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequests(ctx context.Context, sel ast.SelectionSet, v models.ModulePropagationExecutionRequests) graphql.Marshaler {
+	return ec._ModulePropagationExecutionRequests(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNModulePropagationExecutionRequests2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequests(ctx context.Context, sel ast.SelectionSet, v *models.ModulePropagationExecutionRequests) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ModulePropagationExecutionRequests(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNModulePropagations2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagations(ctx context.Context, sel ast.SelectionSet, v models.ModulePropagations) graphql.Marshaler {
+	return ec._ModulePropagations(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNModulePropagations2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagations(ctx context.Context, sel ast.SelectionSet, v *models.ModulePropagations) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ModulePropagations(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNModuleVariable2ᚕᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVariable(ctx context.Context, sel ast.SelectionSet, v []*models.ModuleVariable) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOModuleVariable2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVariable(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalNModuleVersion2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVersion(ctx context.Context, sel ast.SelectionSet, v models.ModuleVersion) graphql.Marshaler {
+	return ec._ModuleVersion(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNModuleVersion2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVersion(ctx context.Context, sel ast.SelectionSet, v []models.ModuleVersion) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOModuleVersion2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVersion(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalNModuleVersion2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVersion(ctx context.Context, sel ast.SelectionSet, v *models.ModuleVersion) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ModuleVersion(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNModuleVersions2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVersions(ctx context.Context, sel ast.SelectionSet, v models.ModuleVersions) graphql.Marshaler {
+	return ec._ModuleVersions(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNModuleVersions2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVersions(ctx context.Context, sel ast.SelectionSet, v *models.ModuleVersions) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ModuleVersions(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNNewModuleGroup2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewModuleGroup(ctx context.Context, v interface{}) (models.NewModuleGroup, error) {
+	res, err := ec.unmarshalInputNewModuleGroup(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNNewModulePropagation2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewModulePropagation(ctx context.Context, v interface{}) (models.NewModulePropagation, error) {
+	res, err := ec.unmarshalInputNewModulePropagation(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNNewModulePropagationExecutionRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewModulePropagationExecutionRequest(ctx context.Context, v interface{}) (models.NewModulePropagationExecutionRequest, error) {
+	res, err := ec.unmarshalInputNewModulePropagationExecutionRequest(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNNewModuleVersion2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewModuleVersion(ctx context.Context, v interface{}) (models.NewModuleVersion, error) {
+	res, err := ec.unmarshalInputNewModuleVersion(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNNewOrganizationalAccount2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewOrganizationalAccount(ctx context.Context, v interface{}) (models.NewOrganizationalAccount, error) {
@@ -8456,6 +14568,76 @@ func (ec *executionContext) marshalNOrganizationalUnits2ᚖgithubᚗcomᚋsheacl
 	return ec._OrganizationalUnits(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNProvider2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐProvider(ctx context.Context, sel ast.SelectionSet, v models.Provider) graphql.Marshaler {
+	return ec._Provider(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNProvider2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐProviderᚄ(ctx context.Context, sel ast.SelectionSet, v []models.Provider) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNProvider2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐProvider(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNProviderInput2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐProviderInput(ctx context.Context, v interface{}) (models.ProviderInput, error) {
+	res, err := ec.unmarshalInputProviderInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNProviderInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐProviderInputᚄ(ctx context.Context, v interface{}) ([]models.ProviderInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]models.ProviderInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNProviderInput2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐProviderInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -8463,6 +14645,21 @@ func (ec *executionContext) unmarshalNString2string(ctx context.Context, v inter
 
 func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	res := graphql.MarshalTime(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8790,6 +14987,44 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	}
 	res := graphql.MarshalInt(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOModuleAccountAssociation2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociation(ctx context.Context, sel ast.SelectionSet, v models.ModuleAccountAssociation) graphql.Marshaler {
+	return ec._ModuleAccountAssociation(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalOModuleAccountAssociationStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociationStatus(ctx context.Context, v interface{}) (models.ModuleAccountAssociationStatus, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := models.ModuleAccountAssociationStatus(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOModuleAccountAssociationStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociationStatus(ctx context.Context, sel ast.SelectionSet, v models.ModuleAccountAssociationStatus) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	return res
+}
+
+func (ec *executionContext) marshalOModuleGroup2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleGroup(ctx context.Context, sel ast.SelectionSet, v models.ModuleGroup) graphql.Marshaler {
+	return ec._ModuleGroup(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOModulePropagation2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagation(ctx context.Context, sel ast.SelectionSet, v models.ModulePropagation) graphql.Marshaler {
+	return ec._ModulePropagation(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOModulePropagationExecutionRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequest(ctx context.Context, sel ast.SelectionSet, v models.ModulePropagationExecutionRequest) graphql.Marshaler {
+	return ec._ModulePropagationExecutionRequest(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOModuleVariable2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVariable(ctx context.Context, sel ast.SelectionSet, v *models.ModuleVariable) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ModuleVariable(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOModuleVersion2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleVersion(ctx context.Context, sel ast.SelectionSet, v models.ModuleVersion) graphql.Marshaler {
+	return ec._ModuleVersion(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalOOrganizationalAccount2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐOrganizationalAccount(ctx context.Context, sel ast.SelectionSet, v models.OrganizationalAccount) graphql.Marshaler {

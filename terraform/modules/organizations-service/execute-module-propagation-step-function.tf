@@ -249,7 +249,7 @@ resource "aws_sfn_state_machine" "execute_module_propagation" {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::states:startExecution.sync:2",
                             "Parameters": {
-                              "StateMachineArn": "${aws_sfn_state_machine.execute_terraform_apply.arn}}",
+                              "StateMachineArn": "${aws_sfn_state_machine.execute_terraform_apply.arn}",
                               "Input": {
                                 "StatePayload": {
                                   "ModuleAccountAssociation.$": "$",

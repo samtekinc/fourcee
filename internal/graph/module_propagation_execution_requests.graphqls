@@ -1,0 +1,39 @@
+type ModulePropagationExecutionRequest {
+  modulePropagationExecutionRequestId: ID!
+  modulePropagationId: ID!
+  requestTime: Time!
+  status: ModulePropagationExecutionRequestStatus!
+}
+
+type ModulePropagationExecutionRequests {
+  items: [ModulePropagationExecutionRequest]!
+  nextCursor: String
+}
+
+input NewModulePropagationExecutionRequest {
+  modulePropagationId: ID!
+}
+
+extend type Query {
+  modulePropagationExecutionRequest(
+    modulePropagationId: ID!
+    modulePropagationExecutionRequestId: ID!
+  ): ModulePropagationExecutionRequest!
+  modulePropagationExecutionRequests(
+    limit: Int
+    nextCursor: String
+  ): ModulePropagationExecutionRequests!
+}
+
+extend type Mutation {
+  createModulePropagationExecutionRequest(
+    modulePropagationExecutionRequest: NewModulePropagationExecutionRequest!
+  ): ModulePropagationExecutionRequest!
+}
+
+enum ModulePropagationExecutionRequestStatus {
+  PENDING
+  RUNNING
+  FAILED
+  SUCCEEDED
+}

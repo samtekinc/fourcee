@@ -23,6 +23,8 @@ func (c *OrganizationsAPIClient) PutModuleAccountAssociation(ctx context.Context
 		ModulePropagationId: input.ModulePropagationId,
 		OrgAccountId:        input.OrgAccountId,
 		Status:              models.ModuleAccountAssociationStatusActive,
+		RemoteStateBucket:   input.RemoteStateBucket,
+		RemoteStateKey:      input.RemoteStateKey,
 	}
 
 	err := c.dbClient.PutModuleAccountAssociation(ctx, &moduleAccountAssociation)

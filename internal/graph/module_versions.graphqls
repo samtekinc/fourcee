@@ -1,0 +1,41 @@
+type ModuleVersion {
+  moduleVersionId: ID!
+  moduleGroupId: ID!
+  name: String!
+  remoteSource: String!
+  terraformVersion: String!
+  variables: [ModuleVariable]!
+}
+
+type ModuleVariable {
+  Name: String!
+  Type: String!
+  Description: String!
+  Default: String
+}
+
+type ModuleVersions {
+  items: [ModuleVersion]!
+  nextCursor: String
+}
+
+input NewModuleVersion {
+  moduleGroupId: ID!
+  name: String!
+  remoteSource: String!
+  terraformVersion: String!
+}
+
+extend type Query {
+  moduleVersion(moduleGroupId: ID!, moduleVersionId: ID!): ModuleVersion!
+  moduleVersions(
+    moduleGroupId: ID!
+    limit: Int
+    nextCursor: String
+  ): ModuleVersions!
+}
+
+extend type Mutation {
+  createModuleVersion(moduleVersion: NewModuleVersion!): ModuleVersion!
+  deleteModuleVersion(moduleGroupId: ID!, moduleVersionId: ID!): Boolean!
+}

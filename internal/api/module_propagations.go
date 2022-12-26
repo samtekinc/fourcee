@@ -43,8 +43,8 @@ func (c *OrganizationsAPIClient) PutModulePropagation(ctx context.Context, input
 		ModuleGroupId:       input.ModuleGroupId,
 		OrgUnitId:           input.OrgUnitId,
 		OrgDimensionId:      input.OrgDimensionId,
-		Arguments:           input.Arguments,
-		Providers:           input.Providers,
+		Arguments:           ArgumentInputsToArguments(input.Arguments),
+		Providers:           ProvidersInputToProviders(input.Providers),
 		Name:                input.Name,
 		Description:         input.Description,
 	}

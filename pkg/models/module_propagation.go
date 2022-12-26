@@ -1,15 +1,15 @@
 package models
 
 type ModulePropagation struct {
-	ModulePropagationId string      `json:"modulePropagationId"`
-	ModuleVersionId     string      `json:"moduleVersionId"`
-	ModuleGroupId       string      `json:"moduleGroupId"`
-	OrgUnitId           string      `json:"orgUnitId"`
-	OrgDimensionId      string      `json:"orgDimensionId"`
-	Arguments           []*Argument `json:"arguments"`
-	Providers           []*Provider `json:"providers"`
-	Name                string      `json:"name"`
-	Description         string      `json:"description"`
+	ModulePropagationId string     `json:"modulePropagationId"`
+	ModuleVersionId     string     `json:"moduleVersionId"`
+	ModuleGroupId       string     `json:"moduleGroupId"`
+	OrgUnitId           string     `json:"orgUnitId"`
+	OrgDimensionId      string     `json:"orgDimensionId"`
+	Arguments           []Argument `json:"arguments"`
+	Providers           []Provider `json:"providers"`
+	Name                string     `json:"name"`
+	Description         string     `json:"description"`
 }
 
 type ModulePropagations struct {
@@ -18,8 +18,8 @@ type ModulePropagations struct {
 }
 
 type Provider struct {
-	Name      string      `json:"name" dynamodbav:"name"`
-	Arguments []*Argument `json:"arguments" dynamodbav:"arguments"`
+	Name      string     `json:"name" dynamodbav:"name"`
+	Arguments []Argument `json:"arguments" dynamodbav:"arguments"`
 }
 
 type Argument struct {
@@ -27,13 +27,23 @@ type Argument struct {
 	Value string `json:"value"`
 }
 
+type ArgumentInput struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+type ProviderInput struct {
+	Name      string          `json:"name"`
+	Arguments []ArgumentInput `json:"arguments"`
+}
+
 type NewModulePropagation struct {
-	ModuleVersionId string      `json:"moduleVersionId"`
-	ModuleGroupId   string      `json:"moduleGroupId"`
-	OrgUnitId       string      `json:"orgUnitId"`
-	OrgDimensionId  string      `json:"orgDimensionId"`
-	Arguments       []*Argument `json:"arguments"`
-	Providers       []*Provider `json:"providers"`
-	Name            string      `json:"name"`
-	Description     string      `json:"description"`
+	ModuleVersionId string          `json:"moduleVersionId"`
+	ModuleGroupId   string          `json:"moduleGroupId"`
+	OrgUnitId       string          `json:"orgUnitId"`
+	OrgDimensionId  string          `json:"orgDimensionId"`
+	Arguments       []ArgumentInput `json:"arguments"`
+	Providers       []ProviderInput `json:"providers"`
+	Name            string          `json:"name"`
+	Description     string          `json:"description"`
 }

@@ -1,0 +1,28 @@
+type ModuleAccountAssociation {
+  modulePropagationId: ID!
+  orgAccountId: ID!
+  remoteStateBucket: String!
+  remoteStateKey: String!
+  status: ModuleAccountAssociationStatus
+}
+
+type ModuleAccountAssociations {
+  items: [ModuleAccountAssociation]!
+  nextCursor: String
+}
+
+extend type Query {
+  moduleAccountAssociation(
+    modulePropagationId: ID!
+    moduleAccountAssociationId: ID!
+  ): ModuleAccountAssociation!
+  moduleAccountAssociations(
+    limit: Int
+    nextCursor: String
+  ): ModuleAccountAssociations!
+}
+
+enum ModuleAccountAssociationStatus {
+  ACTIVE
+  INACTIVE
+}

@@ -1,0 +1,63 @@
+type ModulePropagation {
+  modulePropagationId: ID!
+  moduleVersionId: ID!
+  moduleGroupId: ID!
+  orgUnitId: ID!
+  orgDimensionId: ID!
+  name: String!
+  description: String!
+  arguments: [Argument!]!
+  providers: [Provider!]!
+  moduleAccountAssociations(
+    limit: Int
+    nextCursor: String
+  ): ModuleAccountAssociations!
+}
+
+type Argument {
+  name: String!
+  value: String!
+}
+
+type Provider {
+  name: String!
+  arguments: [Argument!]!
+}
+
+type ModulePropagations {
+  items: [ModulePropagation]!
+  nextCursor: String
+}
+
+input NewModulePropagation {
+  moduleVersionId: ID!
+  moduleGroupId: ID!
+  orgUnitId: ID!
+  orgDimensionId: ID!
+  name: String!
+  description: String!
+  arguments: [ArgumentInput!]!
+  providers: [ProviderInput!]!
+}
+
+input ArgumentInput {
+  name: String!
+  value: String!
+}
+
+input ProviderInput {
+  name: String!
+  arguments: [ArgumentInput!]!
+}
+
+extend type Query {
+  modulePropagation(modulePropagationId: ID!): ModulePropagation!
+  modulePropagations(limit: Int, nextCursor: String): ModulePropagations!
+}
+
+extend type Mutation {
+  createModulePropagation(
+    modulePropagation: NewModulePropagation!
+  ): ModulePropagation!
+  deleteModulePropagation(modulePropagationId: ID!): Boolean!
+}

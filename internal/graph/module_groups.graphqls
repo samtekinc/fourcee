@@ -1,0 +1,24 @@
+type ModuleGroup {
+  moduleGroupId: ID!
+  name: String!
+  versions(limit: Int, nextCursor: String): ModuleVersions!
+}
+
+type ModuleGroups {
+  items: [ModuleGroup]!
+  nextCursor: String
+}
+
+input NewModuleGroup {
+  name: String!
+}
+
+extend type Query {
+  moduleGroup(moduleGroupId: ID!): ModuleGroup!
+  moduleGroups(limit: Int, nextCursor: String): ModuleGroups!
+}
+
+extend type Mutation {
+  createModuleGroup(moduleGroup: NewModuleGroup!): ModuleGroup!
+  deleteModuleGroup(moduleGroupId: ID!): Boolean!
+}

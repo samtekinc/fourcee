@@ -44,17 +44,9 @@ func (r *queryResolver) OrganizationalAccounts(ctx context.Context, limit *int, 
 	return r.apiClient.GetOrganizationalAccounts(ctx, int32(*limit), aws.ToString(nextCursor))
 }
 
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
-
 // OrganizationalAccount returns generated.OrganizationalAccountResolver implementation.
 func (r *Resolver) OrganizationalAccount() generated.OrganizationalAccountResolver {
 	return &organizationalAccountResolver{r}
 }
 
-// Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
-
-type mutationResolver struct{ *Resolver }
 type organizationalAccountResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }
