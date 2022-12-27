@@ -1,0 +1,29 @@
+type PlanExecutionRequest {
+  planExecutionRequestId: ID!
+  terraformVersion: String!
+  callbackTaskToken: String!
+  stateKey: String!
+  groupingKey: String!
+  terraformConfigurationBase64: String!
+  additionalArguments: [String]!
+  workflowExecutionId: String!
+  status: PlanExecutionStatus!
+  requestTime: Time!
+}
+
+type PlanExecutionRequests {
+  items: [PlanExecutionRequest]!
+  nextCursor: String
+}
+
+extend type Query {
+  planExecutionRequest(planExecutionRequestId: ID!): PlanExecutionRequest!
+  planExecutionRequests(limit: Int, nextCursor: String): PlanExecutionRequests!
+}
+
+enum PlanExecutionStatus {
+  PENDING
+  RUNNING
+  FAILED
+  SUCCEEDED
+}

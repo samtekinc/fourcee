@@ -8,8 +8,27 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/pkg/models"
 )
+
+// PlanExecutionRequests is the resolver for the planExecutionRequests field.
+func (r *modulePropagationExecutionRequestResolver) PlanExecutionRequests(ctx context.Context, obj *models.ModulePropagationExecutionRequest, limit *int, nextCursor *string) (*models.PlanExecutionRequests, error) {
+	if limit == nil {
+		limit = aws.Int(100)
+	}
+
+	return r.apiClient.GetPlanExecutionRequestsByGroupingKey(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
+}
+
+// ApplyExecutionRequests is the resolver for the applyExecutionRequests field.
+func (r *modulePropagationExecutionRequestResolver) ApplyExecutionRequests(ctx context.Context, obj *models.ModulePropagationExecutionRequest, limit *int, nextCursor *string) (*models.ApplyExecutionRequests, error) {
+	if limit == nil {
+		limit = aws.Int(100)
+	}
+
+	return r.apiClient.GetApplyExecutionRequestsByGroupingKey(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
+}
 
 // CreateModulePropagationExecutionRequest is the resolver for the createModulePropagationExecutionRequest field.
 func (r *mutationResolver) CreateModulePropagationExecutionRequest(ctx context.Context, modulePropagationExecutionRequest models.NewModulePropagationExecutionRequest) (*models.ModulePropagationExecutionRequest, error) {
@@ -29,3 +48,10 @@ func (r *queryResolver) ModulePropagationExecutionRequests(ctx context.Context, 
 
 	return r.apiClient.GetModulePropagationExecutionRequests(ctx, int32(*limit), aws.ToString(nextCursor))
 }
+
+// ModulePropagationExecutionRequest returns generated.ModulePropagationExecutionRequestResolver implementation.
+func (r *Resolver) ModulePropagationExecutionRequest() generated.ModulePropagationExecutionRequestResolver {
+	return &modulePropagationExecutionRequestResolver{r}
+}
+
+type modulePropagationExecutionRequestResolver struct{ *Resolver }

@@ -1,0 +1,32 @@
+type ApplyExecutionRequest {
+  applyExecutionRequestId: ID!
+  terraformVersion: String!
+  callbackTaskToken: String!
+  stateKey: String!
+  groupingKey: String!
+  terraformConfigurationBase64: String!
+  additionalArguments: [String]!
+  workflowExecutionId: String!
+  status: ApplyExecutionStatus!
+  requestTime: Time!
+}
+
+type ApplyExecutionRequests {
+  items: [ApplyExecutionRequest]!
+  nextCursor: String
+}
+
+extend type Query {
+  applyExecutionRequest(applyExecutionRequestId: ID!): ApplyExecutionRequest!
+  applyExecutionRequests(
+    limit: Int
+    nextCursor: String
+  ): ApplyExecutionRequests!
+}
+
+enum ApplyExecutionStatus {
+  PENDING
+  RUNNING
+  FAILED
+  SUCCEEDED
+}

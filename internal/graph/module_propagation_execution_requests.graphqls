@@ -3,6 +3,11 @@ type ModulePropagationExecutionRequest {
   modulePropagationId: ID!
   requestTime: Time!
   status: ModulePropagationExecutionRequestStatus!
+  planExecutionRequests(limit: Int, nextCursor: String): PlanExecutionRequests!
+  applyExecutionRequests(
+    limit: Int
+    nextCursor: String
+  ): ApplyExecutionRequests!
 }
 
 type ModulePropagationExecutionRequests {

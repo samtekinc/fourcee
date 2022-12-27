@@ -8,7 +8,6 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
@@ -25,8 +24,3 @@ func (r *queryResolver) ModuleAccountAssociations(ctx context.Context, limit *in
 
 	return r.apiClient.GetModuleAccountAssociations(ctx, int32(*limit), aws.ToString(nextCursor))
 }
-
-// Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
-
-type queryResolver struct{ *Resolver }

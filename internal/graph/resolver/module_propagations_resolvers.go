@@ -12,6 +12,26 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
+// ModuleVersion is the resolver for the moduleVersion field.
+func (r *modulePropagationResolver) ModuleVersion(ctx context.Context, obj *models.ModulePropagation) (*models.ModuleVersion, error) {
+	return r.apiClient.GetModuleVersion(ctx, obj.ModuleGroupId, obj.ModuleVersionId)
+}
+
+// ModuleGroup is the resolver for the moduleGroup field.
+func (r *modulePropagationResolver) ModuleGroup(ctx context.Context, obj *models.ModulePropagation) (*models.ModuleGroup, error) {
+	return r.apiClient.GetModuleGroup(ctx, obj.ModuleGroupId)
+}
+
+// OrgUnit is the resolver for the orgUnit field.
+func (r *modulePropagationResolver) OrgUnit(ctx context.Context, obj *models.ModulePropagation) (*models.OrganizationalUnit, error) {
+	return r.apiClient.GetOrganizationalUnit(ctx, obj.OrgDimensionId, obj.OrgUnitId)
+}
+
+// OrgDimension is the resolver for the orgDimension field.
+func (r *modulePropagationResolver) OrgDimension(ctx context.Context, obj *models.ModulePropagation) (*models.OrganizationalDimension, error) {
+	return r.apiClient.GetOrganizationalDimension(ctx, obj.OrgDimensionId)
+}
+
 // ModuleAccountAssociations is the resolver for the moduleAccountAssociations field.
 func (r *modulePropagationResolver) ModuleAccountAssociations(ctx context.Context, obj *models.ModulePropagation, limit *int, nextCursor *string) (*models.ModuleAccountAssociations, error) {
 	if limit == nil {
@@ -19,6 +39,15 @@ func (r *modulePropagationResolver) ModuleAccountAssociations(ctx context.Contex
 	}
 
 	return r.apiClient.GetModuleAccountAssociationsByModulePropagationId(ctx, obj.ModulePropagationId, int32(*limit), aws.ToString(nextCursor))
+}
+
+// ExecutionRequests is the resolver for the executionRequests field.
+func (r *modulePropagationResolver) ExecutionRequests(ctx context.Context, obj *models.ModulePropagation, limit *int, nextCursor *string) (*models.ModulePropagationExecutionRequests, error) {
+	if limit == nil {
+		limit = aws.Int(100)
+	}
+
+	return r.apiClient.GetModulePropagationExecutionRequestsByModulePropagationId(ctx, obj.ModulePropagationId, int32(*limit), aws.ToString(nextCursor))
 }
 
 // CreateModulePropagation is the resolver for the createModulePropagation field.

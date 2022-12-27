@@ -1,9 +1,13 @@
 type ModulePropagation {
   modulePropagationId: ID!
   moduleVersionId: ID!
+  moduleVersion: ModuleVersion!
   moduleGroupId: ID!
+  moduleGroup: ModuleGroup!
   orgUnitId: ID!
+  orgUnit: OrganizationalUnit!
   orgDimensionId: ID!
+  orgDimension: OrganizationalDimension!
   name: String!
   description: String!
   arguments: [Argument!]!
@@ -12,6 +16,10 @@ type ModulePropagation {
     limit: Int
     nextCursor: String
   ): ModuleAccountAssociations!
+  executionRequests(
+    limit: Int
+    nextCursor: String
+  ): ModulePropagationExecutionRequests!
 }
 
 type Argument {
