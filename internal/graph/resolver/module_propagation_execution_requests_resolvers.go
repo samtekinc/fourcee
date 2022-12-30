@@ -18,7 +18,7 @@ func (r *modulePropagationExecutionRequestResolver) PlanExecutionRequests(ctx co
 		limit = aws.Int(100)
 	}
 
-	return r.apiClient.GetPlanExecutionRequestsByGroupingKey(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetPlanExecutionRequestsByModulePropagationExecutionRequestId(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
 }
 
 // ApplyExecutionRequests is the resolver for the applyExecutionRequests field.
@@ -27,7 +27,7 @@ func (r *modulePropagationExecutionRequestResolver) ApplyExecutionRequests(ctx c
 		limit = aws.Int(100)
 	}
 
-	return r.apiClient.GetApplyExecutionRequestsByGroupingKey(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetApplyExecutionRequestsByModulePropagationExecutionRequestId(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
 }
 
 // CreateModulePropagationExecutionRequest is the resolver for the createModulePropagationExecutionRequest field.

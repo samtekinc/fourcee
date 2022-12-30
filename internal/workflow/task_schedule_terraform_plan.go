@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 
+	"github.com/sheacloud/tfom/internal/terraform"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
@@ -36,14 +37,31 @@ func (t *TaskHandler) ScheduleTerraformPlan(ctx context.Context, input ScheduleT
 		return nil, err
 	}
 
+	// get org account details
+	orgAccount, err := t.apiClient.GetOrganizationalAccount(ctx, input.Input.ModuleAccountAssociation.OrgAccountId)
+	if err != nil {
+		return nil, err
+	}
+
 	// TODO: generate TF config file based on module version and account details
+	terraformConfig, err := terraform.GetTerraformConfigurationBase64(&terraform.TerraformConfigurationInput{
+		ModuleAccountAssociation: &input.Input.ModuleAccountAssociation,
+		ModulePropagation:        modulePropagation,
+		ModuleVersion:            moduleVersion,
+		OrgAccount:               orgAccount,
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	planRequest, err := t.apiClient.PutPlanExecutionRequest(ctx, &models.NewPlanExecutionRequest{
-		TerraformVersion:             moduleVersion.TerraformVersion,
-		CallbackTaskToken:            input.TaskToken,
-		StateKey:                     input.Input.ModuleAccountAssociation.RemoteStateKey,
-		GroupingKey:                  input.Input.ModulePropagationExecutionRequestId,
-		TerraformConfigurationBase64: "cHJvdmlkZXIgImF3cyIgewogIHJlZ2lvbiA9ICJ1cy1lYXN0LTEiCn0KCmRhdGEgImF3c19yZWdpb24iICJjdXJyZW50IiB7fQoKb3V0cHV0ICJyZWdpb24iIHsKICB2YWx1ZSA9IGRhdGEuYXdzX3JlZ2lvbi5jdXJyZW50Lm5hbWUKfQo=",
+		TerraformVersion:                    moduleVersion.TerraformVersion,
+		CallbackTaskToken:                   input.TaskToken,
+		StateKey:                            input.Input.ModuleAccountAssociation.RemoteStateKey,
+		ModulePropagationId:                 input.Input.ModulePropagationId,
+		ModulePropagationExecutionRequestId: input.Input.ModulePropagationExecutionRequestId,
+		ModuleAccountAssociationKey:         input.Input.ModuleAccountAssociation.Key(),
+		TerraformConfigurationBase64:        terraformConfig,
 	})
 	if err != nil {
 		return nil, err

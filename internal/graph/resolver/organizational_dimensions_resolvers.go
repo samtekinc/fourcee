@@ -44,6 +44,14 @@ func (r *organizationalDimensionResolver) OrgUnitMemberships(ctx context.Context
 	return r.apiClient.GetOrganizationalUnitMembershipsByDimension(ctx, obj.OrgDimensionId, int32(*limit), aws.ToString(nextCursor))
 }
 
+// ModulePropagations is the resolver for the modulePropagations field.
+func (r *organizationalDimensionResolver) ModulePropagations(ctx context.Context, obj *models.OrganizationalDimension, limit *int, nextCursor *string) (*models.ModulePropagations, error) {
+	if limit == nil {
+		limit = aws.Int(100)
+	}
+	return r.apiClient.GetModulePropagationsByOrgDimensionId(ctx, obj.OrgDimensionId, int32(*limit), aws.ToString(nextCursor))
+}
+
 // OrganizationalDimension is the resolver for the organizationalDimension field.
 func (r *queryResolver) OrganizationalDimension(ctx context.Context, orgDimensionID string) (*models.OrganizationalDimension, error) {
 	return r.apiClient.GetOrganizationalDimension(ctx, orgDimensionID)

@@ -198,6 +198,18 @@ resource "aws_dynamodb_table" "module_propagation_execution_requests" {
     name = "ModulePropagationExecutionRequestId"
     type = "S"
   }
+
+  attribute {
+    name = "RequestTime"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "ModulePropagationId-RequestTime-index"
+    hash_key        = "ModulePropagationId"
+    range_key       = "RequestTime"
+    projection_type = "ALL"
+  }
 }
 
 resource "aws_dynamodb_table" "module_account_associations" {
@@ -214,6 +226,13 @@ resource "aws_dynamodb_table" "module_account_associations" {
   attribute {
     name = "OrgAccountId"
     type = "S"
+  }
+
+  global_secondary_index {
+    name            = "OrgAccountId-ModulePropagationId-index"
+    hash_key        = "OrgAccountId"
+    range_key       = "ModulePropagationId"
+    projection_type = "ALL"
   }
 }
 
@@ -234,7 +253,12 @@ resource "aws_dynamodb_table" "plan_execution_requests" {
   }
 
   attribute {
-    name = "GroupingKey"
+    name = "ModulePropagationExecutionRequestId"
+    type = "S"
+  }
+
+  attribute {
+    name = "ModuleAccountAssociationKey"
     type = "S"
   }
 
@@ -251,8 +275,15 @@ resource "aws_dynamodb_table" "plan_execution_requests" {
   }
 
   global_secondary_index {
-    name            = "GroupingKey-RequestTime-index"
-    hash_key        = "GroupingKey"
+    name            = "ModulePropagationExecutionRequestId-RequestTime-index"
+    hash_key        = "ModulePropagationExecutionRequestId"
+    range_key       = "RequestTime"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "ModuleAccountAssociationKey-RequestTime-index"
+    hash_key        = "ModuleAccountAssociationKey"
     range_key       = "RequestTime"
     projection_type = "ALL"
   }
@@ -275,7 +306,12 @@ resource "aws_dynamodb_table" "apply_execution_requests" {
   }
 
   attribute {
-    name = "GroupingKey"
+    name = "ModulePropagationExecutionRequestId"
+    type = "S"
+  }
+
+  attribute {
+    name = "ModuleAccountAssociationKey"
     type = "S"
   }
 
@@ -292,8 +328,15 @@ resource "aws_dynamodb_table" "apply_execution_requests" {
   }
 
   global_secondary_index {
-    name            = "GroupingKey-RequestTime-index"
-    hash_key        = "GroupingKey"
+    name            = "ModulePropagationExecutionRequestId-RequestTime-index"
+    hash_key        = "ModulePropagationExecutionRequestId"
+    range_key       = "RequestTime"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "ModuleAccountAssociationKey-RequestTime-index"
+    hash_key        = "ModuleAccountAssociationKey"
     range_key       = "RequestTime"
     projection_type = "ALL"
   }

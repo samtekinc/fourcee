@@ -43,6 +43,6 @@ func main() {
 	dbClient := database.NewOrganizationsDatabaseClient(&dbInput)
 	apiClient := api.NewOrganizationsAPIClient(dbClient, "./tmp/", sfnClient, "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-execute-module-propagation", "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-execution")
 
-	handler := workflow.NewTaskHandler(apiClient)
+	handler := workflow.NewTaskHandler(apiClient, "tfom-backend-states", "us-east-1")
 	lambda.StartWithOptions(handler.RouteTask, lambda.WithContext(context.Background()))
 }

@@ -38,15 +38,15 @@ func (c *OrganizationsAPIClient) PutModulePropagation(ctx context.Context, input
 	}
 
 	modulePropagation := models.ModulePropagation{
-		ModulePropagationId: modulePropagationId.String(),
-		ModuleVersionId:     input.ModuleVersionId,
-		ModuleGroupId:       input.ModuleGroupId,
-		OrgUnitId:           input.OrgUnitId,
-		OrgDimensionId:      input.OrgDimensionId,
-		Arguments:           ArgumentInputsToArguments(input.Arguments),
-		Providers:           ProvidersInputToProviders(input.Providers),
-		Name:                input.Name,
-		Description:         input.Description,
+		ModulePropagationId:       modulePropagationId.String(),
+		ModuleVersionId:           input.ModuleVersionId,
+		ModuleGroupId:             input.ModuleGroupId,
+		OrgUnitId:                 input.OrgUnitId,
+		OrgDimensionId:            input.OrgDimensionId,
+		Arguments:                 ArgumentInputsToArguments(input.Arguments),
+		AwsProviderConfigurations: AwsProviderConfigurationInputsToAwsProviderConfigurations(input.AwsProviderConfigurations),
+		Name:                      input.Name,
+		Description:               input.Description,
 	}
 	err = c.dbClient.PutModulePropagation(ctx, &modulePropagation)
 	if err != nil {

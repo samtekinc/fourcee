@@ -26,6 +26,7 @@ func (c *OrganizationsAPIClient) PutOrganizationalAccount(ctx context.Context, i
 		Name:            input.Name,
 		CloudPlatform:   input.CloudPlatform,
 		CloudIdentifier: input.CloudIdentifier,
+		AssumeRoleName:  input.AssumeRoleName,
 	}
 	err = c.dbClient.PutOrganizationalAccount(ctx, &orgAccount)
 	if err != nil {

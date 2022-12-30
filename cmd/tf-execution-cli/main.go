@@ -119,9 +119,6 @@ func runPlan(ctx context.Context, request *models.PlanExecutionRequest, apiClien
 
 	// init terraform
 	initOutput := executable.TerraformInit(workingDirectory)
-	if initOutput.Error != nil {
-		return initOutput.Error
-	}
 
 	// upload init results
 	key, err := apiClient.UploadTerraformPlanInitResults(ctx, request.PlanExecutionRequestId, initOutput)
@@ -135,11 +132,13 @@ func runPlan(ctx context.Context, request *models.PlanExecutionRequest, apiClien
 		return err
 	}
 
+	// if the init failed, return the error
+	if initOutput.Error != nil {
+		return initOutput.Error
+	}
+
 	// plan terraform
 	planOutput := executable.TerraformPlan(workingDirectory)
-	if planOutput.Error != nil {
-		return planOutput.Error
-	}
 
 	// upload plan results
 	key, err = apiClient.UploadTerraformPlanResults(ctx, request.PlanExecutionRequestId, planOutput)
@@ -151,6 +150,11 @@ func runPlan(ctx context.Context, request *models.PlanExecutionRequest, apiClien
 	})
 	if err != nil {
 		return err
+	}
+
+	// if the plan failed, return the error
+	if planOutput.Error != nil {
+		return planOutput.Error
 	}
 
 	return nil

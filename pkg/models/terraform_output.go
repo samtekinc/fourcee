@@ -3,7 +3,7 @@ package models
 type TerraformInitOutput struct {
 	Stdout []byte
 	Stderr []byte
-	Error  error
+	Error  error `json:"-"`
 }
 
 type TerraformPlanOutput struct {
@@ -11,17 +11,17 @@ type TerraformPlanOutput struct {
 	Stderr   []byte
 	PlanFile []byte
 	PlanJSON []byte
-	Error    error
+	Error    error `json:"-"`
 }
 
 type TerraformApplyOutput struct {
 	Stdout []byte
 	Stderr []byte
-	Error  error
+	Error  error `json:"-"`
 }
 
 type TerraformCommandOutput struct {
 	Stdout []byte
 	Stderr []byte
-	Error  error
+	Error  error `json:"-"`
 }

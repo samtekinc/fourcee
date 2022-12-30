@@ -1,0 +1,16 @@
+type TerraformInitOutput {
+  Stdout: String
+  Stderr: String
+}
+
+type TerraformPlanOutput {
+  Stdout: String
+  Stderr: String
+  PlanFile: String
+  PlanJSON: String
+}
+
+type TerraformApplyOutput {
+  Stdout: String
+  Stderr: String
+}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -88,6 +89,56 @@ func (c OrganizationsDatabaseClient) GetModuleAccountAssociationsByModulePropaga
 
 	queryInput := &dynamodb.QueryInput{
 		TableName:                 &c.moduleAccountAssociationsTableName,
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		KeyConditionExpression:    expr.KeyCondition(),
+		FilterExpression:          expr.Filter(),
+		Limit:                     &limit,
+		ExclusiveStartKey:         startKey,
+	}
+
+	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"ModulePropagationId", "OrgAccountId"})
+	if err != nil {
+		return nil, err
+	}
+
+	moduleAccountAssociations := []models.ModuleAccountAssociation{}
+	var nextCursor string
+
+	err = attributevalue.UnmarshalListOfMaps(resultItems, &moduleAccountAssociations)
+	if err != nil {
+		return nil, err
+	}
+
+	if lastEvaluatedKey != nil {
+		nextCursor, err = helpers.GetCursorFromKey(lastEvaluatedKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &models.ModuleAccountAssociations{
+		Items:      moduleAccountAssociations,
+		NextCursor: nextCursor,
+	}, nil
+}
+
+func (c OrganizationsDatabaseClient) GetModuleAccountAssociationsByOrgAccountId(ctx context.Context, orgAccountId string, limit int32, cursor string) (*models.ModuleAccountAssociations, error) {
+	startKey, err := helpers.GetKeyFromCursor(cursor)
+	if err != nil {
+		return nil, err
+	}
+
+	keyCondition := expression.Key("OrgAccountId").Equal(expression.Value(orgAccountId))
+	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
+	expr, err := expressionBuilder.Build()
+	if err != nil {
+		return nil, err
+	}
+
+	queryInput := &dynamodb.QueryInput{
+		TableName:                 &c.moduleAccountAssociationsTableName,
+		IndexName:                 aws.String("OrgAccountId-ModulePropagationId-index"),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		KeyConditionExpression:    expr.KeyCondition(),

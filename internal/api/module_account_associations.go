@@ -18,6 +18,10 @@ func (c *OrganizationsAPIClient) GetModuleAccountAssociationsByModulePropagation
 	return c.dbClient.GetModuleAccountAssociationsByModulePropagationId(ctx, modulePropagationId, limit, cursor)
 }
 
+func (c *OrganizationsAPIClient) GetModuleAccountAssociationsByOrgAccountId(ctx context.Context, orgAccountId string, limit int32, cursor string) (*models.ModuleAccountAssociations, error) {
+	return c.dbClient.GetModuleAccountAssociationsByOrgAccountId(ctx, orgAccountId, limit, cursor)
+}
+
 func (c *OrganizationsAPIClient) PutModuleAccountAssociation(ctx context.Context, input *models.NewModuleAccountAssociation) (*models.ModuleAccountAssociation, error) {
 	moduleAccountAssociation := models.ModuleAccountAssociation{
 		ModulePropagationId: input.ModulePropagationId,
@@ -25,6 +29,7 @@ func (c *OrganizationsAPIClient) PutModuleAccountAssociation(ctx context.Context
 		Status:              models.ModuleAccountAssociationStatusActive,
 		RemoteStateBucket:   input.RemoteStateBucket,
 		RemoteStateKey:      input.RemoteStateKey,
+		RemoteStateRegion:   input.RemoteStateRegion,
 	}
 
 	err := c.dbClient.PutModuleAccountAssociation(ctx, &moduleAccountAssociation)

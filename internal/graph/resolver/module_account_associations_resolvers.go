@@ -8,12 +8,60 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/sheacloud/tfom/internal/graph/generated"
+	"github.com/sheacloud/tfom/internal/terraform"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
+// ModulePropagation is the resolver for the modulePropagation field.
+func (r *moduleAccountAssociationResolver) ModulePropagation(ctx context.Context, obj *models.ModuleAccountAssociation) (*models.ModulePropagation, error) {
+	return r.apiClient.GetModulePropagation(ctx, obj.ModulePropagationId)
+}
+
+// PlanExecutionRequests is the resolver for the planExecutionRequests field.
+func (r *moduleAccountAssociationResolver) PlanExecutionRequests(ctx context.Context, obj *models.ModuleAccountAssociation, limit *int, nextCursor *string) (*models.PlanExecutionRequests, error) {
+	if limit == nil {
+		limit = aws.Int(100)
+	}
+	return r.apiClient.GetPlanExecutionRequestsByModuleAccountAssociationKey(ctx, obj.Key(), int32(*limit), aws.ToString(nextCursor))
+}
+
+// ApplyExecutionRequests is the resolver for the applyExecutionRequests field.
+func (r *moduleAccountAssociationResolver) ApplyExecutionRequests(ctx context.Context, obj *models.ModuleAccountAssociation, limit *int, nextCursor *string) (*models.ApplyExecutionRequests, error) {
+	if limit == nil {
+		limit = aws.Int(100)
+	}
+	return r.apiClient.GetApplyExecutionRequestsByModuleAccountAssociationKey(ctx, obj.Key(), int32(*limit), aws.ToString(nextCursor))
+}
+
+// TerraformConfiguration is the resolver for the terraformConfiguration field.
+func (r *moduleAccountAssociationResolver) TerraformConfiguration(ctx context.Context, obj *models.ModuleAccountAssociation) (string, error) {
+	modulePropagation, err := r.apiClient.GetModulePropagation(ctx, obj.ModulePropagationId)
+	if err != nil {
+		return "", err
+	}
+	moduleVersion, err := r.apiClient.GetModuleVersion(ctx, modulePropagation.ModuleGroupId, modulePropagation.ModuleVersionId)
+	if err != nil {
+		return "", err
+	}
+	orgAccount, err := r.apiClient.GetOrganizationalAccount(ctx, obj.OrgAccountId)
+	if err != nil {
+		return "", err
+	}
+
+	configInput := terraform.TerraformConfigurationInput{
+		ModuleAccountAssociation: obj,
+		ModulePropagation:        modulePropagation,
+		ModuleVersion:            moduleVersion,
+		OrgAccount:               orgAccount,
+	}
+
+	return terraform.GetTerraformConfigurationBase64(&configInput)
+}
+
 // ModuleAccountAssociation is the resolver for the moduleAccountAssociation field.
-func (r *queryResolver) ModuleAccountAssociation(ctx context.Context, modulePropagationID string, moduleAccountAssociationID string) (*models.ModuleAccountAssociation, error) {
-	return r.apiClient.GetModuleAccountAssociation(ctx, modulePropagationID, moduleAccountAssociationID)
+func (r *queryResolver) ModuleAccountAssociation(ctx context.Context, modulePropagationID string, orgAccountID string) (*models.ModuleAccountAssociation, error) {
+	return r.apiClient.GetModuleAccountAssociation(ctx, modulePropagationID, orgAccountID)
 }
 
 // ModuleAccountAssociations is the resolver for the moduleAccountAssociations field.
@@ -24,3 +72,10 @@ func (r *queryResolver) ModuleAccountAssociations(ctx context.Context, limit *in
 
 	return r.apiClient.GetModuleAccountAssociations(ctx, int32(*limit), aws.ToString(nextCursor))
 }
+
+// ModuleAccountAssociation returns generated.ModuleAccountAssociationResolver implementation.
+func (r *Resolver) ModuleAccountAssociation() generated.ModuleAccountAssociationResolver {
+	return &moduleAccountAssociationResolver{r}
+}
+
+type moduleAccountAssociationResolver struct{ *Resolver }

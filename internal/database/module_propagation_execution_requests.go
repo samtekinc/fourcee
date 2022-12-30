@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -88,15 +89,17 @@ func (c OrganizationsDatabaseClient) GetModulePropagationExecutionRequestsByModu
 
 	queryInput := &dynamodb.QueryInput{
 		TableName:                 &c.modulePropagationExecutionRequestsTableName,
+		IndexName:                 aws.String("ModulePropagationId-RequestTime-index"),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		KeyConditionExpression:    expr.KeyCondition(),
 		FilterExpression:          expr.Filter(),
 		Limit:                     &limit,
 		ExclusiveStartKey:         startKey,
+		ScanIndexForward:          aws.Bool(false),
 	}
 
-	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"ModulePropagationId", "ModulePropagationExecutionRequestId"})
+	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"ModulePropagationId", "ModulePropagationExecutionRequestId", "RequestTime"})
 	if err != nil {
 		return nil, err
 	}

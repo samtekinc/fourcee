@@ -98,6 +98,7 @@ func (c OrganizationsDatabaseClient) GetPlanExecutionRequestsByStateKey(ctx cont
 		FilterExpression:          expr.Filter(),
 		Limit:                     &limit,
 		ExclusiveStartKey:         startKey,
+		ScanIndexForward:          aws.Bool(false),
 	}
 
 	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"StateKey", "RequestTime"})
@@ -126,13 +127,13 @@ func (c OrganizationsDatabaseClient) GetPlanExecutionRequestsByStateKey(ctx cont
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetPlanExecutionRequestsByGroupingKey(ctx context.Context, groupingKey string, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
+func (c OrganizationsDatabaseClient) GetPlanExecutionRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
 	}
 
-	keyCondition := expression.Key("GroupingKey").Equal(expression.Value(groupingKey))
+	keyCondition := expression.Key("ModulePropagationExecutionRequestId").Equal(expression.Value(modulePropagationExecutionRequestId))
 	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
 	expr, err := expressionBuilder.Build()
 	if err != nil {
@@ -141,16 +142,68 @@ func (c OrganizationsDatabaseClient) GetPlanExecutionRequestsByGroupingKey(ctx c
 
 	queryInput := &dynamodb.QueryInput{
 		TableName:                 &c.planExecutionsTableName,
-		IndexName:                 aws.String("GroupingKey-RequestTime-index"),
+		IndexName:                 aws.String("ModulePropagationExecutionRequestId-RequestTime-index"),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		KeyConditionExpression:    expr.KeyCondition(),
 		FilterExpression:          expr.Filter(),
 		Limit:                     &limit,
 		ExclusiveStartKey:         startKey,
+		ScanIndexForward:          aws.Bool(false),
 	}
 
-	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"GroupingKey", "RequestTime"})
+	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"PlanExecutionRequestId", "ModulePropagationExecutionRequestId", "RequestTime"})
+	if err != nil {
+		return nil, err
+	}
+
+	planExecutionRequests := []models.PlanExecutionRequest{}
+	var nextCursor string
+
+	err = attributevalue.UnmarshalListOfMaps(resultItems, &planExecutionRequests)
+	if err != nil {
+		return nil, err
+	}
+
+	if lastEvaluatedKey != nil {
+		nextCursor, err = helpers.GetCursorFromKey(lastEvaluatedKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &models.PlanExecutionRequests{
+		Items:      planExecutionRequests,
+		NextCursor: nextCursor,
+	}, nil
+}
+
+func (c OrganizationsDatabaseClient) GetPlanExecutionRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
+	startKey, err := helpers.GetKeyFromCursor(cursor)
+	if err != nil {
+		return nil, err
+	}
+
+	keyCondition := expression.Key("ModuleAccountAssociationKey").Equal(expression.Value(moduleAccountAssociationKey))
+	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
+	expr, err := expressionBuilder.Build()
+	if err != nil {
+		return nil, err
+	}
+
+	queryInput := &dynamodb.QueryInput{
+		TableName:                 &c.planExecutionsTableName,
+		IndexName:                 aws.String("ModuleAccountAssociationKey-RequestTime-index"),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		KeyConditionExpression:    expr.KeyCondition(),
+		FilterExpression:          expr.Filter(),
+		Limit:                     &limit,
+		ExclusiveStartKey:         startKey,
+		ScanIndexForward:          aws.Bool(false),
+	}
+
+	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"PlanExecutionRequestId", "ModuleAccountAssociationKey", "RequestTime"})
 	if err != nil {
 		return nil, err
 	}

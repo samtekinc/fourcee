@@ -33,7 +33,7 @@ func (t *TaskHandler) ListModulePropagationOrgUnits(ctx context.Context, input L
 	}
 
 	// get OUs under module propagation
-	ouList := []models.OrganizationalUnit{}
+	ouList := []models.OrganizationalUnit{*orgUnit}
 	nextCursor := ""
 	for {
 		ouListPage, err := t.apiClient.GetOrganizationalUnitsByHierarchy(ctx, modulePropagation.OrgDimensionId, orgUnit.Hierarchy+orgUnit.OrgUnitId, 100, nextCursor)

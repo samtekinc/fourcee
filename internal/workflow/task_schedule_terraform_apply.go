@@ -49,12 +49,14 @@ func (t *TaskHandler) ScheduleTerraformApply(ctx context.Context, input Schedule
 	planBase64 := base64.StdEncoding.EncodeToString(planRequest.PlanOutput.PlanFile)
 
 	applyRequest, err := t.apiClient.PutApplyExecutionRequest(ctx, &models.NewApplyExecutionRequest{
-		TerraformVersion:             moduleVersion.TerraformVersion,
-		CallbackTaskToken:            input.TaskToken,
-		StateKey:                     input.Input.ModuleAccountAssociation.RemoteStateKey,
-		GroupingKey:                  input.Input.ModulePropagationExecutionRequestId,
-		TerraformConfigurationBase64: "cHJvdmlkZXIgImF3cyIgewogIHJlZ2lvbiA9ICJ1cy1lYXN0LTEiCn0KCmRhdGEgImF3c19yZWdpb24iICJjdXJyZW50IiB7fQoKb3V0cHV0ICJyZWdpb24iIHsKICB2YWx1ZSA9IGRhdGEuYXdzX3JlZ2lvbi5jdXJyZW50Lm5hbWUKfQo=",
-		TerraformPlanBase64:          planBase64,
+		TerraformVersion:                    moduleVersion.TerraformVersion,
+		CallbackTaskToken:                   input.TaskToken,
+		StateKey:                            input.Input.ModuleAccountAssociation.RemoteStateKey,
+		ModulePropagationId:                 input.Input.ModulePropagationId,
+		ModulePropagationExecutionRequestId: input.Input.ModulePropagationExecutionRequestId,
+		ModuleAccountAssociationKey:         input.Input.ModuleAccountAssociation.Key(),
+		TerraformConfigurationBase64:        planRequest.TerraformConfigurationBase64,
+		TerraformPlanBase64:                 planBase64,
 	})
 	if err != nil {
 		return nil, err

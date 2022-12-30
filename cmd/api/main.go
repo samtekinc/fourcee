@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sheacloud/tfom/internal/api"
 	"github.com/sheacloud/tfom/internal/database"
@@ -69,6 +70,10 @@ func main() {
 	// orgRouter := rest.NewOrganizationsRouter(apiClient)
 
 	router := gin.Default()
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"*"}
+	router.Use(cors.New(config))
+
 	router.POST("/query", graphqlHandler(apiClient))
 	router.GET("/", playgroundHandler())
 	// orgRouter.RegisterRoutes(&router.RouterGroup)

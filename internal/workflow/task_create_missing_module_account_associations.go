@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/sheacloud/tfom/pkg/models"
 )
@@ -25,8 +26,9 @@ func (t *TaskHandler) CreateMissingModuleAccountAssociations(ctx context.Context
 		newModuleAccountAssociation := models.NewModuleAccountAssociation{
 			ModulePropagationId: input.ModulePropagationId,
 			OrgAccountId:        orgAccount.OrgAccountId,
-			RemoteStateBucket:   "test",
-			RemoteStateKey:      "test",
+			RemoteStateBucket:   t.remoteStateBucket,
+			RemoteStateKey:      fmt.Sprintf("backends/%s/%s/state.tfstate", orgAccount.OrgAccountId, input.ModulePropagationId),
+			RemoteStateRegion:   t.remoteStateRegion,
 		}
 		moduleAccountAssociation, err := t.apiClient.PutModuleAccountAssociation(ctx, &newModuleAccountAssociation)
 		if err != nil {

@@ -12,13 +12,10 @@ func ArgumentInputsToArguments(inputs []models.ArgumentInput) []models.Argument 
 	return arguments
 }
 
-func ProvidersInputToProviders(inputs []models.ProviderInput) []models.Provider {
-	providers := make([]models.Provider, len(inputs))
+func AwsProviderConfigurationInputsToAwsProviderConfigurations(inputs []models.AwsProviderConfigurationInput) []models.AwsProviderConfiguration {
+	providers := make([]models.AwsProviderConfiguration, len(inputs))
 	for i, input := range inputs {
-		providers[i] = models.Provider{
-			Name:      input.Name,
-			Arguments: ArgumentInputsToArguments(input.Arguments),
-		}
+		providers[i] = models.AwsProviderConfiguration(input)
 	}
 	return providers
 }

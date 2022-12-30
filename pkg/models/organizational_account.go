@@ -5,6 +5,7 @@ type OrganizationalAccount struct {
 	Name            string `json:"name"`
 	CloudPlatform   string `json:"cloudPlatform"`
 	CloudIdentifier string `json:"cloudIdentifier"`
+	AssumeRoleName  string `json:"assumeRoleName"`
 }
 
 type OrganizationalAccounts struct {
@@ -16,4 +17,5 @@ type NewOrganizationalAccount struct {
 	Name            string `json:"name"`
 	CloudPlatform   string `json:"cloudPlatform"`
 	CloudIdentifier string `json:"cloudIdentifier"`
+	AssumeRoleName  string `json:"assumeRoleName"`
 }

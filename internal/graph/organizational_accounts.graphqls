@@ -7,6 +7,10 @@ type OrganizationalAccount {
     limit: Int
     nextCursor: String
   ): OrganizationalUnitMemberships!
+  moduleAccountAssociations(
+    limit: Int
+    nextCursor: String
+  ): ModuleAccountAssociations!
 }
 
 type OrganizationalAccounts {

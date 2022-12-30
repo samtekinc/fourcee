@@ -1,15 +1,15 @@
 package models
 
 type ModulePropagation struct {
-	ModulePropagationId string     `json:"modulePropagationId"`
-	ModuleVersionId     string     `json:"moduleVersionId"`
-	ModuleGroupId       string     `json:"moduleGroupId"`
-	OrgUnitId           string     `json:"orgUnitId"`
-	OrgDimensionId      string     `json:"orgDimensionId"`
-	Arguments           []Argument `json:"arguments"`
-	Providers           []Provider `json:"providers"`
-	Name                string     `json:"name"`
-	Description         string     `json:"description"`
+	ModulePropagationId       string                     `json:"modulePropagationId"`
+	ModuleVersionId           string                     `json:"moduleVersionId"`
+	ModuleGroupId             string                     `json:"moduleGroupId"`
+	OrgUnitId                 string                     `json:"orgUnitId"`
+	OrgDimensionId            string                     `json:"orgDimensionId"`
+	Arguments                 []Argument                 `json:"arguments"`
+	AwsProviderConfigurations []AwsProviderConfiguration `json:"awsProviderConfigurations"`
+	Name                      string                     `json:"name"`
+	Description               string                     `json:"description"`
 }
 
 type ModulePropagations struct {
@@ -17,9 +17,14 @@ type ModulePropagations struct {
 	NextCursor string              `json:"nextCursor"`
 }
 
-type Provider struct {
-	Name      string     `json:"name" dynamodbav:"name"`
-	Arguments []Argument `json:"arguments" dynamodbav:"arguments"`
+type AwsProviderConfiguration struct {
+	Region string `json:"region"`
+	Alias  string `json:"alias"`
+}
+
+type AwsProviderConfigurationInput struct {
+	Region string `json:"region"`
+	Alias  string `json:"alias"`
 }
 
 type Argument struct {
@@ -32,18 +37,13 @@ type ArgumentInput struct {
 	Value string `json:"value"`
 }
 
-type ProviderInput struct {
-	Name      string          `json:"name"`
-	Arguments []ArgumentInput `json:"arguments"`
-}
-
 type NewModulePropagation struct {
-	ModuleVersionId string          `json:"moduleVersionId"`
-	ModuleGroupId   string          `json:"moduleGroupId"`
-	OrgUnitId       string          `json:"orgUnitId"`
-	OrgDimensionId  string          `json:"orgDimensionId"`
-	Arguments       []ArgumentInput `json:"arguments"`
-	Providers       []ProviderInput `json:"providers"`
-	Name            string          `json:"name"`
-	Description     string          `json:"description"`
+	ModuleVersionId           string                          `json:"moduleVersionId"`
+	ModuleGroupId             string                          `json:"moduleGroupId"`
+	OrgUnitId                 string                          `json:"orgUnitId"`
+	OrgDimensionId            string                          `json:"orgDimensionId"`
+	Arguments                 []ArgumentInput                 `json:"arguments"`
+	AwsProviderConfigurations []AwsProviderConfigurationInput `json:"awsProviderConfigurations"`
+	Name                      string                          `json:"name"`
+	Description               string                          `json:"description"`
 }

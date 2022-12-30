@@ -61,6 +61,7 @@ type OrganizationsDatabaseClientInterface interface {
 	GetModuleAccountAssociation(ctx context.Context, modulePropagationId string, orgAccountId string) (*models.ModuleAccountAssociation, error)
 	GetModuleAccountAssociations(ctx context.Context, limit int32, cursor string) (*models.ModuleAccountAssociations, error)
 	GetModuleAccountAssociationsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModuleAccountAssociations, error)
+	GetModuleAccountAssociationsByOrgAccountId(ctx context.Context, orgAccountId string, limit int32, cursor string) (*models.ModuleAccountAssociations, error)
 	PutModuleAccountAssociation(ctx context.Context, input *models.ModuleAccountAssociation) error
 	UpdateModuleAccountAssociation(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string, update *models.ModuleAccountAssociationUpdate) (*models.ModuleAccountAssociation, error)
 
@@ -69,14 +70,16 @@ type OrganizationsDatabaseClientInterface interface {
 	GetPlanExecutionRequest(ctx context.Context, planExecutionRequestId string) (*models.PlanExecutionRequest, error)
 	GetPlanExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.PlanExecutionRequests, error)
 	GetPlanExecutionRequestsByStateKey(ctx context.Context, stateKey string, limit int32, cursor string) (*models.PlanExecutionRequests, error)
-	GetPlanExecutionRequestsByGroupingKey(ctx context.Context, groupingKey string, limit int32, cursor string) (*models.PlanExecutionRequests, error)
+	GetPlanExecutionRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.PlanExecutionRequests, error)
+	GetPlanExecutionRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.PlanExecutionRequests, error)
 	PutPlanExecutionRequest(ctx context.Context, input *models.PlanExecutionRequest) error
 	UpdatePlanExecutionRequest(ctx context.Context, planExecutionRequestId string, input *models.PlanExecutionRequestUpdate) (*models.PlanExecutionRequest, error)
 
 	GetApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string) (*models.ApplyExecutionRequest, error)
 	GetApplyExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
 	GetApplyExecutionRequestsByStateKey(ctx context.Context, stateKey string, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
-	GetApplyExecutionRequestsByGroupingKey(ctx context.Context, groupingKey string, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
+	GetApplyExecutionRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
+	GetApplyExecutionRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
 	PutApplyExecutionRequest(ctx context.Context, input *models.ApplyExecutionRequest) error
 	UpdateApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string, input *models.ApplyExecutionRequestUpdate) (*models.ApplyExecutionRequest, error)
 

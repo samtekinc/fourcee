@@ -1,9 +1,16 @@
 type ModuleAccountAssociation {
   modulePropagationId: ID!
+  modulePropagation: ModulePropagation!
   orgAccountId: ID!
   remoteStateBucket: String!
   remoteStateKey: String!
   status: ModuleAccountAssociationStatus
+  planExecutionRequests(limit: Int, nextCursor: String): PlanExecutionRequests!
+  applyExecutionRequests(
+    limit: Int
+    nextCursor: String
+  ): ApplyExecutionRequests!
+  terraformConfiguration: String!
 }
 
 type ModuleAccountAssociations {
@@ -14,7 +21,7 @@ type ModuleAccountAssociations {
 extend type Query {
   moduleAccountAssociation(
     modulePropagationId: ID!
-    moduleAccountAssociationId: ID!
+    orgAccountId: ID!
   ): ModuleAccountAssociation!
   moduleAccountAssociations(
     limit: Int

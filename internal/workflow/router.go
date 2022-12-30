@@ -21,12 +21,16 @@ type CommonTaskInput struct {
 }
 
 type TaskHandler struct {
-	apiClient api.OrganizationsAPIClientInterface
+	apiClient         api.OrganizationsAPIClientInterface
+	remoteStateBucket string
+	remoteStateRegion string
 }
 
-func NewTaskHandler(apiClient api.OrganizationsAPIClientInterface) *TaskHandler {
+func NewTaskHandler(apiClient api.OrganizationsAPIClientInterface, remoteStateBucket string, remoteStateRegion string) *TaskHandler {
 	return &TaskHandler{
-		apiClient: apiClient,
+		apiClient:         apiClient,
+		remoteStateBucket: remoteStateBucket,
+		remoteStateRegion: remoteStateRegion,
 	}
 }
 

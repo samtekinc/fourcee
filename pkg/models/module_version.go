@@ -6,6 +6,7 @@ type ModuleVersion struct {
 	Name             string            `json:"name"`
 	RemoteSource     string            `json:"remoteSource"`
 	TerraformVersion string            `json:"terraformVersion"`
+	CloudPlatform    string            `json:"cloudPlatform"`
 	Variables        []*ModuleVariable `json:"variables"`
 }
 
@@ -19,6 +20,7 @@ type NewModuleVersion struct {
 	Name             string `json:"name"`
 	RemoteSource     string `json:"remoteSource"`
 	TerraformVersion string `json:"terraformVersion"`
+	CloudPlatform    string `json:"cloudPlatform"`
 }
 
 type ModuleVariable struct {

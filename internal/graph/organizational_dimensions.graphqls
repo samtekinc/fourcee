@@ -8,6 +8,7 @@ type OrganizationalDimension {
     limit: Int
     nextCursor: String
   ): OrganizationalUnitMemberships!
+  modulePropagations(limit: Int, nextCursor: String): ModulePropagations!
 }
 
 type OrganizationalDimensions {

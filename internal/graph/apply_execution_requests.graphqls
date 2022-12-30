@@ -3,12 +3,16 @@ type ApplyExecutionRequest {
   terraformVersion: String!
   callbackTaskToken: String!
   stateKey: String!
-  groupingKey: String!
+  modulePropagationId: ID!
+  modulePropagationExecutionRequestId: String!
+  moduleAccountAssociationKey: String!
   terraformConfigurationBase64: String!
   additionalArguments: [String]!
   workflowExecutionId: String!
   status: ApplyExecutionStatus!
   requestTime: Time!
+  initOutput: TerraformInitOutput
+  applyOutput: TerraformApplyOutput
 }
 
 type ApplyExecutionRequests {
