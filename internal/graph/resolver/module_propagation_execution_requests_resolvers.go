@@ -30,6 +30,15 @@ func (r *modulePropagationExecutionRequestResolver) ApplyExecutionRequests(ctx c
 	return r.apiClient.GetApplyExecutionRequestsByModulePropagationExecutionRequestId(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
 }
 
+// TerraformWorkflowRequests is the resolver for the terraformWorkflowRequests field.
+func (r *modulePropagationExecutionRequestResolver) TerraformWorkflowRequests(ctx context.Context, obj *models.ModulePropagationExecutionRequest, limit *int, nextCursor *string) (*models.TerraformWorkflowRequests, error) {
+	if limit == nil {
+		limit = aws.Int(100)
+	}
+
+	return r.apiClient.GetTerraformWorkflowRequestsByModulePropagationExecutionRequestId(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
+}
+
 // CreateModulePropagationExecutionRequest is the resolver for the createModulePropagationExecutionRequest field.
 func (r *mutationResolver) CreateModulePropagationExecutionRequest(ctx context.Context, modulePropagationExecutionRequest models.NewModulePropagationExecutionRequest) (*models.ModulePropagationExecutionRequest, error) {
 	return r.apiClient.PutModulePropagationExecutionRequest(ctx, &modulePropagationExecutionRequest)

@@ -11,27 +11,38 @@ import { Container } from "react-bootstrap";
 import { NotificationManager } from "react-notifications";
 import { Button } from "react-bootstrap";
 
-const MODULE_ACCOUNT_ASSOCIATION_QUERY = gql(`
-  query moduleAccountAssociation($modulePropagationId: ID!, $orgAccountId: ID!) {
-    moduleAccountAssociation(modulePropagationId: $modulePropagationId, orgAccountId: $orgAccountId) {
-        modulePropagationId
-        modulePropagation {
-            moduleGroup {
-                moduleGroupId
-                name
-            }
-            moduleVersion {
-                moduleVersionId
-                name
-            }
+const MODULE_ACCOUNT_ASSOCIATION_QUERY = gql`
+  query moduleAccountAssociation(
+    $modulePropagationId: ID!
+    $orgAccountId: ID!
+  ) {
+    moduleAccountAssociation(
+      modulePropagationId: $modulePropagationId
+      orgAccountId: $orgAccountId
+    ) {
+      modulePropagationId
+      modulePropagation {
+        name
+        moduleGroup {
+          moduleGroupId
+          name
         }
+        moduleVersion {
+          moduleVersionId
+          name
+        }
+      }
+      orgAccount {
         orgAccountId
-        status
-        planExecutionRequests {
+        name
+      }
+      status
+      planExecutionRequests {
         items {
           planExecutionRequestId
           status
           requestTime
+          modulePropagationId
           modulePropagationExecutionRequestId
         }
       }
@@ -40,12 +51,13 @@ const MODULE_ACCOUNT_ASSOCIATION_QUERY = gql(`
           applyExecutionRequestId
           status
           requestTime
+          modulePropagationId
           modulePropagationExecutionRequestId
         }
       }
     }
   }
-`);
+`;
 
 type Response = {
   moduleAccountAssociation: ModuleAccountAssociation;
@@ -76,17 +88,22 @@ export const ModuleAccountAssociationPage = () => {
 
   return (
     <Container>
-      <h1>
-        Module Account Association{" "}
-        <b>
-          <u>{data?.moduleAccountAssociation.orgAccountId}</u>
-        </b>
-        {" / "}
-        <b>
-          <u>{data?.moduleAccountAssociation.modulePropagationId}</u>
-        </b>
-      </h1>
+      <h1>Module Account Association</h1>
       <p>
+        <b>Account:</b>{" "}
+        <NavLink
+          to={`/org-accounts/${data?.moduleAccountAssociation.orgAccount.orgAccountId}`}
+        >
+          {data?.moduleAccountAssociation.orgAccount.name}
+        </NavLink>
+        <br />
+        <b>Module Propagation</b>{" "}
+        <NavLink
+          to={`/module-propagations/${data?.moduleAccountAssociation.modulePropagationId}`}
+        >
+          {data?.moduleAccountAssociation.modulePropagation.name}
+        </NavLink>
+        <br />
         <b>Module Group:</b>{" "}
         <NavLink
           to={`/module-groups/${data?.moduleAccountAssociation.modulePropagation.moduleGroup.moduleGroupId}`}
@@ -106,6 +123,7 @@ export const ModuleAccountAssociationPage = () => {
         <thead>
           <tr>
             <th>Plan Request ID</th>
+            <th>Module Propagation Execution Request ID</th>
             <th>Status</th>
             <th>Request Time</th>
           </tr>
@@ -120,6 +138,15 @@ export const ModuleAccountAssociationPage = () => {
                       to={`/plan-execution-requests/${planExecutionRequest?.planExecutionRequestId}`}
                     >
                       {planExecutionRequest?.planExecutionRequestId}
+                    </NavLink>
+                  </td>
+                  <td>
+                    <NavLink
+                      to={`/module-propagations/${planExecutionRequest?.modulePropagationId}/executions/${planExecutionRequest?.modulePropagationExecutionRequestId}`}
+                    >
+                      {
+                        planExecutionRequest?.modulePropagationExecutionRequestId
+                      }
                     </NavLink>
                   </td>
                   <td>{planExecutionRequest?.status}</td>

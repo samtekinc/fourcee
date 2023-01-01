@@ -59,3 +59,7 @@ func (c *OrganizationsAPIClient) PutModulePropagation(ctx context.Context, input
 func (c *OrganizationsAPIClient) DeleteModulePropagation(ctx context.Context, id string) error {
 	return c.dbClient.DeleteModulePropagation(ctx, id)
 }
+
+func (c *OrganizationsAPIClient) UpdateModulePropagation(ctx context.Context, modulePropagationId string, update *models.ModulePropagationUpdate) (*models.ModulePropagation, error) {
+	return c.dbClient.UpdateModulePropagation(ctx, modulePropagationId, update)
+}

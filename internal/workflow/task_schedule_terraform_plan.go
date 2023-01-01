@@ -12,21 +12,31 @@ const (
 )
 
 type ScheduleTerraformPlanInput struct {
-	Input struct {
-		ModuleAccountAssociation            models.ModuleAccountAssociation
-		ModulePropagationExecutionRequestId string
-		ModulePropagationId                 string
-	}
-	TaskToken string
+	TerraformWorkflowRequestId string
+	TaskToken                  string
 }
 
-type ScheduleTerraformPlanOutput struct {
-	PlanExecutionRequestId string
-}
+type ScheduleTerraformPlanOutput struct{}
 
 func (t *TaskHandler) ScheduleTerraformPlan(ctx context.Context, input ScheduleTerraformPlanInput) (*ScheduleTerraformPlanOutput, error) {
+	// get workflow details
+	tfWorkflow, err := t.apiClient.GetTerraformWorkflowRequest(ctx, input.TerraformWorkflowRequestId)
+	if err != nil {
+		return nil, err
+	}
+
+	// get module account association details
+	moduleAccountAssociationKey, err := models.ParseModuleAccountAssociationKey(tfWorkflow.ModuleAccountAssociationKey)
+	if err != nil {
+		return nil, err
+	}
+	moduleAccountAssociation, err := t.apiClient.GetModuleAccountAssociation(ctx, moduleAccountAssociationKey.ModulePropagationId, moduleAccountAssociationKey.OrgAccountId)
+	if err != nil {
+		return nil, err
+	}
+
 	// get module propagation details
-	modulePropagation, err := t.apiClient.GetModulePropagation(ctx, input.Input.ModulePropagationId)
+	modulePropagation, err := t.apiClient.GetModulePropagation(ctx, moduleAccountAssociation.ModulePropagationId)
 	if err != nil {
 		return nil, err
 	}
@@ -38,14 +48,13 @@ func (t *TaskHandler) ScheduleTerraformPlan(ctx context.Context, input ScheduleT
 	}
 
 	// get org account details
-	orgAccount, err := t.apiClient.GetOrganizationalAccount(ctx, input.Input.ModuleAccountAssociation.OrgAccountId)
+	orgAccount, err := t.apiClient.GetOrganizationalAccount(ctx, moduleAccountAssociationKey.OrgAccountId)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: generate TF config file based on module version and account details
 	terraformConfig, err := terraform.GetTerraformConfigurationBase64(&terraform.TerraformConfigurationInput{
-		ModuleAccountAssociation: &input.Input.ModuleAccountAssociation,
+		ModuleAccountAssociation: moduleAccountAssociation,
 		ModulePropagation:        modulePropagation,
 		ModuleVersion:            moduleVersion,
 		OrgAccount:               orgAccount,
@@ -54,20 +63,31 @@ func (t *TaskHandler) ScheduleTerraformPlan(ctx context.Context, input ScheduleT
 		return nil, err
 	}
 
+	additionalArguments := []string{}
+	if tfWorkflow.Destroy {
+		additionalArguments = append(additionalArguments, "-destroy")
+	}
+
 	planRequest, err := t.apiClient.PutPlanExecutionRequest(ctx, &models.NewPlanExecutionRequest{
 		TerraformVersion:                    moduleVersion.TerraformVersion,
 		CallbackTaskToken:                   input.TaskToken,
-		StateKey:                            input.Input.ModuleAccountAssociation.RemoteStateKey,
-		ModulePropagationId:                 input.Input.ModulePropagationId,
-		ModulePropagationExecutionRequestId: input.Input.ModulePropagationExecutionRequestId,
-		ModuleAccountAssociationKey:         input.Input.ModuleAccountAssociation.Key(),
+		StateKey:                            moduleAccountAssociation.RemoteStateKey,
+		ModulePropagationExecutionRequestId: tfWorkflow.ModulePropagationExecutionRequestId,
+		ModuleAccountAssociationKey:         tfWorkflow.ModuleAccountAssociationKey,
 		TerraformConfigurationBase64:        terraformConfig,
+		AdditionalArguments:                 additionalArguments,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &ScheduleTerraformPlanOutput{
-		PlanExecutionRequestId: planRequest.PlanExecutionRequestId,
-	}, nil
+	// update tf workflow with apply request id
+	_, err = t.apiClient.UpdateTerraformWorkflowRequest(ctx, tfWorkflow.TerraformWorkflowRequestId, &models.TerraformWorkflowRequestUpdate{
+		PlanExecutionRequestId: &planRequest.PlanExecutionRequestId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ScheduleTerraformPlanOutput{}, nil
 }

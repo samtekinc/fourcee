@@ -1,17 +1,19 @@
 type ModuleVersion {
   moduleVersionId: ID!
   moduleGroupId: ID!
+  moduleGroup: ModuleGroup!
   name: String!
   remoteSource: String!
   terraformVersion: String!
   variables: [ModuleVariable]!
+  modulePropagations(limit: Int, nextCursor: String): ModulePropagations!
 }
 
 type ModuleVariable {
-  Name: String!
-  Type: String!
-  Description: String!
-  Default: String
+  name: String!
+  type: String!
+  description: String!
+  default: String
 }
 
 type ModuleVersions {

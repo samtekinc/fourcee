@@ -42,6 +42,12 @@ resource "aws_ecs_task_definition" "executor" {
           containerPath = "/efs"
         }
       ]
+      environment = [
+        {
+          name  = "TF_PLUGIN_CACHE_DIR"
+          value = "/efs/.terraform.d/plugin-cache"
+        }
+      ]
     },
   ])
 

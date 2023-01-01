@@ -341,3 +341,43 @@ resource "aws_dynamodb_table" "apply_execution_requests" {
     projection_type = "ALL"
   }
 }
+
+resource "aws_dynamodb_table" "terraform_workflow_requests" {
+  name         = "${var.prefix}-terraform-workflow-requests"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "TerraformWorkflowRequestId"
+
+  attribute {
+    name = "TerraformWorkflowRequestId"
+    type = "S"
+  }
+
+  attribute {
+    name = "RequestTime"
+    type = "S"
+  }
+
+  attribute {
+    name = "ModulePropagationExecutionRequestId"
+    type = "S"
+  }
+
+  attribute {
+    name = "ModuleAccountAssociationKey"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "ModulePropagationExecutionRequestId-RequestTime-index"
+    hash_key        = "ModulePropagationExecutionRequestId"
+    range_key       = "RequestTime"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "ModuleAccountAssociationKey-RequestTime-index"
+    hash_key        = "ModuleAccountAssociationKey"
+    range_key       = "RequestTime"
+    projection_type = "ALL"
+  }
+}

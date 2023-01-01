@@ -47,3 +47,12 @@ type NewModulePropagation struct {
 	Name                      string                          `json:"name"`
 	Description               string                          `json:"description"`
 }
+
+type ModulePropagationUpdate struct {
+	OrgDimensionId            *string                         `json:"orgDimensionId"`
+	OrgUnitId                 *string                         `json:"orgUnitId"`
+	Name                      *string                         `json:"name"`
+	Description               *string                         `json:"description"`
+	Arguments                 []ArgumentInput                 `json:"arguments"`
+	AwsProviderConfigurations []AwsProviderConfigurationInput `json:"awsProviderConfigurations"`
+}

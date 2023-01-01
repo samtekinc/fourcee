@@ -221,6 +221,7 @@ data "aws_iam_policy_document" "step_functions_policy" {
       aws_dynamodb_table.module_propagation_execution_requests.arn,
       aws_dynamodb_table.plan_execution_requests.arn,
       aws_dynamodb_table.apply_execution_requests.arn,
+      aws_dynamodb_table.terraform_workflow_requests.arn
     ]
   }
 

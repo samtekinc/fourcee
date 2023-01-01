@@ -1,6 +1,9 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type ModuleAccountAssociationStatus string
 
@@ -18,8 +21,11 @@ type ModuleAccountAssociation struct {
 	Status              ModuleAccountAssociationStatus `json:"status"`
 }
 
-func (m ModuleAccountAssociation) Key() string {
-	return fmt.Sprintf("%s:%s", m.ModulePropagationId, m.OrgAccountId)
+func (m ModuleAccountAssociation) Key() ModuleAccountAssociationKey {
+	return ModuleAccountAssociationKey{
+		ModulePropagationId: m.ModulePropagationId,
+		OrgAccountId:        m.OrgAccountId,
+	}
 }
 
 type ModuleAccountAssociations struct {
@@ -39,4 +45,24 @@ type ModuleAccountAssociationUpdate struct {
 	RemoteStateBucket *string                         `json:"remoteStateBucket"`
 	RemoteStateKey    *string                         `json:"remoteStateKey"`
 	Status            *ModuleAccountAssociationStatus `json:"status"`
+}
+
+type ModuleAccountAssociationKey struct {
+	ModulePropagationId string `json:"modulePropagationId"`
+	OrgAccountId        string `json:"orgAccountId"`
+}
+
+func (m ModuleAccountAssociationKey) String() string {
+	return fmt.Sprintf("%s:%s", m.ModulePropagationId, m.OrgAccountId)
+}
+
+func ParseModuleAccountAssociationKey(key string) (*ModuleAccountAssociationKey, error) {
+	split := strings.Split(key, ":")
+	if len(split) != 2 {
+		return nil, fmt.Errorf("invalid key format")
+	}
+	return &ModuleAccountAssociationKey{
+		ModulePropagationId: split[0],
+		OrgAccountId:        split[1],
+	}, nil
 }

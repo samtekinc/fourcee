@@ -2,6 +2,7 @@ type ModuleGroup {
   moduleGroupId: ID!
   name: String!
   versions(limit: Int, nextCursor: String): ModuleVersions!
+  modulePropagations(limit: Int, nextCursor: String): ModulePropagations!
 }
 
 type ModuleGroups {

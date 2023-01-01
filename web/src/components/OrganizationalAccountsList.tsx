@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { OrganizationalAccounts } from "../__generated__/graphql";
-import { gql } from "../__generated__";
 import { NavLink } from "react-router-dom";
-import { useQuery } from "@apollo/client";
+import { useQuery, gql } from "@apollo/client";
 import { Table } from "react-bootstrap";
 import Container from "react-bootstrap/Container";
 
-const ORGANIZATIONAL_ACCOUNTS_QUERY = gql(`
+const ORGANIZATIONAL_ACCOUNTS_QUERY = gql`
   query organizationalAccounts {
     organizationalAccounts(limit: 100) {
       items {
@@ -17,7 +16,7 @@ const ORGANIZATIONAL_ACCOUNTS_QUERY = gql(`
       }
     }
   }
-`);
+`;
 
 type Response = {
   organizationalAccounts: OrganizationalAccounts;

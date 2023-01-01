@@ -16,7 +16,6 @@ type PlanExecutionRequest struct {
 	TerraformVersion                    string               `json:"terraformVersion"`
 	CallbackTaskToken                   string               `json:"callbackTaskToken"`
 	StateKey                            string               `json:"stateKey"`
-	ModulePropagationId                 string               `json:"modulePropagationId" dynamodbav:",omitempty"`
 	ModulePropagationExecutionRequestId string               `json:"groupingKey" dynamodbav:",omitempty"`
 	ModuleAccountAssociationKey         string               `json:"moduleAccountAssociationKey" dynamodbav:",omitempty"`
 	TerraformConfigurationBase64        string               `json:"terraformConfigurationBase64"`
@@ -39,7 +38,6 @@ type NewPlanExecutionRequest struct {
 	TerraformVersion                    string   `json:"terraformVersion"`
 	CallbackTaskToken                   string   `json:"callbackTaskToken"`
 	StateKey                            string   `json:"stateKey"`
-	ModulePropagationId                 string   `json:"modulePropagationId" dynamodbav:",omitempty"`
 	ModulePropagationExecutionRequestId string   `json:"groupingKey" dynamodbav:",omitempty"`
 	ModuleAccountAssociationKey         string   `json:"moduleAccountAssociationKey" dynamodbav:",omitempty"`
 	TerraformConfigurationBase64        string   `json:"terraformConfigurationBase64"`

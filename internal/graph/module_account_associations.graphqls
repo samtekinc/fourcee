@@ -2,6 +2,7 @@ type ModuleAccountAssociation {
   modulePropagationId: ID!
   modulePropagation: ModulePropagation!
   orgAccountId: ID!
+  orgAccount: OrganizationalAccount!
   remoteStateBucket: String!
   remoteStateKey: String!
   status: ModuleAccountAssociationStatus

@@ -10,4 +10,5 @@ type ExecuteTerraformApplyWorkflowPayload struct {
 	ModuleAccountAssociation            models.ModuleAccountAssociation
 	ModulePropagationExecutionRequestId string
 	ModulePropagationId                 string
+	Destroy                             bool
 }

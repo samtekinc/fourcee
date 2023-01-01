@@ -3,58 +3,57 @@ import {
   OrganizationalUnit,
   OrganizationalUnits,
 } from "../__generated__/graphql";
-import { gql } from "../__generated__";
 import { NavLink, useParams } from "react-router-dom";
-import { useQuery } from "@apollo/client";
+import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
 import Container from "react-bootstrap/Container";
 
-const ORGANIZATIONAL_UNIT_QUERY = gql(`
+const ORGANIZATIONAL_UNIT_QUERY = gql`
   query organizationalUnit($orgUnitId: ID!, $orgDimensionId: ID!) {
     organizationalUnit(orgDimensionId: $orgDimensionId, orgUnitId: $orgUnitId) {
-    orgUnitId
-    orgDimensionId
-    name
-    hierarchy
-    parentOrgUnitId
-    children {
-      items {
-        orgUnitId
-        name
-        hierarchy
-      }
-    }
-    downstreamOrgUnits {
-      items {
-        orgUnitId
-        name
-        hierarchy
-      }
-    }
-    orgUnitMemberships {
-      items {
-        orgAccount {
-          orgAccountId
+      orgUnitId
+      orgDimensionId
+      name
+      hierarchy
+      parentOrgUnitId
+      children {
+        items {
+          orgUnitId
           name
-          cloudPlatform
-          cloudIdentifier
+          hierarchy
         }
       }
-    }
-    modulePropagations {
-      items {
-        modulePropagationId
+      downstreamOrgUnits {
+        items {
+          orgUnitId
+          name
+          hierarchy
+        }
+      }
+      orgUnitMemberships {
+        items {
+          orgAccount {
+            orgAccountId
+            name
+            cloudPlatform
+            cloudIdentifier
+          }
+        }
+      }
+      modulePropagations {
+        items {
+          modulePropagationId
           moduleGroupId
           moduleVersionId
           orgUnitId
           orgDimensionId
           name
           description
+        }
       }
     }
   }
-}
-`);
+`;
 
 type Response = {
   organizationalUnit: OrganizationalUnit;

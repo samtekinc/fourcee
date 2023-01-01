@@ -20,6 +20,14 @@ func (r *moduleGroupResolver) Versions(ctx context.Context, obj *models.ModuleGr
 	return r.apiClient.GetModuleVersions(ctx, obj.ModuleGroupId, int32(*limit), aws.ToString(nextCursor))
 }
 
+// ModulePropagations is the resolver for the modulePropagations field.
+func (r *moduleGroupResolver) ModulePropagations(ctx context.Context, obj *models.ModuleGroup, limit *int, nextCursor *string) (*models.ModulePropagations, error) {
+	if limit == nil {
+		limit = aws.Int(100)
+	}
+	return r.apiClient.GetModulePropagationsByModuleGroupId(ctx, obj.ModuleGroupId, int32(*limit), aws.ToString(nextCursor))
+}
+
 // CreateModuleGroup is the resolver for the createModuleGroup field.
 func (r *mutationResolver) CreateModuleGroup(ctx context.Context, moduleGroup models.NewModuleGroup) (*models.ModuleGroup, error) {
 	return r.apiClient.PutModuleGroup(ctx, &moduleGroup)

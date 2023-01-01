@@ -4,13 +4,12 @@ import {
   ModulePropagationExecutionRequests,
 } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
-import { useQuery } from "@apollo/client";
-import { gql } from "../__generated__/gql";
+import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
-import { renderTimeField } from "../utils/table_rendering";
+import { renderStatus, renderTimeField } from "../utils/table_rendering";
 import { Container } from "react-bootstrap";
 
-const MODULE_PROPAGATION_EXECUTION_QUERY = gql(`
+const MODULE_PROPAGATION_EXECUTION_QUERY = gql`
   query modulePropagationExecutionRequest(
     $modulePropagationId: ID!
     $modulePropagationExecutionRequestId: ID!
@@ -23,11 +22,37 @@ const MODULE_PROPAGATION_EXECUTION_QUERY = gql(`
       modulePropagationExecutionRequestId
       requestTime
       status
+      terraformWorkflowRequests {
+        items {
+          terraformWorkflowRequestId
+          status
+          requestTime
+          destroy
+          orgAccount {
+            orgAccountId
+            name
+          }
+          planExecutionRequest {
+            planExecutionRequestId
+            status
+            requestTime
+          }
+          applyExecutionRequest {
+            applyExecutionRequestId
+            status
+            requestTime
+          }
+        }
+      }
       planExecutionRequests {
         items {
           planExecutionRequestId
           status
           requestTime
+          orgAccount {
+            orgAccountId
+            name
+          }
         }
       }
       applyExecutionRequests {
@@ -35,11 +60,15 @@ const MODULE_PROPAGATION_EXECUTION_QUERY = gql(`
           applyExecutionRequestId
           status
           requestTime
+          orgAccount {
+            orgAccountId
+            name
+          }
         }
       }
     }
   }
-`);
+`;
 
 type Response = {
   modulePropagationExecutionRequest: ModulePropagationExecutionRequest;
@@ -79,60 +108,72 @@ export const ModulePropagationExecutionRequestPage = () => {
           data?.modulePropagationExecutionRequest
             .modulePropagationExecutionRequestId
         }
-        <p>Status: {data?.modulePropagationExecutionRequest.status}</p>
       </h1>
-      <h2>Plan Requests</h2>
+      <p>
+        Status: {renderStatus(data?.modulePropagationExecutionRequest.status)}
+      </p>
+      <h2>Terraform Workflows</h2>
       <Table striped bordered hover>
         <thead>
           <tr>
-            <th>Plan Request ID</th>
+            <th>TF Request</th>
+            <th>Apply / Destroy</th>
+            <th>Org Account</th>
             <th>Status</th>
-            <th>Request Time</th>
+            <th>Plan Request</th>
+            <th>Apply Request</th>
           </tr>
         </thead>
         <tbody>
-          {data?.modulePropagationExecutionRequest.planExecutionRequests.items.map(
-            (planExecutionRequest) => {
+          {data?.modulePropagationExecutionRequest.terraformWorkflowRequests.items.map(
+            (terraformWorkflowRequest) => {
               return (
                 <tr>
                   <td>
-                    <NavLink
-                      to={`/plan-execution-requests/${planExecutionRequest?.planExecutionRequestId}`}
-                    >
-                      {planExecutionRequest?.planExecutionRequestId}
-                    </NavLink>
+                    {terraformWorkflowRequest?.terraformWorkflowRequestId}
                   </td>
-                  <td>{planExecutionRequest?.status}</td>
-                  {renderTimeField(planExecutionRequest?.requestTime)}
-                </tr>
-              );
-            }
-          )}
-        </tbody>
-      </Table>
-      <h2>Apply Requests</h2>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Apply Request ID</th>
-            <th>Status</th>
-            <th>Request Time</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.modulePropagationExecutionRequest.applyExecutionRequests.items.map(
-            (applyExecutionRequest) => {
-              return (
-                <tr>
+                  <td>
+                    {terraformWorkflowRequest?.destroy ? "Destroy" : "Apply"}
+                  </td>
                   <td>
                     <NavLink
-                      to={`/apply-execution-requests/${applyExecutionRequest?.applyExecutionRequestId}`}
+                      to={`/org-accounts/${terraformWorkflowRequest?.orgAccount.orgAccountId}`}
                     >
-                      {applyExecutionRequest?.applyExecutionRequestId}
+                      {terraformWorkflowRequest?.orgAccount.name} (
+                      {terraformWorkflowRequest?.orgAccount.orgAccountId})
                     </NavLink>
                   </td>
-                  <td>{applyExecutionRequest?.status}</td>
-                  {renderTimeField(applyExecutionRequest?.requestTime)}
+                  <td>{renderStatus(terraformWorkflowRequest?.status)}</td>
+                  <td>
+                    <NavLink
+                      to={`/plan-execution-requests/${terraformWorkflowRequest?.planExecutionRequest?.planExecutionRequestId}`}
+                    >
+                      {
+                        terraformWorkflowRequest?.planExecutionRequest
+                          ?.planExecutionRequestId
+                      }
+                    </NavLink>{" "}
+                    (
+                    {renderStatus(
+                      terraformWorkflowRequest?.planExecutionRequest?.status
+                    )}
+                    )
+                  </td>
+                  <td>
+                    <NavLink
+                      to={`/apply-execution-requests/${terraformWorkflowRequest?.applyExecutionRequest?.applyExecutionRequestId}`}
+                    >
+                      {
+                        terraformWorkflowRequest?.applyExecutionRequest
+                          ?.applyExecutionRequestId
+                      }
+                    </NavLink>{" "}
+                    (
+                    {renderStatus(
+                      terraformWorkflowRequest?.applyExecutionRequest?.status
+                    )}
+                    )
+                  </td>
                 </tr>
               );
             }

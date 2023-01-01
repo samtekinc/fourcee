@@ -8,8 +8,45 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/pkg/models"
 )
+
+// ModulePropagationID is the resolver for the modulePropagationId field.
+func (r *planExecutionRequestResolver) ModulePropagationID(ctx context.Context, obj *models.PlanExecutionRequest) (string, error) {
+	key, err := models.ParseModuleAccountAssociationKey(obj.ModuleAccountAssociationKey)
+	if err != nil {
+		return "", err
+	}
+	return key.ModulePropagationId, nil
+}
+
+// ModulePropagation is the resolver for the modulePropagation field.
+func (r *planExecutionRequestResolver) ModulePropagation(ctx context.Context, obj *models.PlanExecutionRequest) (*models.ModulePropagation, error) {
+	modulePropagationId, err := r.ModulePropagationID(ctx, obj)
+	if err != nil {
+		return nil, err
+	}
+	return r.apiClient.GetModulePropagation(ctx, modulePropagationId)
+}
+
+// OrgAccountID is the resolver for the orgAccountId field.
+func (r *planExecutionRequestResolver) OrgAccountID(ctx context.Context, obj *models.PlanExecutionRequest) (string, error) {
+	key, err := models.ParseModuleAccountAssociationKey(obj.ModuleAccountAssociationKey)
+	if err != nil {
+		return "", err
+	}
+	return key.OrgAccountId, nil
+}
+
+// OrgAccount is the resolver for the orgAccount field.
+func (r *planExecutionRequestResolver) OrgAccount(ctx context.Context, obj *models.PlanExecutionRequest) (*models.OrganizationalAccount, error) {
+	orgAccountId, err := r.OrgAccountID(ctx, obj)
+	if err != nil {
+		return nil, err
+	}
+	return r.apiClient.GetOrganizationalAccount(ctx, orgAccountId)
+}
 
 // PlanExecutionRequest is the resolver for the planExecutionRequest field.
 func (r *queryResolver) PlanExecutionRequest(ctx context.Context, planExecutionRequestID string) (*models.PlanExecutionRequest, error) {
@@ -24,3 +61,10 @@ func (r *queryResolver) PlanExecutionRequests(ctx context.Context, limit *int, n
 
 	return r.apiClient.GetPlanExecutionRequests(ctx, int32(*limit), aws.ToString(nextCursor))
 }
+
+// PlanExecutionRequest returns generated.PlanExecutionRequestResolver implementation.
+func (r *Resolver) PlanExecutionRequest() generated.PlanExecutionRequestResolver {
+	return &planExecutionRequestResolver{r}
+}
+
+type planExecutionRequestResolver struct{ *Resolver }

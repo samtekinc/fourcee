@@ -53,6 +53,7 @@ type OrganizationsAPIClientInterface interface {
 	GetModulePropagationsByOrgDimensionId(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.ModulePropagations, error)
 	PutModulePropagation(ctx context.Context, input *models.NewModulePropagation) (*models.ModulePropagation, error)
 	DeleteModulePropagation(ctx context.Context, modulePropagationId string) error
+	UpdateModulePropagation(ctx context.Context, modulePropagationId string, update *models.ModulePropagationUpdate) (*models.ModulePropagation, error)
 
 	GetModulePropagationExecutionRequest(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string) (*models.ModulePropagationExecutionRequest, error)
 	GetModulePropagationExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationExecutionRequests, error)
@@ -68,6 +69,13 @@ type OrganizationsAPIClientInterface interface {
 	UpdateModuleAccountAssociation(ctx context.Context, modulePropagationId string, orgAccountId string, update *models.ModuleAccountAssociationUpdate) (*models.ModuleAccountAssociation, error)
 
 	// Execution Methods
+
+	GetTerraformWorkflowRequest(ctx context.Context, terraformExecutionRequestId string) (*models.TerraformWorkflowRequest, error)
+	GetTerraformWorkflowRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformWorkflowRequests, error)
+	GetTerraformWorkflowRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.TerraformWorkflowRequests, error)
+	GetTerraformWorkflowRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.TerraformWorkflowRequests, error)
+	PutTerraformWorkflowRequest(ctx context.Context, input *models.NewTerraformWorkflowRequest) (*models.TerraformWorkflowRequest, error)
+	UpdateTerraformWorkflowRequest(ctx context.Context, terraformExecutionRequestId string, update *models.TerraformWorkflowRequestUpdate) (*models.TerraformWorkflowRequest, error)
 
 	GetPlanExecutionRequest(ctx context.Context, planExecutionRequestId string) (*models.PlanExecutionRequest, error)
 	GetPlanExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.PlanExecutionRequests, error)

@@ -8,8 +8,22 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/pkg/models"
 )
+
+// ModuleGroup is the resolver for the moduleGroup field.
+func (r *moduleVersionResolver) ModuleGroup(ctx context.Context, obj *models.ModuleVersion) (*models.ModuleGroup, error) {
+	return r.apiClient.GetModuleGroup(ctx, obj.ModuleGroupId)
+}
+
+// ModulePropagations is the resolver for the modulePropagations field.
+func (r *moduleVersionResolver) ModulePropagations(ctx context.Context, obj *models.ModuleVersion, limit *int, nextCursor *string) (*models.ModulePropagations, error) {
+	if limit == nil {
+		limit = aws.Int(100)
+	}
+	return r.apiClient.GetModulePropagationsByModuleVersionId(ctx, obj.ModuleVersionId, int32(*limit), aws.ToString(nextCursor))
+}
 
 // CreateModuleVersion is the resolver for the createModuleVersion field.
 func (r *mutationResolver) CreateModuleVersion(ctx context.Context, moduleVersion models.NewModuleVersion) (*models.ModuleVersion, error) {
@@ -34,3 +48,8 @@ func (r *queryResolver) ModuleVersions(ctx context.Context, moduleGroupID string
 	}
 	return r.apiClient.GetModuleVersions(ctx, moduleGroupID, int32(*limit), aws.ToString(nextCursor))
 }
+
+// ModuleVersion returns generated.ModuleVersionResolver implementation.
+func (r *Resolver) ModuleVersion() generated.ModuleVersionResolver { return &moduleVersionResolver{r} }
+
+type moduleVersionResolver struct{ *Resolver }

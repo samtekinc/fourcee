@@ -18,12 +18,17 @@ func (r *moduleAccountAssociationResolver) ModulePropagation(ctx context.Context
 	return r.apiClient.GetModulePropagation(ctx, obj.ModulePropagationId)
 }
 
+// OrgAccount is the resolver for the orgAccount field.
+func (r *moduleAccountAssociationResolver) OrgAccount(ctx context.Context, obj *models.ModuleAccountAssociation) (*models.OrganizationalAccount, error) {
+	return r.apiClient.GetOrganizationalAccount(ctx, obj.OrgAccountId)
+}
+
 // PlanExecutionRequests is the resolver for the planExecutionRequests field.
 func (r *moduleAccountAssociationResolver) PlanExecutionRequests(ctx context.Context, obj *models.ModuleAccountAssociation, limit *int, nextCursor *string) (*models.PlanExecutionRequests, error) {
 	if limit == nil {
 		limit = aws.Int(100)
 	}
-	return r.apiClient.GetPlanExecutionRequestsByModuleAccountAssociationKey(ctx, obj.Key(), int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetPlanExecutionRequestsByModuleAccountAssociationKey(ctx, obj.Key().String(), int32(*limit), aws.ToString(nextCursor))
 }
 
 // ApplyExecutionRequests is the resolver for the applyExecutionRequests field.
@@ -31,7 +36,7 @@ func (r *moduleAccountAssociationResolver) ApplyExecutionRequests(ctx context.Co
 	if limit == nil {
 		limit = aws.Int(100)
 	}
-	return r.apiClient.GetApplyExecutionRequestsByModuleAccountAssociationKey(ctx, obj.Key(), int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetApplyExecutionRequestsByModuleAccountAssociationKey(ctx, obj.Key().String(), int32(*limit), aws.ToString(nextCursor))
 }
 
 // TerraformConfiguration is the resolver for the terraformConfiguration field.

@@ -12,6 +12,42 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
+// ModulePropagationID is the resolver for the modulePropagationId field.
+func (r *applyExecutionRequestResolver) ModulePropagationID(ctx context.Context, obj *models.ApplyExecutionRequest) (string, error) {
+	key, err := models.ParseModuleAccountAssociationKey(obj.ModuleAccountAssociationKey)
+	if err != nil {
+		return "", err
+	}
+	return key.ModulePropagationId, nil
+}
+
+// ModulePropagation is the resolver for the modulePropagation field.
+func (r *applyExecutionRequestResolver) ModulePropagation(ctx context.Context, obj *models.ApplyExecutionRequest) (*models.ModulePropagation, error) {
+	modulePropagationId, err := r.ModulePropagationID(ctx, obj)
+	if err != nil {
+		return nil, err
+	}
+	return r.apiClient.GetModulePropagation(ctx, modulePropagationId)
+}
+
+// OrgAccountID is the resolver for the orgAccountId field.
+func (r *applyExecutionRequestResolver) OrgAccountID(ctx context.Context, obj *models.ApplyExecutionRequest) (string, error) {
+	key, err := models.ParseModuleAccountAssociationKey(obj.ModuleAccountAssociationKey)
+	if err != nil {
+		return "", err
+	}
+	return key.OrgAccountId, nil
+}
+
+// OrgAccount is the resolver for the orgAccount field.
+func (r *applyExecutionRequestResolver) OrgAccount(ctx context.Context, obj *models.ApplyExecutionRequest) (*models.OrganizationalAccount, error) {
+	orgAccountId, err := r.OrgAccountID(ctx, obj)
+	if err != nil {
+		return nil, err
+	}
+	return r.apiClient.GetOrganizationalAccount(ctx, orgAccountId)
+}
+
 // ApplyExecutionRequest is the resolver for the applyExecutionRequest field.
 func (r *queryResolver) ApplyExecutionRequest(ctx context.Context, applyExecutionRequestID string) (*models.ApplyExecutionRequest, error) {
 	return r.apiClient.GetApplyExecutionRequest(ctx, applyExecutionRequestID)
@@ -26,7 +62,13 @@ func (r *queryResolver) ApplyExecutionRequests(ctx context.Context, limit *int, 
 	return r.apiClient.GetApplyExecutionRequests(ctx, int32(*limit), aws.ToString(nextCursor))
 }
 
+// ApplyExecutionRequest returns generated.ApplyExecutionRequestResolver implementation.
+func (r *Resolver) ApplyExecutionRequest() generated.ApplyExecutionRequestResolver {
+	return &applyExecutionRequestResolver{r}
+}
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+type applyExecutionRequestResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

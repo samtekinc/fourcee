@@ -50,13 +50,13 @@ func (t *TerraformExecutable) TerraformInit(workingDirectory *TerraformWorkingDi
 	return &output
 }
 
-func (t *TerraformExecutable) TerraformPlan(workingDirectory *TerraformWorkingDirectory) *models.TerraformPlanOutput {
+func (t *TerraformExecutable) TerraformPlan(workingDirectory *TerraformWorkingDirectory, additionalArguments []string) *models.TerraformPlanOutput {
 	output := models.TerraformPlanOutput{}
 
 	stderrBuff := bytes.NewBuffer([]byte{})
 	stdoutBuff := bytes.NewBuffer([]byte{})
 
-	err := executeCommand(t, []string{"plan", "-out", "plan.tfplan"}, workingDirectory.Directory, stdoutBuff, stderrBuff)
+	err := executeCommand(t, append([]string{"plan", "-out", "plan.tfplan"}, additionalArguments...), workingDirectory.Directory, stdoutBuff, stderrBuff)
 	if err != nil {
 		output.Error = fmt.Errorf("failed to run terraform plan: %w", err)
 		output.Stderr = stderrBuff.Bytes()
@@ -98,7 +98,7 @@ func (t *TerraformExecutable) TerraformPlan(workingDirectory *TerraformWorkingDi
 	return &output
 }
 
-func (t *TerraformExecutable) TerraformApply(workingDirectory *TerraformWorkingDirectory, terraformPlanFileBase64 string) *models.TerraformApplyOutput {
+func (t *TerraformExecutable) TerraformApply(workingDirectory *TerraformWorkingDirectory, terraformPlanFileBase64 string, additionalArguments []string) *models.TerraformApplyOutput {
 	output := models.TerraformApplyOutput{}
 
 	// write the plan file
@@ -112,7 +112,9 @@ func (t *TerraformExecutable) TerraformApply(workingDirectory *TerraformWorkingD
 	stderrBuff := bytes.NewBuffer([]byte{})
 	stdoutBuff := bytes.NewBuffer([]byte{})
 
-	err = executeCommand(t, []string{"apply", "-auto-approve", "plan.tfplan"}, workingDirectory.Directory, stdoutBuff, stderrBuff)
+	args := append([]string{"apply"}, additionalArguments...)
+	args = append(args, "-auto-approve", "plan.tfplan")
+	err = executeCommand(t, args, workingDirectory.Directory, stdoutBuff, stderrBuff)
 	if err != nil {
 		output.Error = fmt.Errorf("failed to run terraform apply: %w", err)
 		output.Stderr = stderrBuff.Bytes()

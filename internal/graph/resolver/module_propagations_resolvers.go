@@ -61,6 +61,11 @@ func (r *mutationResolver) DeleteModulePropagation(ctx context.Context, modulePr
 	return err == nil, err
 }
 
+// UpdateModulePropagation is the resolver for the updateModulePropagation field.
+func (r *mutationResolver) UpdateModulePropagation(ctx context.Context, modulePropagationID string, update models.ModulePropagationUpdate) (*models.ModulePropagation, error) {
+	return r.apiClient.UpdateModulePropagation(ctx, modulePropagationID, &update)
+}
+
 // ModulePropagation is the resolver for the modulePropagation field.
 func (r *queryResolver) ModulePropagation(ctx context.Context, modulePropagationID string) (*models.ModulePropagation, error) {
 	return r.apiClient.GetModulePropagation(ctx, modulePropagationID)

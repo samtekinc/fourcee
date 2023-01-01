@@ -3,13 +3,12 @@ import {
   OrganizationalAccount,
   OrganizationalAccounts,
 } from "../__generated__/graphql";
-import { gql } from "../__generated__";
 import { NavLink, useParams } from "react-router-dom";
-import { useQuery } from "@apollo/client";
+import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
 import { Container } from "react-bootstrap";
 
-const ORGANIZATIONAL_ACCOUNT_QUERY = gql(`
+const ORGANIZATIONAL_ACCOUNT_QUERY = gql`
   query organizationalAccount($orgAccountId: ID!) {
     organizationalAccount(orgAccountId: $orgAccountId) {
       orgAccountId
@@ -32,6 +31,7 @@ const ORGANIZATIONAL_ACCOUNT_QUERY = gql(`
           modulePropagationId
           orgAccountId
           modulePropagation {
+            name
             moduleGroup {
               moduleGroupId
               name
@@ -45,7 +45,7 @@ const ORGANIZATIONAL_ACCOUNT_QUERY = gql(`
       }
     }
   }
-`);
+`;
 
 type Response = {
   organizationalAccount: OrganizationalAccount;
@@ -119,6 +119,7 @@ export const OrganizationalAccountPage = () => {
       <Table striped bordered hover>
         <thead>
           <tr>
+            <th>Module Propagation</th>
             <th>Module Group</th>
             <th>Module Version</th>
             <th>Status</th>
@@ -129,6 +130,14 @@ export const OrganizationalAccountPage = () => {
             (moduleAccountAssociation) => {
               return (
                 <tr>
+                  <td>
+                    <NavLink
+                      to={`/module-propagations/${moduleAccountAssociation?.modulePropagationId}`}
+                    >
+                      {moduleAccountAssociation?.modulePropagation.name} (
+                      {moduleAccountAssociation?.modulePropagationId})
+                    </NavLink>
+                  </td>
                   <td>
                     <NavLink
                       to={`/module-groups/${moduleAccountAssociation?.modulePropagation.moduleGroup.moduleGroupId}`}

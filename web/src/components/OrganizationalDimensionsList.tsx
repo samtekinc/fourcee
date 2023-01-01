@@ -1,15 +1,14 @@
 import React, { useState } from "react";
 import { OrganizationalDimensions } from "../__generated__/graphql";
-import { gql } from "../__generated__";
 import { NavLink } from "react-router-dom";
-import { useQuery } from "@apollo/client";
+import { useQuery, gql } from "@apollo/client";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
 import Container from "react-bootstrap/Container";
 import { OrganizationalDimensionPage } from "./OrganizationalDimensionPage";
 import Table from "react-bootstrap/Table";
 
-const ORGANIZATIONAL_DIMENSIONS_QUERY = gql(`
+const ORGANIZATIONAL_DIMENSIONS_QUERY = gql`
   query organizationalDimensions {
     organizationalDimensions(limit: 100) {
       items {
@@ -18,7 +17,7 @@ const ORGANIZATIONAL_DIMENSIONS_QUERY = gql(`
       }
     }
   }
-`);
+`;
 
 type Response = {
   organizationalDimensions: OrganizationalDimensions;

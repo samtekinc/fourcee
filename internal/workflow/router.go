@@ -49,6 +49,12 @@ func (t *TaskHandler) RouteTask(ctx context.Context, input map[string]interface{
 			return nil, fmt.Errorf("unable to decode task payload: %w", err)
 		}
 		return t.CreateMissingModuleAccountAssociations(ctx, taskPayload)
+	case TaskCreateTerraformWorkflowRequest:
+		var taskPayload CreateTerraformWorkflowRequestInput
+		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {
+			return nil, fmt.Errorf("unable to decode task payload: %w", err)
+		}
+		return t.CreateTerraformWorkflowRequest(ctx, taskPayload)
 	case TaskDeactivateModuleAccountAssociation:
 		var taskPayload DeactivateModuleAccountAssociationInput
 		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {
@@ -79,24 +85,12 @@ func (t *TaskHandler) RouteTask(ctx context.Context, input map[string]interface{
 			return nil, fmt.Errorf("unable to decode task payload: %w", err)
 		}
 		return t.ListOrgUnitAccounts(ctx, taskPayload)
-	case TaskScheduleTerraformApplyDestroy:
-		var taskPayload ScheduleTerraformApplyDestroyInput
-		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {
-			return nil, fmt.Errorf("unable to decode task payload: %w", err)
-		}
-		return t.ScheduleTerraformApplyDestroy(ctx, taskPayload)
 	case TaskScheduleTerraformApply:
 		var taskPayload ScheduleTerraformApplyInput
 		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {
 			return nil, fmt.Errorf("unable to decode task payload: %w", err)
 		}
 		return t.ScheduleTerraformApply(ctx, taskPayload)
-	case TaskScheduleTerraformPlanDestroy:
-		var taskPayload ScheduleTerraformPlanDestroyInput
-		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {
-			return nil, fmt.Errorf("unable to decode task payload: %w", err)
-		}
-		return t.ScheduleTerraformPlanDestroy(ctx, taskPayload)
 	case TaskScheduleTerraformPlan:
 		var taskPayload ScheduleTerraformPlanInput
 		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {

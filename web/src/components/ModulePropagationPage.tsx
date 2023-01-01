@@ -1,17 +1,21 @@
 import React, { useState } from "react";
 import {
+  Maybe,
   ModulePropagation,
   ModulePropagations,
+  OrganizationalDimensions,
+  OrganizationalUnit,
+  ModulePropagationUpdate,
 } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
-import { renderTimeField } from "../utils/table_rendering";
-import { Container } from "react-bootstrap";
+import { renderStatus, renderTimeField } from "../utils/table_rendering";
+import { Container, Form, Modal } from "react-bootstrap";
 import { NotificationManager } from "react-notifications";
 import { Button } from "react-bootstrap";
 
-const MODULE_PROPAGATION_QUERY = gql(`
+const MODULE_PROPAGATION_QUERY = gql`
   query modulePropagation($modulePropagationId: ID!) {
     modulePropagation(modulePropagationId: $modulePropagationId) {
       modulePropagationId
@@ -39,7 +43,7 @@ const MODULE_PROPAGATION_QUERY = gql(`
       modulePropagationId
       name
       description
-      executionRequests {
+      executionRequests(limit: 5) {
         items {
           modulePropagationId
           modulePropagationExecutionRequestId
@@ -50,13 +54,16 @@ const MODULE_PROPAGATION_QUERY = gql(`
       moduleAccountAssociations {
         items {
           modulePropagationId
-          orgAccountId
+          orgAccount {
+            orgAccountId
+            name
+          }
           status
         }
       }
     }
   }
-`);
+`;
 
 type Response = {
   modulePropagation: ModulePropagation;
@@ -81,6 +88,7 @@ export const ModulePropagationPage = () => {
 
   if (loading) return null;
   if (error) return <div>Error</div>;
+  if (!data?.modulePropagation) return <div>Not found</div>;
 
   return (
     <Container>
@@ -106,6 +114,9 @@ export const ModulePropagationPage = () => {
           {data?.modulePropagation.moduleVersion.name}
         </NavLink>
       </p>
+      <UpdateModulePropagationButton
+        modulePropagation={data.modulePropagation}
+      />
       <h2>Execution Requests</h2>
       <ExecuteModulePropagationButton
         modulePropagationId={modulePropagationId}
@@ -130,7 +141,7 @@ export const ModulePropagationPage = () => {
                       {executionRequest?.modulePropagationExecutionRequestId}
                     </NavLink>
                   </td>
-                  <td>{executionRequest?.status}</td>
+                  <td>{renderStatus(executionRequest?.status)}</td>
                   {renderTimeField(executionRequest?.requestTime)}
                 </tr>
               );
@@ -176,7 +187,7 @@ export const ModulePropagationPage = () => {
       <Table striped bordered hover>
         <thead>
           <tr>
-            <th>Org Account Id</th>
+            <th>Org Account</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -187,14 +198,15 @@ export const ModulePropagationPage = () => {
                 <tr>
                   <td>
                     <NavLink
-                      to={`/org-accounts/${moduleAccountAssociation?.orgAccountId}`}
+                      to={`/org-accounts/${moduleAccountAssociation?.orgAccount.orgAccountId}`}
                     >
-                      {moduleAccountAssociation?.orgAccountId}
+                      {moduleAccountAssociation?.orgAccount.name} (
+                      {moduleAccountAssociation?.orgAccount.orgAccountId})
                     </NavLink>
                   </td>
                   <td>
                     <NavLink
-                      to={`/module-propagations/${moduleAccountAssociation?.modulePropagationId}/account-associations/${moduleAccountAssociation?.orgAccountId}`}
+                      to={`/module-propagations/${moduleAccountAssociation?.modulePropagationId}/account-associations/${moduleAccountAssociation?.orgAccount.orgAccountId}`}
                     >
                       {moduleAccountAssociation?.status}
                     </NavLink>
@@ -269,5 +281,219 @@ const ExecuteModulePropagationButton: React.VFC<
     >
       {loading ? "Submitting..." : "Execute Module Propagation"}
     </Button>
+  );
+};
+
+interface UpdateModulePropagationButtonProps {
+  modulePropagation: ModulePropagation;
+}
+
+const UpdateModulePropagationButton: React.VFC<
+  UpdateModulePropagationButtonProps
+> = (props: UpdateModulePropagationButtonProps) => {
+  const [show, setShow] = useState(false);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
+  return (
+    <>
+      <Button variant="primary" onClick={handleShow}>
+        Update Module Propagation
+      </Button>
+      <Modal show={show} onHide={handleClose}>
+        <UpdateModulePropagationForm
+          modulePropagation={props.modulePropagation}
+          handleClose={handleClose}
+        />
+      </Modal>
+    </>
+  );
+};
+
+const ORG_DIMENSIONS_QUERY = gql`
+  query orgDimensions {
+    organizationalDimensions(limit: 10000) {
+      items {
+        orgDimensionId
+        name
+        orgUnits(limit: 10000) {
+          items {
+            orgUnitId
+            name
+          }
+        }
+      }
+    }
+  }
+`;
+
+const UPDATE_MODULE_PROPAGATION_MUTATION = gql`
+  mutation updateModulePropagation(
+    $modulePropagationId: ID!
+    $update: ModulePropagationUpdate!
+  ) {
+    updateModulePropagation(
+      modulePropagationId: $modulePropagationId
+      update: $update
+    ) {
+      modulePropagationId
+    }
+  }
+`;
+
+type OrgDimensionResposne = {
+  organizationalDimensions: OrganizationalDimensions;
+};
+
+interface UpdateModulePropagationFormProps {
+  modulePropagation: ModulePropagation;
+  handleClose: () => void;
+}
+
+const UpdateModulePropagationForm: React.VFC<
+  UpdateModulePropagationFormProps
+> = (props: UpdateModulePropagationFormProps) => {
+  const [formState, setFormState] = useState<ModulePropagationUpdate>({});
+  const [orgUnits, setOrgUnits] = useState(Array<Maybe<OrganizationalUnit>>());
+
+  const [mutation] = useMutation(UPDATE_MODULE_PROPAGATION_MUTATION, {
+    variables: {
+      modulePropagationId: props.modulePropagation.modulePropagationId,
+      update: formState,
+    },
+    onError: (error) => {
+      console.log(error);
+      NotificationManager.error(
+        error.message,
+        `Error updating module propagation`,
+        5000
+      );
+    },
+    onCompleted: (data) => {
+      NotificationManager.success(
+        `Updated ${data.updateModulePropagation.modulePropagationId}`,
+        "",
+        5000
+      );
+    },
+  });
+
+  const { loading, error, data } =
+    useQuery<OrgDimensionResposne>(ORG_DIMENSIONS_QUERY);
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error :(</p>;
+  if (!data) return <p>No data</p>;
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    console.log(formState);
+
+    mutation();
+
+    props.handleClose();
+  };
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const target = event.target;
+    let value: string | null = target.value;
+    if (value === "") {
+      value = null;
+    }
+    const name = target.name;
+
+    setFormState({
+      [name]: value,
+    });
+  };
+
+  const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const target = event.target;
+    const value = target.value;
+    const name = target.name;
+
+    setFormState({
+      [name]: value,
+    });
+
+    if (name === "orgDimensionId") {
+      const orgDimension = data.organizationalDimensions.items.find(
+        (item) => item?.orgDimensionId === value
+      );
+      setOrgUnits(orgDimension?.orgUnits.items ?? []);
+    }
+  };
+
+  return (
+    <>
+      <Form onSubmit={handleSubmit}>
+        <Modal.Header closeButton>
+          <Modal.Title>Update Module Propagation</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group>
+            <Form.Label>Name</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter name"
+              name="name"
+              onChange={handleInputChange}
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Description</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter description"
+              name="description"
+              onChange={handleInputChange}
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Org Dimension</Form.Label>
+            <Form.Select name="orgDimensionId" onChange={handleSelectChange}>
+              <option selected={true} disabled={true}>
+                Select Org Dimension
+              </option>
+              {data.organizationalDimensions.items.map((orgDimension) => {
+                return (
+                  <option
+                    value={orgDimension?.orgDimensionId}
+                    key={orgDimension?.orgDimensionId}
+                  >
+                    {orgDimension?.name}
+                  </option>
+                );
+              })}
+            </Form.Select>
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Org Unit</Form.Label>
+            <Form.Select name="orgUnitId" onChange={handleSelectChange}>
+              <option selected={true} disabled={true}>
+                Select Org Unit
+              </option>
+              {orgUnits.map((orgUnit) => {
+                return (
+                  <option value={orgUnit?.orgUnitId} key={orgUnit?.orgUnitId}>
+                    {orgUnit?.name}
+                  </option>
+                );
+              })}
+            </Form.Select>
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={props.handleClose}>
+            Close
+          </Button>
+          <Button variant="primary" type="submit">
+            Submit
+          </Button>
+        </Modal.Footer>
+      </Form>
+    </>
   );
 };

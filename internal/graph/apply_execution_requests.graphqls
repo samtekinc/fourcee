@@ -3,9 +3,12 @@ type ApplyExecutionRequest {
   terraformVersion: String!
   callbackTaskToken: String!
   stateKey: String!
-  modulePropagationId: ID!
   modulePropagationExecutionRequestId: String!
   moduleAccountAssociationKey: String!
+  modulePropagationId: ID!
+  modulePropagation: ModulePropagation!
+  orgAccountId: ID!
+  orgAccount: OrganizationalAccount!
   terraformConfigurationBase64: String!
   additionalArguments: [String]!
   workflowExecutionId: String!

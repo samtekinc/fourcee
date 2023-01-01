@@ -19,7 +19,7 @@ export function Header() {
             <Nav.Link href="#accounts" as={NavLink} to="/org-accounts">
               Accounts
             </Nav.Link>
-            <Nav.Link href="#modules" as={NavLink} to="/modules">
+            <Nav.Link href="#modules" as={NavLink} to="/module-groups">
               Modules
             </Nav.Link>
           </Nav>

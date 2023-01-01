@@ -12,13 +12,8 @@ const (
 )
 
 type ScheduleTerraformApplyInput struct {
-	Input struct {
-		ModuleAccountAssociation            models.ModuleAccountAssociation
-		ModulePropagationExecutionRequestId string
-		ModulePropagationId                 string
-	}
-	TaskToken              string
-	PlanExecutionRequestId string
+	TerraformWorkflowRequestId string
+	TaskToken                  string
 }
 
 type ScheduleTerraformApplyOutput struct {
@@ -26,8 +21,24 @@ type ScheduleTerraformApplyOutput struct {
 }
 
 func (t *TaskHandler) ScheduleTerraformApply(ctx context.Context, input ScheduleTerraformApplyInput) (*ScheduleTerraformApplyOutput, error) {
+	// get workflow details
+	tfWorkflow, err := t.apiClient.GetTerraformWorkflowRequest(ctx, input.TerraformWorkflowRequestId)
+	if err != nil {
+		return nil, err
+	}
+
+	// get module account association
+	moduleAccountAssociationKey, err := models.ParseModuleAccountAssociationKey(tfWorkflow.ModuleAccountAssociationKey)
+	if err != nil {
+		return nil, err
+	}
+	moduleAccountAssociation, err := t.apiClient.GetModuleAccountAssociation(ctx, moduleAccountAssociationKey.ModulePropagationId, moduleAccountAssociationKey.OrgAccountId)
+	if err != nil {
+		return nil, err
+	}
+
 	// get module propagation details
-	modulePropagation, err := t.apiClient.GetModulePropagation(ctx, input.Input.ModulePropagationId)
+	modulePropagation, err := t.apiClient.GetModulePropagation(ctx, moduleAccountAssociation.ModulePropagationId)
 	if err != nil {
 		return nil, err
 	}
@@ -39,24 +50,35 @@ func (t *TaskHandler) ScheduleTerraformApply(ctx context.Context, input Schedule
 	}
 
 	// get plan request details
-	planRequest, err := t.apiClient.GetPlanExecutionRequest(ctx, input.PlanExecutionRequestId)
+	planRequest, err := t.apiClient.GetPlanExecutionRequest(ctx, *tfWorkflow.PlanExecutionRequestId)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: generate TF config file based on module version and account details
-
 	planBase64 := base64.StdEncoding.EncodeToString(planRequest.PlanOutput.PlanFile)
+
+	additionalArguments := []string{}
+	if tfWorkflow.Destroy {
+		additionalArguments = append(additionalArguments, "-destroy")
+	}
 
 	applyRequest, err := t.apiClient.PutApplyExecutionRequest(ctx, &models.NewApplyExecutionRequest{
 		TerraformVersion:                    moduleVersion.TerraformVersion,
 		CallbackTaskToken:                   input.TaskToken,
-		StateKey:                            input.Input.ModuleAccountAssociation.RemoteStateKey,
-		ModulePropagationId:                 input.Input.ModulePropagationId,
-		ModulePropagationExecutionRequestId: input.Input.ModulePropagationExecutionRequestId,
-		ModuleAccountAssociationKey:         input.Input.ModuleAccountAssociation.Key(),
+		StateKey:                            moduleAccountAssociation.RemoteStateKey,
+		ModulePropagationExecutionRequestId: tfWorkflow.ModulePropagationExecutionRequestId,
+		ModuleAccountAssociationKey:         tfWorkflow.ModuleAccountAssociationKey,
 		TerraformConfigurationBase64:        planRequest.TerraformConfigurationBase64,
 		TerraformPlanBase64:                 planBase64,
+		AdditionalArguments:                 additionalArguments,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// update tf workflow with apply request id
+	_, err = t.apiClient.UpdateTerraformWorkflowRequest(ctx, tfWorkflow.TerraformWorkflowRequestId, &models.TerraformWorkflowRequestUpdate{
+		ApplyExecutionRequestId: &applyRequest.ApplyExecutionRequestId,
 	})
 	if err != nil {
 		return nil, err

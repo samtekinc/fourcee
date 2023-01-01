@@ -249,17 +249,28 @@ resource "aws_sfn_state_machine" "execute_module_propagation" {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::states:startExecution.sync:2",
                             "Parameters": {
-                              "StateMachineArn": "${aws_sfn_state_machine.execute_terraform_apply.arn}",
+                              "StateMachineArn": "${aws_sfn_state_machine.execute_terraform_workflow.arn}",
                               "Input": {
                                 "StatePayload": {
                                   "ModuleAccountAssociation.$": "$",
                                   "ModulePropagationId.$": "$$.Execution.Input.ModulePropagationId",
-                                  "ModulePropagationExecutionRequestId.$": "$$.Execution.Input.ModulePropagationExecutionRequestId"
+                                  "ModulePropagationExecutionRequestId.$": "$$.Execution.Input.ModulePropagationExecutionRequestId",
+                                  "Destroy": false
                                 },
                                 "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id"
                               }
                             },
-                            "End": true
+                            "End": true,
+                            "Retry": [
+                              {
+                                "ErrorEquals": [
+                                  "States.TaskFailed"
+                                ],
+                                "BackoffRate": 2,
+                                "IntervalSeconds": 10,
+                                "MaxAttempts": 3
+                              }
+                            ]
                           }
                         }
                       },
@@ -277,61 +288,35 @@ resource "aws_sfn_state_machine" "execute_module_propagation" {
                         "ProcessorConfig": {
                           "Mode": "INLINE"
                         },
-                        "StartAt": "ScheduleTerraformPlanDestroy-Callback",
+                        "StartAt": "ExecuteTerraformApplyDestroy",
                         "States": {
-                          "ScheduleTerraformPlanDestroy-Callback": {
+                          "ExecuteTerraformApplyDestroy": {
                             "Type": "Task",
-                            "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
-                            "OutputPath": "$.Payload",
+                            "Resource": "arn:aws:states:::states:startExecution.sync:2",
                             "Parameters": {
-                              "FunctionName": "${aws_lambda_function.workflow_handler.arn}",
-                              "Payload": {
-                                "Payload.$": "$",
-                                "Task": "ScheduleTerraformPlanDestroy",
-                                "Workflow": "ExecuteModulePropagation"
+                              "StateMachineArn": "${aws_sfn_state_machine.execute_terraform_workflow.arn}",
+                              "Input": {
+                                "StatePayload": {
+                                  "ModuleAccountAssociation.$": "$",
+                                  "ModulePropagationId.$": "$$.Execution.Input.ModulePropagationId",
+                                  "ModulePropagationExecutionRequestId.$": "$$.Execution.Input.ModulePropagationExecutionRequestId",
+                                  "Destroy": true
+                                },
+                                "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id"
                               }
                             },
                             "Retry": [
                               {
                                 "ErrorEquals": [
-                                  "Lambda.ServiceException",
-                                  "Lambda.AWSLambdaException",
-                                  "Lambda.SdkClientException",
-                                  "Lambda.TooManyRequestsException"
+                                  "States.TaskFailed"
                                 ],
-                                "IntervalSeconds": 2,
-                                "MaxAttempts": 6,
-                                "BackoffRate": 2
+                                "BackoffRate": 2,
+                                "IntervalSeconds": 10,
+                                "MaxAttempts": 3
                               }
                             ],
-                            "Next": "ScheduleTerraformApplyDestroy-Callback"
-                          },
-                          "ScheduleTerraformApplyDestroy-Callback": {
-                            "Type": "Task",
-                            "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
-                            "OutputPath": "$.Payload",
-                            "Parameters": {
-                              "FunctionName": "${aws_lambda_function.workflow_handler.arn}",
-                              "Payload": {
-                                "Payload.$": "$",
-                                "Task": "ScheduleTerraformApplyDestroy",
-                                "Workflow": "ExecuteModulePropagation"
-                              }
-                            },
-                            "Retry": [
-                              {
-                                "ErrorEquals": [
-                                  "Lambda.ServiceException",
-                                  "Lambda.AWSLambdaException",
-                                  "Lambda.SdkClientException",
-                                  "Lambda.TooManyRequestsException"
-                                ],
-                                "IntervalSeconds": 2,
-                                "MaxAttempts": 6,
-                                "BackoffRate": 2
-                              }
-                            ],
-                            "Next": "DeactivateModuleAccountAssociation"
+                            "Next": "DeactivateModuleAccountAssociation",
+                            "ResultPath": null
                           },
                           "DeactivateModuleAccountAssociation": {
                             "Type": "Task",
@@ -340,7 +325,9 @@ resource "aws_sfn_state_machine" "execute_module_propagation" {
                             "Parameters": {
                               "FunctionName": "${aws_lambda_function.workflow_handler.arn}",
                               "Payload": {
-                                "Payload.$": "$",
+                                "Payload": {
+                                  "ModuleAccountAssociation.$": "$"
+                                },
                                 "Task": "DeactivateModuleAccountAssociation",
                                 "Workflow": "ExecuteModulePropagation"
                               }
@@ -378,7 +365,8 @@ resource "aws_sfn_state_machine" "execute_module_propagation" {
           "ErrorEquals": [
             "States.ALL"
           ],
-          "Next": "UpdateExecutionRequestFailed"
+          "Next": "UpdateExecutionRequestFailed",
+          "ResultPath": "$.Error"
         }
       ],
       "ResultPath": null

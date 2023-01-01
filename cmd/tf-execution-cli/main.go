@@ -53,6 +53,7 @@ func main() {
 		PropagationsTableName: "tfom-module-propagations",
 		ModulePropagationExecutionRequestsTableName: "tfom-module-propagation-execution-requests",
 		ModuleAccountAssociationsTableName:          "tfom-module-account-associations",
+		TerraformWorkflowRequestsTableName:          "tfom-terraform-workflow-requests",
 		PlanExecutionsTableName:                     "tfom-plan-execution-requests",
 		ApplyExecutionsTableName:                    "tfom-apply-execution-requests",
 		ResultsBucketName:                           "tfom-execution-results",
@@ -138,7 +139,7 @@ func runPlan(ctx context.Context, request *models.PlanExecutionRequest, apiClien
 	}
 
 	// plan terraform
-	planOutput := executable.TerraformPlan(workingDirectory)
+	planOutput := executable.TerraformPlan(workingDirectory, request.AdditionalArguments)
 
 	// upload plan results
 	key, err = apiClient.UploadTerraformPlanResults(ctx, request.PlanExecutionRequestId, planOutput)
@@ -181,9 +182,6 @@ func runApply(ctx context.Context, request *models.ApplyExecutionRequest, apiCli
 
 	// init terraform
 	initOutput := executable.TerraformInit(workingDirectory)
-	if initOutput.Error != nil {
-		return initOutput.Error
-	}
 
 	// upload init results
 	key, err := apiClient.UploadTerraformApplyInitResults(ctx, request.ApplyExecutionRequestId, initOutput)
@@ -197,11 +195,12 @@ func runApply(ctx context.Context, request *models.ApplyExecutionRequest, apiCli
 		return err
 	}
 
-	// apply terraform
-	applyOutput := executable.TerraformApply(workingDirectory, request.TerraformPlanBase64)
-	if applyOutput.Error != nil {
-		return applyOutput.Error
+	if initOutput.Error != nil {
+		return initOutput.Error
 	}
+
+	// apply terraform
+	applyOutput := executable.TerraformApply(workingDirectory, request.TerraformPlanBase64, request.AdditionalArguments)
 
 	// upload apply results
 	key, err = apiClient.UploadTerraformApplyResults(ctx, request.ApplyExecutionRequestId, applyOutput)
@@ -213,6 +212,10 @@ func runApply(ctx context.Context, request *models.ApplyExecutionRequest, apiCli
 	})
 	if err != nil {
 		return err
+	}
+
+	if applyOutput.Error != nil {
+		return applyOutput.Error
 	}
 
 	return nil

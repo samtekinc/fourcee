@@ -60,6 +60,7 @@ func main() {
 		PropagationsTableName: "tfom-module-propagations",
 		ModulePropagationExecutionRequestsTableName: "tfom-module-propagation-execution-requests",
 		ModuleAccountAssociationsTableName:          "tfom-module-account-associations",
+		TerraformWorkflowRequestsTableName:          "tfom-terraform-workflow-requests",
 		PlanExecutionsTableName:                     "tfom-plan-execution-requests",
 		ApplyExecutionsTableName:                    "tfom-apply-execution-requests",
 		ResultsBucketName:                           "tfom-execution-results",

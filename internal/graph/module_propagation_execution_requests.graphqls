@@ -8,6 +8,10 @@ type ModulePropagationExecutionRequest {
     limit: Int
     nextCursor: String
   ): ApplyExecutionRequests!
+  terraformWorkflowRequests(
+    limit: Int
+    nextCursor: String
+  ): TerraformWorkflowRequests!
 }
 
 type ModulePropagationExecutionRequests {

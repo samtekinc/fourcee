@@ -3,13 +3,12 @@ import {
   OrganizationalDimension,
   OrganizationalDimensions,
 } from "../__generated__/graphql";
-import { gql } from "../__generated__";
 import { NavLink, useParams } from "react-router-dom";
-import { useQuery } from "@apollo/client";
+import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
 import Container from "react-bootstrap/Container";
 
-const ORGANIZATIONAL_DIMENSION_QUERY = gql(`
+const ORGANIZATIONAL_DIMENSION_QUERY = gql`
   query organizationalDimension($orgDimensionId: ID!) {
     organizationalDimension(orgDimensionId: $orgDimensionId) {
       orgDimensionId
@@ -49,7 +48,7 @@ const ORGANIZATIONAL_DIMENSION_QUERY = gql(`
       }
     }
   }
-`);
+`;
 
 type Response = {
   organizationalDimension: OrganizationalDimension;
@@ -151,12 +150,10 @@ export const OrganizationalDimensionPage = () => {
       <Table striped bordered hover>
         <thead>
           <tr>
-            <th>Org Account Id</th>
-            <th>Org Account Name</th>
+            <th>Org Account</th>
             <th>Cloud Platform</th>
             <th>Cloud ID</th>
-            <th>Org Unit Id</th>
-            <th>Org Unit Name</th>
+            <th>Org Unit</th>
           </tr>
         </thead>
         <tbody>
@@ -164,12 +161,24 @@ export const OrganizationalDimensionPage = () => {
             (membership) => {
               return (
                 <tr>
-                  <td>{membership?.orgAccount.orgAccountId}</td>
-                  <td>{membership?.orgAccount.name}</td>
+                  <td>
+                    <NavLink
+                      to={`/org-accounts/${membership?.orgAccount.orgAccountId}`}
+                    >
+                      {membership?.orgAccount.name} (
+                      {membership?.orgAccount.orgAccountId})
+                    </NavLink>
+                  </td>
                   <td>{membership?.orgAccount.cloudPlatform}</td>
                   <td>{membership?.orgAccount.cloudIdentifier}</td>
-                  <td>{membership?.orgUnit.orgUnitId}</td>
-                  <td>{membership?.orgUnit.name}</td>
+                  <td>
+                    <NavLink
+                      to={`/org-dimensions/${organizationalDimensionId}/org-units/${membership?.orgUnit.orgUnitId}`}
+                    >
+                      {membership?.orgUnit.name} (
+                      {membership?.orgUnit.orgUnitId})
+                    </NavLink>
+                  </td>
                 </tr>
               );
             }

@@ -1,0 +1,30 @@
+type TerraformWorkflowRequest {
+  terraformWorkflowRequestId: ID!
+  modulePropagationExecutionRequestId: ID!
+  modulePropagationExecutionRequest: ModulePropagationExecutionRequest!
+  moduleAccountAssociationKey: String!
+  moduleAccountAssociation: ModuleAccountAssociation!
+  orgAccountId: ID!
+  orgAccount: OrganizationalAccount!
+  modulePropagationId: ID!
+  modulePropagation: ModulePropagation!
+  planExecutionRequestId: ID
+  planExecutionRequest: PlanExecutionRequest
+  applyExecutionRequestId: ID
+  applyExecutionRequest: ApplyExecutionRequest
+  status: TerraformWorkflowRequestStatus!
+  requestTime: Time!
+  destroy: Boolean!
+}
+
+type TerraformWorkflowRequests {
+  items: [TerraformWorkflowRequest]!
+  nextCursor: String
+}
+
+enum TerraformWorkflowRequestStatus {
+  PENDING
+  RUNNING
+  FAILED
+  SUCCEEDED
+}

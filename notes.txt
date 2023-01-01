@@ -1,4 +1,0 @@
-TODO:
-
- - add graphql for plan/apply requests
- - add graphql relations so that you can view plan/apply requests for execution requests against a given module propagation

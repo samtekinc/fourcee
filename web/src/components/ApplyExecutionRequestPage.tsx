@@ -4,17 +4,16 @@ import {
   ApplyExecutionRequests,
 } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
-import { useQuery } from "@apollo/client";
-import { gql } from "../__generated__";
+import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
-import { renderTimeField } from "../utils/table_rendering";
+import { renderStatus, renderTimeField } from "../utils/table_rendering";
 import { Container } from "react-bootstrap";
 import Accordion from "react-bootstrap/Accordion";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { dark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import Ansi from "ansi-to-react";
 
-const APPLY_EXECUTION_REQUEST_QUERY = gql(`
+const APPLY_EXECUTION_REQUEST_QUERY = gql`
   query applyExecutionRequest($applyExecutionRequestId: ID!) {
     applyExecutionRequest(applyExecutionRequestId: $applyExecutionRequestId) {
       applyExecutionRequestId
@@ -31,7 +30,7 @@ const APPLY_EXECUTION_REQUEST_QUERY = gql(`
       }
     }
   }
-`);
+`;
 
 type Response = {
   applyExecutionRequest: ApplyExecutionRequest;
@@ -60,20 +59,20 @@ export const ApplyExecutionRequestPage = () => {
   let terraformConfiguration = data?.applyExecutionRequest
     .terraformConfigurationBase64
     ? atob(data?.applyExecutionRequest.terraformConfigurationBase64)
-    : "";
+    : "...";
   let initStdout = data?.applyExecutionRequest.initOutput?.Stdout
     ? atob(data?.applyExecutionRequest.initOutput?.Stdout)
-    : "";
+    : "...";
   let initStderr = data?.applyExecutionRequest.initOutput?.Stderr
     ? atob(data?.applyExecutionRequest.initOutput?.Stderr)
-    : "";
+    : "...";
 
   let applyStdout = data?.applyExecutionRequest.applyOutput?.Stdout
     ? atob(data?.applyExecutionRequest.applyOutput?.Stdout)
-    : "";
+    : "...";
   let applyStderr = data?.applyExecutionRequest.applyOutput?.Stderr
     ? atob(data?.applyExecutionRequest.applyOutput?.Stderr)
-    : "";
+    : "...";
 
   return (
     <Container>
@@ -82,86 +81,72 @@ export const ApplyExecutionRequestPage = () => {
         <b>{data?.applyExecutionRequest.applyExecutionRequestId}</b>
       </h1>
       <p>
-        Status: <b>{data?.applyExecutionRequest.status}</b>
+        Status: <b>{renderStatus(data?.applyExecutionRequest.status)}</b>
       </p>
-      <Accordion>
-        <Accordion.Item eventKey="Config">
-          <Accordion.Header>Terraform Configuration</Accordion.Header>
-          <Accordion.Body>
-            <Container
-              className="bg-dark"
-              style={{
-                overflow: "auto",
-                maxHeight: "60vh",
-                whiteSpace: "pre-wrap",
-                textAlign: "left",
-              }}
-            >
-              <SyntaxHighlighter language="hcl" style={dark}>
-                {terraformConfiguration}
-              </SyntaxHighlighter>
-            </Container>
-          </Accordion.Body>
-        </Accordion.Item>
-        <Accordion.Item eventKey="Init">
-          <Accordion.Header>Terraform Init Output</Accordion.Header>
-          <Accordion.Body>
-            <h3>Std Out</h3>
-            <Container
-              className="bg-dark"
-              style={{
-                overflow: "auto",
-                maxHeight: "60vh",
-                whiteSpace: "pre-wrap",
-                textAlign: "left",
-              }}
-            >
-              <Ansi className="ansi-black-bg">{initStdout}</Ansi>
-            </Container>
-            <h3>Std Err</h3>
-            <Container
-              className="bg-dark"
-              style={{
-                overflow: "auto",
-                maxHeight: "60vh",
-                whiteSpace: "pre-wrap",
-                textAlign: "left",
-              }}
-            >
-              <Ansi className="ansi-black-bg">{initStderr}</Ansi>
-            </Container>
-          </Accordion.Body>
-        </Accordion.Item>
-        <Accordion.Item eventKey="Apply">
-          <Accordion.Header>Terraform Apply Output</Accordion.Header>
-          <Accordion.Body>
-            <h3>Std Out</h3>
-            <Container
-              className="bg-dark"
-              style={{
-                overflow: "auto",
-                maxHeight: "60vh",
-                whiteSpace: "pre-wrap",
-                textAlign: "left",
-              }}
-            >
-              <Ansi className="ansi-black-bg">{applyStdout}</Ansi>
-            </Container>
-            <h3>Std Err</h3>
-            <Container
-              className="bg-dark"
-              style={{
-                overflow: "auto",
-                maxHeight: "60vh",
-                whiteSpace: "pre-wrap",
-                textAlign: "left",
-              }}
-            >
-              <Ansi className="ansi-black-bg">{applyStderr}</Ansi>
-            </Container>
-          </Accordion.Body>
-        </Accordion.Item>
-      </Accordion>
+      <h2>Terraform Configuration</h2>
+      <Container
+        className="bg-dark"
+        style={{
+          overflow: "auto",
+          maxHeight: "60vh",
+          whiteSpace: "pre-wrap",
+          textAlign: "left",
+        }}
+      >
+        <SyntaxHighlighter language="hcl" style={dark}>
+          {terraformConfiguration}
+        </SyntaxHighlighter>
+      </Container>
+      <h2>Init Output</h2>
+      Stdout
+      <Container
+        className="bg-dark"
+        style={{
+          overflow: "auto",
+          maxHeight: "60vh",
+          whiteSpace: "pre-wrap",
+          textAlign: "left",
+        }}
+      >
+        <Ansi className="ansi-black-bg">{initStdout}</Ansi>
+      </Container>
+      Stderr
+      <Container
+        className="bg-dark"
+        style={{
+          overflow: "auto",
+          maxHeight: "60vh",
+          whiteSpace: "pre-wrap",
+          textAlign: "left",
+        }}
+      >
+        <Ansi className="ansi-black-bg">{initStderr}</Ansi>
+      </Container>
+      <h2>Apply Output</h2>
+      Stdout
+      <Container
+        className="bg-dark"
+        style={{
+          overflow: "auto",
+          maxHeight: "60vh",
+          whiteSpace: "pre-wrap",
+          textAlign: "left",
+        }}
+      >
+        <Ansi className="ansi-black-bg">{applyStdout}</Ansi>
+      </Container>
+      Stderr
+      <Container
+        className="bg-dark"
+        style={{
+          overflow: "auto",
+          maxHeight: "60vh",
+          whiteSpace: "pre-wrap",
+          textAlign: "left",
+        }}
+      >
+        <Ansi className="ansi-black-bg">{applyStderr}</Ansi>
+      </Container>
     </Container>
   );
 };

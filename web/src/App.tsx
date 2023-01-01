@@ -12,6 +12,9 @@ import { OrganizationalAccountPage } from "./components/OrganizationalAccountPag
 import { OrganizationalDimensionPage } from "./components/OrganizationalDimensionPage";
 import { OrganizationalUnitPage } from "./components/OrganizationalUnitPage";
 import { ModuleAccountAssociationPage } from "./components/ModuleAccountAssociationPage";
+import { ModuleGroupsList } from "./components/ModuleGroupList";
+import { ModuleGroupPage } from "./components/ModuleGroupPage";
+import { ModuleVersionPage } from "./components/ModuleVersionPage";
 
 function App() {
   return (
@@ -54,6 +57,15 @@ function App() {
         <Route
           path="/org-accounts/:organizationalAccountId"
           element={<OrganizationalAccountPage />}
+        />
+        <Route path="/module-groups" element={<ModuleGroupsList />} />
+        <Route
+          path="/module-groups/:moduleGroupId"
+          element={<ModuleGroupPage />}
+        />
+        <Route
+          path="/module-groups/:moduleGroupId/versions/:moduleVersionId"
+          element={<ModuleVersionPage />}
         />
       </Routes>
     </PageWrapper>

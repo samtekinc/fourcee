@@ -51,6 +51,7 @@ type OrganizationsDatabaseClientInterface interface {
 	GetModulePropagationsByOrgDimensionId(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.ModulePropagations, error)
 	PutModulePropagation(ctx context.Context, input *models.ModulePropagation) error
 	DeleteModulePropagation(ctx context.Context, modulePropagationId string) error
+	UpdateModulePropagation(ctx context.Context, modulePropagationId string, update *models.ModulePropagationUpdate) (*models.ModulePropagation, error)
 
 	GetModulePropagationExecutionRequest(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string) (*models.ModulePropagationExecutionRequest, error)
 	GetModulePropagationExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationExecutionRequests, error)
@@ -66,6 +67,13 @@ type OrganizationsDatabaseClientInterface interface {
 	UpdateModuleAccountAssociation(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string, update *models.ModuleAccountAssociationUpdate) (*models.ModuleAccountAssociation, error)
 
 	// Execution Related Methods
+
+	GetTerraformWorkflowRequest(ctx context.Context, terraformExecutionRequestId string) (*models.TerraformWorkflowRequest, error)
+	GetTerraformWorkflowRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformWorkflowRequests, error)
+	GetTerraformWorkflowRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.TerraformWorkflowRequests, error)
+	GetTerraformWorkflowRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.TerraformWorkflowRequests, error)
+	PutTerraformWorkflowRequest(ctx context.Context, input *models.TerraformWorkflowRequest) error
+	UpdateTerraformWorkflowRequest(ctx context.Context, terraformExecutionRequestId string, update *models.TerraformWorkflowRequestUpdate) (*models.TerraformWorkflowRequest, error)
 
 	GetPlanExecutionRequest(ctx context.Context, planExecutionRequestId string) (*models.PlanExecutionRequest, error)
 	GetPlanExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.PlanExecutionRequests, error)
@@ -108,9 +116,10 @@ type OrganizationsDatabaseClient struct {
 	modulePropagationExecutionRequestsTableName string
 	moduleAccountAssociationsTableName          string
 
-	planExecutionsTableName  string
-	applyExecutionsTableName string
-	resultsBucketName        string
+	terraformWorkflowRequestsTableName string
+	planExecutionsTableName            string
+	applyExecutionsTableName           string
+	resultsBucketName                  string
 }
 
 type OrganizationsDatabaseClientInput struct {
@@ -127,9 +136,10 @@ type OrganizationsDatabaseClientInput struct {
 	ModulePropagationExecutionRequestsTableName string
 	ModuleAccountAssociationsTableName          string
 
-	PlanExecutionsTableName  string
-	ApplyExecutionsTableName string
-	ResultsBucketName        string
+	TerraformWorkflowRequestsTableName string
+	PlanExecutionsTableName            string
+	ApplyExecutionsTableName           string
+	ResultsBucketName                  string
 }
 
 func NewOrganizationsDatabaseClient(input *OrganizationsDatabaseClientInput) *OrganizationsDatabaseClient {
@@ -145,6 +155,7 @@ func NewOrganizationsDatabaseClient(input *OrganizationsDatabaseClientInput) *Or
 		propagationsTableName: input.PropagationsTableName,
 		modulePropagationExecutionRequestsTableName: input.ModulePropagationExecutionRequestsTableName,
 		moduleAccountAssociationsTableName:          input.ModuleAccountAssociationsTableName,
+		terraformWorkflowRequestsTableName:          input.TerraformWorkflowRequestsTableName,
 		planExecutionsTableName:                     input.PlanExecutionsTableName,
 		applyExecutionsTableName:                    input.ApplyExecutionsTableName,
 		resultsBucketName:                           input.ResultsBucketName,

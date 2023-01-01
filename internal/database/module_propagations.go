@@ -328,3 +328,68 @@ func (c *OrganizationsDatabaseClient) DeleteModulePropagation(ctx context.Contex
 		return err
 	}
 }
+
+func (c *OrganizationsDatabaseClient) UpdateModulePropagation(ctx context.Context, modulePropagationId string, update *models.ModulePropagationUpdate) (*models.ModulePropagation, error) {
+	condition := expression.AttributeExists(expression.Name("ModulePropagationId"))
+
+	expr, err := expression.NewBuilder().WithCondition(condition).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	updateBuilder := expression.UpdateBuilder{}
+	if update.OrgDimensionId != nil {
+		updateBuilder = updateBuilder.Set(expression.Name("OrgDimensionId"), expression.Value(*update.OrgDimensionId))
+	}
+	if update.OrgUnitId != nil {
+		updateBuilder = updateBuilder.Set(expression.Name("OrgUnitId"), expression.Value(*update.OrgUnitId))
+	}
+	if update.Name != nil {
+		updateBuilder = updateBuilder.Set(expression.Name("Name"), expression.Value(*update.Name))
+	}
+	if update.Description != nil {
+		updateBuilder = updateBuilder.Set(expression.Name("Description"), expression.Value(*update.Description))
+	}
+	if update.Arguments != nil {
+		updateBuilder = updateBuilder.Set(expression.Name("Arguments"), expression.Value(update.Arguments))
+	}
+	if update.AwsProviderConfigurations != nil {
+		updateBuilder = updateBuilder.Set(expression.Name("AwsProviderConfigurations"), expression.Value(update.AwsProviderConfigurations))
+	}
+
+	updateExpression, err := expression.NewBuilder().WithUpdate(updateBuilder).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	updateInput := &dynamodb.UpdateItemInput{
+		TableName: &c.propagationsTableName,
+		Key: map[string]types.AttributeValue{
+			"ModulePropagationId": &types.AttributeValueMemberS{Value: modulePropagationId},
+		},
+		ExpressionAttributeNames:  updateExpression.Names(),
+		ExpressionAttributeValues: updateExpression.Values(),
+		UpdateExpression:          updateExpression.Update(),
+		ConditionExpression:       expr.Condition(),
+		ReturnValues:              types.ReturnValueAllNew,
+	}
+
+	result, err := c.dynamodb.UpdateItem(ctx, updateInput)
+	ccfe := &types.ConditionalCheckFailedException{}
+	switch {
+	case errors.As(err, &ccfe):
+		return nil, helpers.NotFoundError{Message: fmt.Sprintf("Module Propagation %q not found", modulePropagationId)}
+	default:
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	moduleAccountAssociation := models.ModulePropagation{}
+	err = attributevalue.UnmarshalMap(result.Attributes, &moduleAccountAssociation)
+	if err != nil {
+		return nil, err
+	}
+
+	return &moduleAccountAssociation, nil
+}

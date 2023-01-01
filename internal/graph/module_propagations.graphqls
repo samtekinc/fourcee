@@ -53,6 +53,15 @@ input AwsProviderConfigurationInput {
   alias: String!
 }
 
+input ModulePropagationUpdate {
+  orgDimensionId: ID
+  orgUnitId: ID
+  name: String
+  description: String
+  arguments: [ArgumentInput!]
+  awsProviderConfigurations: [AwsProviderConfigurationInput!]
+}
+
 input ArgumentInput {
   name: String!
   value: String!
@@ -68,4 +77,8 @@ extend type Mutation {
     modulePropagation: NewModulePropagation!
   ): ModulePropagation!
   deleteModulePropagation(modulePropagationId: ID!): Boolean!
+  updateModulePropagation(
+    modulePropagationId: ID!
+    update: ModulePropagationUpdate!
+  ): ModulePropagation!
 }
