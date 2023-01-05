@@ -1,26 +1,26 @@
-resource "aws_cloudwatch_log_group" "execute_terraform_workflow" {
+resource "aws_cloudwatch_log_group" "terraform_execution_workflow" {
   # The /aws/vendedlogs/* path is special -- it gets policy length limit mitigation strategies.
-  name              = "/aws/vendedlogs/AsyncWorkflow/${var.prefix}-execute-terraform-workflow"
+  name              = "/aws/vendedlogs/AsyncWorkflow/${var.prefix}-terraform-execution-workflow"
   retention_in_days = 731
 }
 
 
-resource "aws_sfn_state_machine" "execute_terraform_workflow" {
-  name     = "${var.prefix}-execute-terraform-workflow"
+resource "aws_sfn_state_machine" "terraform_execution_workflow" {
+  name     = "${var.prefix}-terraform-execution-workflow"
   type     = "STANDARD"
   role_arn = aws_iam_role.step_functions_role.arn
 
   logging_configuration {
     include_execution_data = true
     level                  = "ALL"
-    log_destination        = "${aws_cloudwatch_log_group.execute_terraform_workflow.arn}:*"
+    log_destination        = "${aws_cloudwatch_log_group.terraform_execution_workflow.arn}:*"
   }
 
   definition = <<EOF
 {
-  "StartAt": "CreateTerraformWorkflowRequest",
+  "StartAt": "CreateTerraformExecutionWorkflowRequest",
   "States": {
-    "CreateTerraformWorkflowRequest": {
+    "CreateTerraformExecutionWorkflowRequest": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
       "OutputPath": "$.Payload",
@@ -28,7 +28,7 @@ resource "aws_sfn_state_machine" "execute_terraform_workflow" {
         "FunctionName": "${aws_lambda_function.workflow_handler.arn}",
         "Payload": {
           "Payload.$": "$.StatePayload",
-          "Task": "CreateTerraformWorkflowRequest",
+          "Task": "CreateTerraformExecutionWorkflowRequest",
           "Workflow": "ExecuteTerraformApply"
         }
       },
@@ -59,10 +59,10 @@ resource "aws_sfn_state_machine" "execute_terraform_workflow" {
               "Type": "Task",
               "Resource": "arn:aws:states:::dynamodb:updateItem",
               "Parameters": {
-                "TableName": "${aws_dynamodb_table.terraform_workflow_requests.name}",
+                "TableName": "${aws_dynamodb_table.terraform_execution_workflow_requests.name}",
                 "Key": {
-                  "TerraformWorkflowRequestId": {
-                    "S.$": "$.TerraformWorkflowRequestId"
+                  "TerraformExecutionWorkflowRequestId": {
+                    "S.$": "$.TerraformExecutionWorkflowRequestId"
                   }
                 },
                 "UpdateExpression": "SET #s = :status",
@@ -85,7 +85,7 @@ resource "aws_sfn_state_machine" "execute_terraform_workflow" {
                 "FunctionName": "${aws_lambda_function.workflow_handler.arn}",
                 "Payload": {
                   "Payload": {
-                    "TerraformWorkflowRequestId.$": "$.TerraformWorkflowRequestId",
+                    "TerraformWorkflowRequestId.$": "$.TerraformExecutionWorkflowRequestId",
                     "TaskToken.$": "$$.Task.Token"
                   },
                   "Task": "ScheduleTerraformPlan",
@@ -116,7 +116,7 @@ resource "aws_sfn_state_machine" "execute_terraform_workflow" {
                 "FunctionName": "${aws_lambda_function.workflow_handler.arn}",
                 "Payload": {
                   "Payload": {
-                    "TerraformWorkflowRequestId.$": "$.TerraformWorkflowRequestId",
+                    "TerraformWorkflowRequestId.$": "$.TerraformExecutionWorkflowRequestId",
                     "TaskToken.$": "$$.Task.Token"
                   },
                   "Task": "ScheduleTerraformApply",
@@ -158,10 +158,10 @@ resource "aws_sfn_state_machine" "execute_terraform_workflow" {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "TableName": "${aws_dynamodb_table.terraform_workflow_requests.name}",
+        "TableName": "${aws_dynamodb_table.terraform_execution_workflow_requests.name}",
         "Key": {
-          "TerraformWorkflowRequestId": {
-            "S.$": "$.TerraformWorkflowRequestId"
+          "TerraformExecutionWorkflowRequestId": {
+            "S.$": "$.TerraformExecutionWorkflowRequestId"
           }
         },
         "UpdateExpression": "SET #s = :status",
@@ -183,10 +183,10 @@ resource "aws_sfn_state_machine" "execute_terraform_workflow" {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "TableName": "${aws_dynamodb_table.terraform_workflow_requests.name}",
+        "TableName": "${aws_dynamodb_table.terraform_execution_workflow_requests.name}",
         "Key": {
-          "TerraformWorkflowRequestId": {
-            "S.$": "$.TerraformWorkflowRequestId"
+          "TerraformExecutionWorkflowRequestId": {
+            "S.$": "$.TerraformExecutionWorkflowRequestId"
           }
         },
         "UpdateExpression": "SET #s = :status",

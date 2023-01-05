@@ -1,5 +1,5 @@
-type TerraformWorkflowRequest {
-  terraformWorkflowRequestId: ID!
+type TerraformExecutionWorkflowRequest {
+  terraformExecutionWorkflowRequestId: ID!
   modulePropagationExecutionRequestId: ID!
   modulePropagationExecutionRequest: ModulePropagationExecutionRequest!
   moduleAccountAssociationKey: String!
@@ -12,19 +12,12 @@ type TerraformWorkflowRequest {
   planExecutionRequest: PlanExecutionRequest
   applyExecutionRequestId: ID
   applyExecutionRequest: ApplyExecutionRequest
-  status: TerraformWorkflowRequestStatus!
+  status: RequestStatus!
   requestTime: Time!
   destroy: Boolean!
 }
 
-type TerraformWorkflowRequests {
-  items: [TerraformWorkflowRequest]!
+type TerraformExecutionWorkflowRequests {
+  items: [TerraformExecutionWorkflowRequest]!
   nextCursor: String
-}
-
-enum TerraformWorkflowRequestStatus {
-  PENDING
-  RUNNING
-  FAILED
-  SUCCEEDED
 }

@@ -14,48 +14,48 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-func (c *OrganizationsDatabaseClient) GetTerraformWorkflowRequest(ctx context.Context, terraformWorkflowRequestId string) (*models.TerraformWorkflowRequest, error) {
+func (c *OrganizationsDatabaseClient) GetTerraformExecutionWorkflowRequest(ctx context.Context, terraformExecutionWorkflowRequestId string) (*models.TerraformExecutionWorkflowRequest, error) {
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
-		TableName: &c.terraformWorkflowRequestsTableName,
+		TableName: &c.terraformExecutionWorkflowRequestsTableName,
 		Key: map[string]types.AttributeValue{
-			"TerraformWorkflowRequestId": &types.AttributeValueMemberS{Value: terraformWorkflowRequestId},
+			"TerraformExecutionWorkflowRequestId": &types.AttributeValueMemberS{Value: terraformExecutionWorkflowRequestId},
 		},
 	})
 	if err != nil {
 		return nil, err
 	} else if response.Item == nil {
-		return nil, helpers.NotFoundError{Message: fmt.Sprintf("Terraform Workflow Request %q not found", terraformWorkflowRequestId)}
+		return nil, helpers.NotFoundError{Message: fmt.Sprintf("Terraform Workflow Request %q not found", terraformExecutionWorkflowRequestId)}
 	}
 
-	terraformWorkflowRequest := models.TerraformWorkflowRequest{}
-	if err = attributevalue.UnmarshalMap(response.Item, &terraformWorkflowRequest); err != nil {
+	terraformExecutionWorkflowRequest := models.TerraformExecutionWorkflowRequest{}
+	if err = attributevalue.UnmarshalMap(response.Item, &terraformExecutionWorkflowRequest); err != nil {
 		return nil, err
 	}
 
-	return &terraformWorkflowRequest, nil
+	return &terraformExecutionWorkflowRequest, nil
 }
 
-func (c *OrganizationsDatabaseClient) GetTerraformWorkflowRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformWorkflowRequests, error) {
+func (c *OrganizationsDatabaseClient) GetTerraformExecutionWorkflowRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
 	}
 
 	scanInput := &dynamodb.ScanInput{
-		TableName:         &c.terraformWorkflowRequestsTableName,
+		TableName:         &c.terraformExecutionWorkflowRequestsTableName,
 		Limit:             &limit,
 		ExclusiveStartKey: startKey,
 	}
 
-	resultItems, lastEvaluatedKey, err := helpers.ScanDynamoDBUntilLimit(ctx, c.dynamodb, scanInput, limit, []string{"TerraformWorkflowRequestId"})
+	resultItems, lastEvaluatedKey, err := helpers.ScanDynamoDBUntilLimit(ctx, c.dynamodb, scanInput, limit, []string{"TerraformExecutionWorkflowRequestId"})
 	if err != nil {
 		return nil, err
 	}
 
-	terraformWorkflowRequests := []models.TerraformWorkflowRequest{}
+	terraformExecutionWorkflowRequests := []models.TerraformExecutionWorkflowRequest{}
 	var nextCursor string
 
-	err = attributevalue.UnmarshalListOfMaps(resultItems, &terraformWorkflowRequests)
+	err = attributevalue.UnmarshalListOfMaps(resultItems, &terraformExecutionWorkflowRequests)
 	if err != nil {
 		return nil, err
 	}
@@ -67,13 +67,13 @@ func (c *OrganizationsDatabaseClient) GetTerraformWorkflowRequests(ctx context.C
 		}
 	}
 
-	return &models.TerraformWorkflowRequests{
-		Items:      terraformWorkflowRequests,
+	return &models.TerraformExecutionWorkflowRequests{
+		Items:      terraformExecutionWorkflowRequests,
 		NextCursor: nextCursor,
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetTerraformWorkflowRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.TerraformWorkflowRequests, error) {
+func (c OrganizationsDatabaseClient) GetTerraformExecutionWorkflowRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func (c OrganizationsDatabaseClient) GetTerraformWorkflowRequestsByModulePropaga
 	}
 
 	queryInput := &dynamodb.QueryInput{
-		TableName:                 &c.terraformWorkflowRequestsTableName,
+		TableName:                 &c.terraformExecutionWorkflowRequestsTableName,
 		IndexName:                 aws.String("ModulePropagationExecutionRequestId-RequestTime-index"),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
@@ -98,15 +98,15 @@ func (c OrganizationsDatabaseClient) GetTerraformWorkflowRequestsByModulePropaga
 		ScanIndexForward:          aws.Bool(false),
 	}
 
-	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"TerraformWorkflowRequestId", "ModulePropagationExecutionRequestId", "RequestTime"})
+	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"TerraformExecutionWorkflowRequestId", "ModulePropagationExecutionRequestId", "RequestTime"})
 	if err != nil {
 		return nil, err
 	}
 
-	terraformWorkflowRequests := []models.TerraformWorkflowRequest{}
+	terraformExecutionWorkflowRequests := []models.TerraformExecutionWorkflowRequest{}
 	var nextCursor string
 
-	err = attributevalue.UnmarshalListOfMaps(resultItems, &terraformWorkflowRequests)
+	err = attributevalue.UnmarshalListOfMaps(resultItems, &terraformExecutionWorkflowRequests)
 	if err != nil {
 		return nil, err
 	}
@@ -118,13 +118,13 @@ func (c OrganizationsDatabaseClient) GetTerraformWorkflowRequestsByModulePropaga
 		}
 	}
 
-	return &models.TerraformWorkflowRequests{
-		Items:      terraformWorkflowRequests,
+	return &models.TerraformExecutionWorkflowRequests{
+		Items:      terraformExecutionWorkflowRequests,
 		NextCursor: nextCursor,
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetTerraformWorkflowRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.TerraformWorkflowRequests, error) {
+func (c OrganizationsDatabaseClient) GetTerraformExecutionWorkflowRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -138,7 +138,7 @@ func (c OrganizationsDatabaseClient) GetTerraformWorkflowRequestsByModuleAccount
 	}
 
 	queryInput := &dynamodb.QueryInput{
-		TableName:                 &c.terraformWorkflowRequestsTableName,
+		TableName:                 &c.terraformExecutionWorkflowRequestsTableName,
 		IndexName:                 aws.String("ModuleAccountAssociationKey-RequestTime-index"),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
@@ -149,15 +149,15 @@ func (c OrganizationsDatabaseClient) GetTerraformWorkflowRequestsByModuleAccount
 		ScanIndexForward:          aws.Bool(false),
 	}
 
-	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"TerraformWorkflowRequestId", "ModuleAccountAssociationKey", "RequestTime"})
+	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"TerraformExecutionWorkflowRequestId", "ModuleAccountAssociationKey", "RequestTime"})
 	if err != nil {
 		return nil, err
 	}
 
-	terraformWorkflowRequests := []models.TerraformWorkflowRequest{}
+	terraformExecutionWorkflowRequests := []models.TerraformExecutionWorkflowRequest{}
 	var nextCursor string
 
-	err = attributevalue.UnmarshalListOfMaps(resultItems, &terraformWorkflowRequests)
+	err = attributevalue.UnmarshalListOfMaps(resultItems, &terraformExecutionWorkflowRequests)
 	if err != nil {
 		return nil, err
 	}
@@ -169,19 +169,19 @@ func (c OrganizationsDatabaseClient) GetTerraformWorkflowRequestsByModuleAccount
 		}
 	}
 
-	return &models.TerraformWorkflowRequests{
-		Items:      terraformWorkflowRequests,
+	return &models.TerraformExecutionWorkflowRequests{
+		Items:      terraformExecutionWorkflowRequests,
 		NextCursor: nextCursor,
 	}, nil
 }
 
-func (c *OrganizationsDatabaseClient) PutTerraformWorkflowRequest(ctx context.Context, input *models.TerraformWorkflowRequest) error {
+func (c *OrganizationsDatabaseClient) PutTerraformExecutionWorkflowRequest(ctx context.Context, input *models.TerraformExecutionWorkflowRequest) error {
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
 	}
 
-	condition := expression.AttributeNotExists(expression.Name("TerraformWorkflowRequestId"))
+	condition := expression.AttributeNotExists(expression.Name("TerraformExecutionWorkflowRequestId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()
 	if err != nil {
@@ -189,7 +189,7 @@ func (c *OrganizationsDatabaseClient) PutTerraformWorkflowRequest(ctx context.Co
 	}
 
 	_, err = c.dynamodb.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName:                 &c.terraformWorkflowRequestsTableName,
+		TableName:                 &c.terraformExecutionWorkflowRequestsTableName,
 		Item:                      item,
 		ConditionExpression:       expr.Condition(),
 		ExpressionAttributeNames:  expr.Names(),
@@ -199,14 +199,14 @@ func (c *OrganizationsDatabaseClient) PutTerraformWorkflowRequest(ctx context.Co
 	ccfe := &types.ConditionalCheckFailedException{}
 	switch {
 	case errors.As(err, &ccfe):
-		return helpers.AlreadyExistsError{Message: fmt.Sprintf("Terraform Workflow Request %q already exists", input.TerraformWorkflowRequestId)}
+		return helpers.AlreadyExistsError{Message: fmt.Sprintf("Terraform Workflow Request %q already exists", input.TerraformExecutionWorkflowRequestId)}
 	default:
 		return err
 	}
 }
 
-func (c *OrganizationsDatabaseClient) UpdateTerraformWorkflowRequest(ctx context.Context, terraformWorkflowRequestId string, update *models.TerraformWorkflowRequestUpdate) (*models.TerraformWorkflowRequest, error) {
-	condition := expression.AttributeExists(expression.Name("TerraformWorkflowRequestId"))
+func (c *OrganizationsDatabaseClient) UpdateTerraformExecutionWorkflowRequest(ctx context.Context, terraformExecutionWorkflowRequestId string, update *models.TerraformExecutionWorkflowRequestUpdate) (*models.TerraformExecutionWorkflowRequest, error) {
+	condition := expression.AttributeExists(expression.Name("TerraformExecutionWorkflowRequestId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()
 	if err != nil {
@@ -230,8 +230,8 @@ func (c *OrganizationsDatabaseClient) UpdateTerraformWorkflowRequest(ctx context
 	}
 
 	updateInput := &dynamodb.UpdateItemInput{
-		TableName:                 &c.terraformWorkflowRequestsTableName,
-		Key:                       map[string]types.AttributeValue{"TerraformWorkflowRequestId": &types.AttributeValueMemberS{Value: terraformWorkflowRequestId}},
+		TableName:                 &c.terraformExecutionWorkflowRequestsTableName,
+		Key:                       map[string]types.AttributeValue{"TerraformExecutionWorkflowRequestId": &types.AttributeValueMemberS{Value: terraformExecutionWorkflowRequestId}},
 		ExpressionAttributeNames:  updateExpression.Names(),
 		ExpressionAttributeValues: updateExpression.Values(),
 		UpdateExpression:          updateExpression.Update(),
@@ -243,18 +243,18 @@ func (c *OrganizationsDatabaseClient) UpdateTerraformWorkflowRequest(ctx context
 	ccfe := &types.ConditionalCheckFailedException{}
 	switch {
 	case errors.As(err, &ccfe):
-		return nil, helpers.NotFoundError{Message: fmt.Sprintf("Terraform Workflow Request %q not found", terraformWorkflowRequestId)}
+		return nil, helpers.NotFoundError{Message: fmt.Sprintf("Terraform Workflow Request %q not found", terraformExecutionWorkflowRequestId)}
 	default:
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	terraformWorkflowRequest := models.TerraformWorkflowRequest{}
-	err = attributevalue.UnmarshalMap(result.Attributes, &terraformWorkflowRequest)
+	terraformExecutionWorkflowRequest := models.TerraformExecutionWorkflowRequest{}
+	err = attributevalue.UnmarshalMap(result.Attributes, &terraformExecutionWorkflowRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	return &terraformWorkflowRequest, nil
+	return &terraformExecutionWorkflowRequest, nil
 }

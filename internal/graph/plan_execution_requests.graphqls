@@ -3,7 +3,8 @@ type PlanExecutionRequest {
   terraformVersion: String!
   callbackTaskToken: String!
   stateKey: String!
-  modulePropagationExecutionRequestId: String!
+  modulePropagationRequestId: String!
+  terraformWorkflowRequestId: String!
   moduleAccountAssociationKey: String!
   modulePropagationId: ID!
   modulePropagation: ModulePropagation!
@@ -11,8 +12,7 @@ type PlanExecutionRequest {
   orgAccount: OrganizationalAccount!
   terraformConfigurationBase64: String!
   additionalArguments: [String]!
-  workflowExecutionId: String!
-  status: PlanExecutionStatus!
+  status: RequestStatus!
   requestTime: Time!
   initOutput: TerraformInitOutput
   planOutput: TerraformPlanOutput
@@ -26,11 +26,4 @@ type PlanExecutionRequests {
 extend type Query {
   planExecutionRequest(planExecutionRequestId: ID!): PlanExecutionRequest!
   planExecutionRequests(limit: Int, nextCursor: String): PlanExecutionRequests!
-}
-
-enum PlanExecutionStatus {
-  PENDING
-  RUNNING
-  FAILED
-  SUCCEEDED
 }

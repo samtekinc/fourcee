@@ -1,25 +1,25 @@
 package models
 
 type OrganizationalUnit struct {
-	OrgUnitId       string `json:"orgUnitId"`
-	Name            string `json:"name"`
-	OrgDimensionId  string `json:"orgDimensionId"`
-	Hierarchy       string `json:"hierarchy"`
-	ParentOrgUnitId string `json:"parentOrgUnitId" dynamodbav:",omitempty"`
+	OrgUnitId       string
+	Name            string
+	OrgDimensionId  string
+	Hierarchy       string
+	ParentOrgUnitId string `dynamodbav:",omitempty"`
 }
 
 type OrganizationalUnits struct {
-	Items      []OrganizationalUnit `json:"items"`
-	NextCursor string               `json:"nextCursor"`
+	Items      []OrganizationalUnit
+	NextCursor string
 }
 
 type NewOrganizationalUnit struct {
-	Name            string `json:"name"`
-	OrgDimensionId  string `json:"orgDimensionId"`
-	ParentOrgUnitId string `json:"parentOrgUnitId"`
+	Name            string
+	OrgDimensionId  string
+	ParentOrgUnitId string
 }
 
 type OrganizationalUnitUpdate struct {
-	Name            *string `json:"name"`
-	ParentOrgUnitId *string `json:"parentOrgUnitId"`
+	Name            *string
+	ParentOrgUnitId *string
 }

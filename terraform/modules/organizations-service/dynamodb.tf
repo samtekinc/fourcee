@@ -212,6 +212,35 @@ resource "aws_dynamodb_table" "module_propagation_execution_requests" {
   }
 }
 
+resource "aws_dynamodb_table" "module_propagation_drift_check_requests" {
+  name         = "${var.prefix}-module-propagation-drift-check-requests"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "ModulePropagationId"
+  range_key    = "ModulePropagationDriftCheckRequestId"
+
+  attribute {
+    name = "ModulePropagationId"
+    type = "S"
+  }
+
+  attribute {
+    name = "ModulePropagationDriftCheckRequestId"
+    type = "S"
+  }
+
+  attribute {
+    name = "RequestTime"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "ModulePropagationId-RequestTime-index"
+    hash_key        = "ModulePropagationId"
+    range_key       = "RequestTime"
+    projection_type = "ALL"
+  }
+}
+
 resource "aws_dynamodb_table" "module_account_associations" {
   name         = "${var.prefix}-module-account-associations"
   billing_mode = "PAY_PER_REQUEST"
@@ -248,12 +277,7 @@ resource "aws_dynamodb_table" "plan_execution_requests" {
   }
 
   attribute {
-    name = "StateKey"
-    type = "S"
-  }
-
-  attribute {
-    name = "ModulePropagationExecutionRequestId"
+    name = "ModulePropagationRequestId"
     type = "S"
   }
 
@@ -268,15 +292,8 @@ resource "aws_dynamodb_table" "plan_execution_requests" {
   }
 
   global_secondary_index {
-    name            = "StateKey-RequestTime-index"
-    hash_key        = "StateKey"
-    range_key       = "RequestTime"
-    projection_type = "ALL"
-  }
-
-  global_secondary_index {
-    name            = "ModulePropagationExecutionRequestId-RequestTime-index"
-    hash_key        = "ModulePropagationExecutionRequestId"
+    name            = "ModulePropagationRequestId-RequestTime-index"
+    hash_key        = "ModulePropagationRequestId"
     range_key       = "RequestTime"
     projection_type = "ALL"
   }
@@ -301,12 +318,7 @@ resource "aws_dynamodb_table" "apply_execution_requests" {
   }
 
   attribute {
-    name = "StateKey"
-    type = "S"
-  }
-
-  attribute {
-    name = "ModulePropagationExecutionRequestId"
+    name = "ModulePropagationRequestId"
     type = "S"
   }
 
@@ -321,10 +333,43 @@ resource "aws_dynamodb_table" "apply_execution_requests" {
   }
 
   global_secondary_index {
-    name            = "StateKey-RequestTime-index"
-    hash_key        = "StateKey"
+    name            = "ModulePropagationRequestId-RequestTime-index"
+    hash_key        = "ModulePropagationRequestId"
     range_key       = "RequestTime"
     projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "ModuleAccountAssociationKey-RequestTime-index"
+    hash_key        = "ModuleAccountAssociationKey"
+    range_key       = "RequestTime"
+    projection_type = "ALL"
+  }
+}
+
+resource "aws_dynamodb_table" "terraform_execution_workflow_requests" {
+  name         = "${var.prefix}-terraform-execution-workflow-requests"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "TerraformExecutionWorkflowRequestId"
+
+  attribute {
+    name = "TerraformExecutionWorkflowRequestId"
+    type = "S"
+  }
+
+  attribute {
+    name = "RequestTime"
+    type = "S"
+  }
+
+  attribute {
+    name = "ModulePropagationExecutionRequestId"
+    type = "S"
+  }
+
+  attribute {
+    name = "ModuleAccountAssociationKey"
+    type = "S"
   }
 
   global_secondary_index {
@@ -342,13 +387,13 @@ resource "aws_dynamodb_table" "apply_execution_requests" {
   }
 }
 
-resource "aws_dynamodb_table" "terraform_workflow_requests" {
-  name         = "${var.prefix}-terraform-workflow-requests"
+resource "aws_dynamodb_table" "terraform_drift_check_workflow_requests" {
+  name         = "${var.prefix}-terraform-drift-check-workflow-requests"
   billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "TerraformWorkflowRequestId"
+  hash_key     = "TerraformDriftCheckWorkflowRequestId"
 
   attribute {
-    name = "TerraformWorkflowRequestId"
+    name = "TerraformDriftCheckWorkflowRequestId"
     type = "S"
   }
 
@@ -358,7 +403,7 @@ resource "aws_dynamodb_table" "terraform_workflow_requests" {
   }
 
   attribute {
-    name = "ModulePropagationExecutionRequestId"
+    name = "ModulePropagationDriftCheckRequestId"
     type = "S"
   }
 
@@ -368,8 +413,8 @@ resource "aws_dynamodb_table" "terraform_workflow_requests" {
   }
 
   global_secondary_index {
-    name            = "ModulePropagationExecutionRequestId-RequestTime-index"
-    hash_key        = "ModulePropagationExecutionRequestId"
+    name            = "ModulePropagationDriftCheckRequestId-RequestTime-index"
+    hash_key        = "ModulePropagationDriftCheckRequestId"
     range_key       = "RequestTime"
     projection_type = "ALL"
   }

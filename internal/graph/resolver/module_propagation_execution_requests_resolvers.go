@@ -18,7 +18,7 @@ func (r *modulePropagationExecutionRequestResolver) PlanExecutionRequests(ctx co
 		limit = aws.Int(100)
 	}
 
-	return r.apiClient.GetPlanExecutionRequestsByModulePropagationExecutionRequestId(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetPlanExecutionRequestsByModulePropagationRequestId(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
 }
 
 // ApplyExecutionRequests is the resolver for the applyExecutionRequests field.
@@ -27,16 +27,16 @@ func (r *modulePropagationExecutionRequestResolver) ApplyExecutionRequests(ctx c
 		limit = aws.Int(100)
 	}
 
-	return r.apiClient.GetApplyExecutionRequestsByModulePropagationExecutionRequestId(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetApplyExecutionRequestsByModulePropagationRequestId(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
 }
 
-// TerraformWorkflowRequests is the resolver for the terraformWorkflowRequests field.
-func (r *modulePropagationExecutionRequestResolver) TerraformWorkflowRequests(ctx context.Context, obj *models.ModulePropagationExecutionRequest, limit *int, nextCursor *string) (*models.TerraformWorkflowRequests, error) {
+// TerraformExecutionWorkflowRequests is the resolver for the terraformExecutionWorkflowRequests field.
+func (r *modulePropagationExecutionRequestResolver) TerraformExecutionWorkflowRequests(ctx context.Context, obj *models.ModulePropagationExecutionRequest, limit *int, nextCursor *string) (*models.TerraformExecutionWorkflowRequests, error) {
 	if limit == nil {
 		limit = aws.Int(100)
 	}
 
-	return r.apiClient.GetTerraformWorkflowRequestsByModulePropagationExecutionRequestId(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetTerraformExecutionWorkflowRequestsByModulePropagationExecutionRequestId(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
 }
 
 // CreateModulePropagationExecutionRequest is the resolver for the createModulePropagationExecutionRequest field.

@@ -1,15 +1,15 @@
 package models
 
 type ModuleGroup struct {
-	ModuleGroupId string `json:"moduleGroupId"`
-	Name          string `json:"name"`
+	ModuleGroupId string
+	Name          string
 }
 
 type ModuleGroups struct {
-	Items      []ModuleGroup `json:"items"`
-	NextCursor string        `json:"nextCursor"`
+	Items      []ModuleGroup
+	NextCursor string
 }
 
 type NewModuleGroup struct {
-	Name string `json:"name"`
+	Name string
 }

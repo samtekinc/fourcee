@@ -1,0 +1,28 @@
+type TerraformDriftCheckWorkflowRequest {
+  terraformDriftCheckWorkflowRequestId: ID!
+  modulePropagationDriftCheckRequestId: ID!
+  modulePropagationDriftCheckRequest: ModulePropagationDriftCheckRequest!
+  moduleAccountAssociationKey: String!
+  moduleAccountAssociation: ModuleAccountAssociation!
+  orgAccountId: ID!
+  orgAccount: OrganizationalAccount!
+  modulePropagationId: ID!
+  modulePropagation: ModulePropagation!
+  planExecutionRequestId: ID
+  planExecutionRequest: PlanExecutionRequest
+  status: RequestStatus!
+  requestTime: Time!
+  destroy: Boolean!
+  syncStatus: TerraformDriftCheckStatus!
+}
+
+type TerraformDriftCheckWorkflowRequests {
+  items: [TerraformDriftCheckWorkflowRequest]!
+  nextCursor: String
+}
+
+enum TerraformDriftCheckStatus {
+  PENDING
+  IN_SYNC
+  OUT_OF_SYNC
+}

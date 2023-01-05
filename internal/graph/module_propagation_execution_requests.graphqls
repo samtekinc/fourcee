@@ -2,16 +2,16 @@ type ModulePropagationExecutionRequest {
   modulePropagationExecutionRequestId: ID!
   modulePropagationId: ID!
   requestTime: Time!
-  status: ModulePropagationExecutionRequestStatus!
+  status: RequestStatus!
   planExecutionRequests(limit: Int, nextCursor: String): PlanExecutionRequests!
   applyExecutionRequests(
     limit: Int
     nextCursor: String
   ): ApplyExecutionRequests!
-  terraformWorkflowRequests(
+  terraformExecutionWorkflowRequests(
     limit: Int
     nextCursor: String
-  ): TerraformWorkflowRequests!
+  ): TerraformExecutionWorkflowRequests!
 }
 
 type ModulePropagationExecutionRequests {
@@ -38,11 +38,4 @@ extend type Mutation {
   createModulePropagationExecutionRequest(
     modulePropagationExecutionRequest: NewModulePropagationExecutionRequest!
   ): ModulePropagationExecutionRequest!
-}
-
-enum ModulePropagationExecutionRequestStatus {
-  PENDING
-  RUNNING
-  FAILED
-  SUCCEEDED
 }

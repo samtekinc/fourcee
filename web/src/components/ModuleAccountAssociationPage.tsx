@@ -43,7 +43,7 @@ const MODULE_ACCOUNT_ASSOCIATION_QUERY = gql`
           status
           requestTime
           modulePropagationId
-          modulePropagationExecutionRequestId
+          modulePropagationRequestId
         }
       }
       applyExecutionRequests {
@@ -52,7 +52,7 @@ const MODULE_ACCOUNT_ASSOCIATION_QUERY = gql`
           status
           requestTime
           modulePropagationId
-          modulePropagationExecutionRequestId
+          modulePropagationRequestId
         }
       }
     }
@@ -123,7 +123,7 @@ export const ModuleAccountAssociationPage = () => {
         <thead>
           <tr>
             <th>Plan Request ID</th>
-            <th>Module Propagation Execution Request ID</th>
+            <th>Module Propagation Request ID</th>
             <th>Status</th>
             <th>Request Time</th>
           </tr>
@@ -131,6 +131,17 @@ export const ModuleAccountAssociationPage = () => {
         <tbody>
           {data?.moduleAccountAssociation.planExecutionRequests.items.map(
             (planExecutionRequest) => {
+              var modulePropRequestLink = "";
+              let modulePropType =
+                planExecutionRequest?.modulePropagationRequestId.split("-")[0];
+              switch (modulePropType) {
+                case "mpdrift":
+                  modulePropRequestLink = `/module-propagations/${planExecutionRequest?.modulePropagationId}/drift-checks/${planExecutionRequest?.modulePropagationRequestId}`;
+                  break;
+                case "mpexec":
+                  modulePropRequestLink = `/module-propagations/${planExecutionRequest?.modulePropagationId}/executions/${planExecutionRequest?.modulePropagationRequestId}`;
+                  break;
+              }
               return (
                 <tr>
                   <td>
@@ -141,12 +152,8 @@ export const ModuleAccountAssociationPage = () => {
                     </NavLink>
                   </td>
                   <td>
-                    <NavLink
-                      to={`/module-propagations/${planExecutionRequest?.modulePropagationId}/executions/${planExecutionRequest?.modulePropagationExecutionRequestId}`}
-                    >
-                      {
-                        planExecutionRequest?.modulePropagationExecutionRequestId
-                      }
+                    <NavLink to={modulePropRequestLink}>
+                      {planExecutionRequest?.modulePropagationRequestId}
                     </NavLink>
                   </td>
                   <td>{planExecutionRequest?.status}</td>

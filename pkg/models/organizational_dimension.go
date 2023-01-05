@@ -1,16 +1,16 @@
 package models
 
 type OrganizationalDimension struct {
-	OrgDimensionId string `json:"orgDimensionId"`
-	Name           string `json:"name"`
-	RootOrgUnitId  string `json:"rootOrgUnitId"`
+	OrgDimensionId string
+	Name           string
+	RootOrgUnitId  string
 }
 
 type OrganizationalDimensions struct {
-	Items      []OrganizationalDimension `json:"items"`
-	NextCursor string                    `json:"nextCursor"`
+	Items      []OrganizationalDimension
+	NextCursor string
 }
 
 type NewOrganizationalDimension struct {
-	Name string `json:"name"`
+	Name string
 }

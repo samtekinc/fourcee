@@ -62,36 +62,8 @@ func (c *OrganizationsAPIClient) GetPlanExecutionRequests(ctx context.Context, l
 	return requests, nil
 }
 
-func (c *OrganizationsAPIClient) GetPlanExecutionRequestsByStateKey(ctx context.Context, stateKey string, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
-	requests, err := c.dbClient.GetPlanExecutionRequestsByStateKey(ctx, stateKey, limit, cursor)
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range requests.Items {
-		// fetch init and plan outputs from S3
-		if requests.Items[i].InitOutputKey != "" {
-			initOutput, err := c.DownloadTerraformPlanInitResults(ctx, requests.Items[i].InitOutputKey)
-			if err != nil {
-				return nil, err
-			}
-			requests.Items[i].InitOutput = initOutput
-		}
-
-		if requests.Items[i].PlanOutputKey != "" {
-			planOutput, err := c.DownloadTerraformPlanResults(ctx, requests.Items[i].PlanOutputKey)
-			if err != nil {
-				return nil, err
-			}
-			requests.Items[i].PlanOutput = planOutput
-		}
-	}
-
-	return requests, nil
-}
-
-func (c *OrganizationsAPIClient) GetPlanExecutionRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
-	requests, err := c.dbClient.GetPlanExecutionRequestsByModulePropagationExecutionRequestId(ctx, modulePropagationExecutionRequestId, limit, cursor)
+func (c *OrganizationsAPIClient) GetPlanExecutionRequestsByModulePropagationRequestId(ctx context.Context, modulePropagationRequestId string, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
+	requests, err := c.dbClient.GetPlanExecutionRequestsByModulePropagationRequestId(ctx, modulePropagationRequestId, limit, cursor)
 	if err != nil {
 		return nil, err
 	}
@@ -153,16 +125,17 @@ func (c *OrganizationsAPIClient) PutPlanExecutionRequest(ctx context.Context, in
 	}
 
 	planExecutionRequest := models.PlanExecutionRequest{
-		PlanExecutionRequestId:              planExecutionRequestId.String(),
-		TerraformVersion:                    input.TerraformVersion,
-		CallbackTaskToken:                   input.CallbackTaskToken,
-		StateKey:                            input.StateKey,
-		ModulePropagationExecutionRequestId: input.ModulePropagationExecutionRequestId,
-		ModuleAccountAssociationKey:         input.ModuleAccountAssociationKey,
-		TerraformConfigurationBase64:        input.TerraformConfigurationBase64,
-		AdditionalArguments:                 input.AdditionalArguments,
-		Status:                              models.PlanExecutionStatusPending,
-		RequestTime:                         time.Now().UTC(),
+		PlanExecutionRequestId:       planExecutionRequestId.String(),
+		TerraformVersion:             input.TerraformVersion,
+		CallbackTaskToken:            input.CallbackTaskToken,
+		StateKey:                     input.StateKey,
+		ModulePropagationRequestId:   input.ModulePropagationRequestId,
+		TerraformWorkflowRequestId:   input.TerraformWorkflowRequestId,
+		ModuleAccountAssociationKey:  input.ModuleAccountAssociationKey,
+		TerraformConfigurationBase64: input.TerraformConfigurationBase64,
+		AdditionalArguments:          input.AdditionalArguments,
+		Status:                       models.RequestStatusPending,
+		RequestTime:                  time.Now().UTC(),
 	}
 	err = c.dbClient.PutPlanExecutionRequest(ctx, &planExecutionRequest)
 	if err != nil {

@@ -127,13 +127,13 @@ func (c OrganizationsDatabaseClient) GetApplyExecutionRequestsByStateKey(ctx con
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetApplyExecutionRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
+func (c OrganizationsDatabaseClient) GetApplyExecutionRequestsByModulePropagationRequestId(ctx context.Context, modulePropagationRequestId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
 	}
 
-	keyCondition := expression.Key("ModulePropagationExecutionRequestId").Equal(expression.Value(modulePropagationExecutionRequestId))
+	keyCondition := expression.Key("ModulePropagationRequestId").Equal(expression.Value(modulePropagationRequestId))
 	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
 	expr, err := expressionBuilder.Build()
 	if err != nil {
@@ -142,7 +142,7 @@ func (c OrganizationsDatabaseClient) GetApplyExecutionRequestsByModulePropagatio
 
 	queryInput := &dynamodb.QueryInput{
 		TableName:                 &c.applyExecutionsTableName,
-		IndexName:                 aws.String("ModulePropagationExecutionRequestId-RequestTime-index"),
+		IndexName:                 aws.String("ModulePropagationRequestId-RequestTime-index"),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		KeyConditionExpression:    expr.KeyCondition(),
@@ -152,7 +152,7 @@ func (c OrganizationsDatabaseClient) GetApplyExecutionRequestsByModulePropagatio
 		ScanIndexForward:          aws.Bool(false),
 	}
 
-	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"ApplyExecutionRequestId", "ModulePropagationExecutionRequestId", "RequestTime"})
+	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"ApplyExecutionRequestId", "ModulePropagationRequestId", "RequestTime"})
 	if err != nil {
 		return nil, err
 	}

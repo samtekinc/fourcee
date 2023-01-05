@@ -49,18 +49,30 @@ func (t *TaskHandler) RouteTask(ctx context.Context, input map[string]interface{
 			return nil, fmt.Errorf("unable to decode task payload: %w", err)
 		}
 		return t.CreateMissingModuleAccountAssociations(ctx, taskPayload)
-	case TaskCreateTerraformWorkflowRequest:
-		var taskPayload CreateTerraformWorkflowRequestInput
+	case TaskCreateTerraformExecutionWorkflowRequest:
+		var taskPayload CreateTerraformExecutionWorkflowRequestInput
 		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {
 			return nil, fmt.Errorf("unable to decode task payload: %w", err)
 		}
-		return t.CreateTerraformWorkflowRequest(ctx, taskPayload)
+		return t.CreateTerraformExecutionWorkflowRequest(ctx, taskPayload)
+	case TaskCreateTerraformDriftCheckWorkflowRequest:
+		var taskPayload CreateTerraformDriftCheckWorkflowRequestInput
+		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {
+			return nil, fmt.Errorf("unable to decode task payload: %w", err)
+		}
+		return t.CreateTerraformDriftCheckWorkflowRequest(ctx, taskPayload)
 	case TaskDeactivateModuleAccountAssociation:
 		var taskPayload DeactivateModuleAccountAssociationInput
 		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {
 			return nil, fmt.Errorf("unable to decode task payload: %w", err)
 		}
 		return t.DeactivateModuleAccountAssociation(ctx, taskPayload)
+	case TaskDetermineSyncStatus:
+		var taskPayload DetermineSyncStatusInput
+		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {
+			return nil, fmt.Errorf("unable to decode task payload: %w", err)
+		}
+		return t.DetermineSyncStatus(ctx, taskPayload)
 	case TaskClassifyModuleAccountAssociations:
 		var taskPayload ClassifyModuleAccountAssociationsInput
 		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {

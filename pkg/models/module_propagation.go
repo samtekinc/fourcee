@@ -1,58 +1,58 @@
 package models
 
 type ModulePropagation struct {
-	ModulePropagationId       string                     `json:"modulePropagationId"`
-	ModuleVersionId           string                     `json:"moduleVersionId"`
-	ModuleGroupId             string                     `json:"moduleGroupId"`
-	OrgUnitId                 string                     `json:"orgUnitId"`
-	OrgDimensionId            string                     `json:"orgDimensionId"`
-	Arguments                 []Argument                 `json:"arguments"`
-	AwsProviderConfigurations []AwsProviderConfiguration `json:"awsProviderConfigurations"`
-	Name                      string                     `json:"name"`
-	Description               string                     `json:"description"`
+	ModulePropagationId       string
+	ModuleVersionId           string
+	ModuleGroupId             string
+	OrgUnitId                 string
+	OrgDimensionId            string
+	Arguments                 []Argument
+	AwsProviderConfigurations []AwsProviderConfiguration
+	Name                      string
+	Description               string
 }
 
 type ModulePropagations struct {
-	Items      []ModulePropagation `json:"items"`
-	NextCursor string              `json:"nextCursor"`
+	Items      []ModulePropagation
+	NextCursor string
 }
 
 type AwsProviderConfiguration struct {
-	Region string `json:"region"`
-	Alias  string `json:"alias"`
+	Region string
+	Alias  string
 }
 
 type AwsProviderConfigurationInput struct {
-	Region string `json:"region"`
-	Alias  string `json:"alias"`
+	Region string
+	Alias  string
 }
 
 type Argument struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name  string
+	Value string
 }
 
 type ArgumentInput struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name  string
+	Value string
 }
 
 type NewModulePropagation struct {
-	ModuleVersionId           string                          `json:"moduleVersionId"`
-	ModuleGroupId             string                          `json:"moduleGroupId"`
-	OrgUnitId                 string                          `json:"orgUnitId"`
-	OrgDimensionId            string                          `json:"orgDimensionId"`
-	Arguments                 []ArgumentInput                 `json:"arguments"`
-	AwsProviderConfigurations []AwsProviderConfigurationInput `json:"awsProviderConfigurations"`
-	Name                      string                          `json:"name"`
-	Description               string                          `json:"description"`
+	ModuleVersionId           string
+	ModuleGroupId             string
+	OrgUnitId                 string
+	OrgDimensionId            string
+	Arguments                 []ArgumentInput
+	AwsProviderConfigurations []AwsProviderConfigurationInput
+	Name                      string
+	Description               string
 }
 
 type ModulePropagationUpdate struct {
-	OrgDimensionId            *string                         `json:"orgDimensionId"`
-	OrgUnitId                 *string                         `json:"orgUnitId"`
-	Name                      *string                         `json:"name"`
-	Description               *string                         `json:"description"`
-	Arguments                 []ArgumentInput                 `json:"arguments"`
-	AwsProviderConfigurations []AwsProviderConfigurationInput `json:"awsProviderConfigurations"`
+	OrgDimensionId            *string
+	OrgUnitId                 *string
+	Name                      *string
+	Description               *string
+	Arguments                 []ArgumentInput
+	AwsProviderConfigurations []AwsProviderConfigurationInput
 }

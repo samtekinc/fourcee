@@ -1,0 +1,37 @@
+type ModulePropagationDriftCheckRequest {
+  modulePropagationDriftCheckRequestId: ID!
+  modulePropagationId: ID!
+  requestTime: Time!
+  status: RequestStatus!
+  planExecutionRequests(limit: Int, nextCursor: String): PlanExecutionRequests!
+  terraformDriftCheckWorkflowRequests(
+    limit: Int
+    nextCursor: String
+  ): TerraformDriftCheckWorkflowRequests!
+}
+
+type ModulePropagationDriftCheckRequests {
+  items: [ModulePropagationDriftCheckRequest]!
+  nextCursor: String
+}
+
+input NewModulePropagationDriftCheckRequest {
+  modulePropagationId: ID!
+}
+
+extend type Query {
+  modulePropagationDriftCheckRequest(
+    modulePropagationId: ID!
+    modulePropagationDriftCheckRequestId: ID!
+  ): ModulePropagationDriftCheckRequest!
+  modulePropagationDriftCheckRequests(
+    limit: Int
+    nextCursor: String
+  ): ModulePropagationDriftCheckRequests!
+}
+
+extend type Mutation {
+  createModulePropagationDriftCheckRequest(
+    modulePropagationDriftCheckRequest: NewModulePropagationDriftCheckRequest!
+  ): ModulePropagationDriftCheckRequest!
+}

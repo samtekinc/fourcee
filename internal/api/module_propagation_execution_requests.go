@@ -33,7 +33,7 @@ func (c *OrganizationsAPIClient) PutModulePropagationExecutionRequest(ctx contex
 		ModulePropagationExecutionRequestId: modulePropagationExecutionRequestId.String(),
 		ModulePropagationId:                 input.ModulePropagationId,
 		RequestTime:                         time.Now().UTC(),
-		Status:                              models.ModulePropagationExecutionRequestStatusPending,
+		Status:                              models.RequestStatusPending,
 	}
 
 	err = c.dbClient.PutModulePropagationExecutionRequest(ctx, &modulePropagationExecutionRequest)

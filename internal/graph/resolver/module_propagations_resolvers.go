@@ -50,6 +50,15 @@ func (r *modulePropagationResolver) ExecutionRequests(ctx context.Context, obj *
 	return r.apiClient.GetModulePropagationExecutionRequestsByModulePropagationId(ctx, obj.ModulePropagationId, int32(*limit), aws.ToString(nextCursor))
 }
 
+// DriftCheckRequests is the resolver for the driftCheckRequests field.
+func (r *modulePropagationResolver) DriftCheckRequests(ctx context.Context, obj *models.ModulePropagation, limit *int, nextCursor *string) (*models.ModulePropagationDriftCheckRequests, error) {
+	if limit == nil {
+		limit = aws.Int(100)
+	}
+
+	return r.apiClient.GetModulePropagationDriftCheckRequestsByModulePropagationId(ctx, obj.ModulePropagationId, int32(*limit), aws.ToString(nextCursor))
+}
+
 // CreateModulePropagation is the resolver for the createModulePropagation field.
 func (r *mutationResolver) CreateModulePropagation(ctx context.Context, modulePropagation models.NewModulePropagation) (*models.ModulePropagation, error) {
 	return r.apiClient.PutModulePropagation(ctx, &modulePropagation)

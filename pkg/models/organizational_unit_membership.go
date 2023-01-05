@@ -1,18 +1,18 @@
 package models
 
 type OrganizationalUnitMembership struct {
-	OrgAccountId   string `json:"orgAccountId"`
-	OrgDimensionId string `json:"orgDimensionId"`
-	OrgUnitId      string `json:"orgUnitId"`
+	OrgAccountId   string
+	OrgDimensionId string
+	OrgUnitId      string
 }
 
 type OrganizationalUnitMemberships struct {
-	Items      []OrganizationalUnitMembership `json:"items"`
-	NextCursor string                         `json:"nextCursor"`
+	Items      []OrganizationalUnitMembership
+	NextCursor string
 }
 
 type NewOrganizationalUnitMembership struct {
-	OrgAccountId   string `json:"orgAccountId"`
-	OrgDimensionId string `json:"orgDimensionId"`
-	OrgUnitId      string `json:"orgUnitId"`
+	OrgAccountId   string
+	OrgDimensionId string
+	OrgUnitId      string
 }

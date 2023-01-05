@@ -61,6 +61,12 @@ type OrganizationsAPIClientInterface interface {
 	PutModulePropagationExecutionRequest(ctx context.Context, input *models.NewModulePropagationExecutionRequest) (*models.ModulePropagationExecutionRequest, error)
 	UpdateModulePropagationExecutionRequest(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string, update *models.ModulePropagationExecutionRequestUpdate) (*models.ModulePropagationExecutionRequest, error)
 
+	GetModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationId string, modulePropagationDriftCheckRequestId string) (*models.ModulePropagationDriftCheckRequest, error)
+	GetModulePropagationDriftCheckRequests(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationDriftCheckRequests, error)
+	GetModulePropagationDriftCheckRequestsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationDriftCheckRequests, error)
+	PutModulePropagationDriftCheckRequest(ctx context.Context, input *models.NewModulePropagationDriftCheckRequest) (*models.ModulePropagationDriftCheckRequest, error)
+	UpdateModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationId string, modulePropagationDriftCheckRequestId string, update *models.ModulePropagationDriftCheckRequestUpdate) (*models.ModulePropagationDriftCheckRequest, error)
+
 	GetModuleAccountAssociation(ctx context.Context, modulePropagationId string, orgAccountId string) (*models.ModuleAccountAssociation, error)
 	GetModuleAccountAssociations(ctx context.Context, limit int32, cursor string) (*models.ModuleAccountAssociations, error)
 	GetModuleAccountAssociationsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModuleAccountAssociations, error)
@@ -70,25 +76,30 @@ type OrganizationsAPIClientInterface interface {
 
 	// Execution Methods
 
-	GetTerraformWorkflowRequest(ctx context.Context, terraformExecutionRequestId string) (*models.TerraformWorkflowRequest, error)
-	GetTerraformWorkflowRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformWorkflowRequests, error)
-	GetTerraformWorkflowRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.TerraformWorkflowRequests, error)
-	GetTerraformWorkflowRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.TerraformWorkflowRequests, error)
-	PutTerraformWorkflowRequest(ctx context.Context, input *models.NewTerraformWorkflowRequest) (*models.TerraformWorkflowRequest, error)
-	UpdateTerraformWorkflowRequest(ctx context.Context, terraformExecutionRequestId string, update *models.TerraformWorkflowRequestUpdate) (*models.TerraformWorkflowRequest, error)
+	GetTerraformExecutionWorkflowRequest(ctx context.Context, terraformExecutionRequestId string) (*models.TerraformExecutionWorkflowRequest, error)
+	GetTerraformExecutionWorkflowRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error)
+	GetTerraformExecutionWorkflowRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error)
+	GetTerraformExecutionWorkflowRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error)
+	PutTerraformExecutionWorkflowRequest(ctx context.Context, input *models.NewTerraformExecutionWorkflowRequest) (*models.TerraformExecutionWorkflowRequest, error)
+	UpdateTerraformExecutionWorkflowRequest(ctx context.Context, terraformExecutionRequestId string, update *models.TerraformExecutionWorkflowRequestUpdate) (*models.TerraformExecutionWorkflowRequest, error)
+
+	GetTerraformDriftCheckWorkflowRequest(ctx context.Context, terraformDriftCheckRequestId string) (*models.TerraformDriftCheckWorkflowRequest, error)
+	GetTerraformDriftCheckWorkflowRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformDriftCheckWorkflowRequests, error)
+	GetTerraformDriftCheckWorkflowRequestsByModulePropagationDriftCheckRequestId(ctx context.Context, modulePropagationDriftCheckRequestId string, limit int32, cursor string) (*models.TerraformDriftCheckWorkflowRequests, error)
+	GetTerraformDriftCheckWorkflowRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.TerraformDriftCheckWorkflowRequests, error)
+	PutTerraformDriftCheckWorkflowRequest(ctx context.Context, input *models.NewTerraformDriftCheckWorkflowRequest) (*models.TerraformDriftCheckWorkflowRequest, error)
+	UpdateTerraformDriftCheckWorkflowRequest(ctx context.Context, terraformDriftCheckRequestId string, update *models.TerraformDriftCheckWorkflowRequestUpdate) (*models.TerraformDriftCheckWorkflowRequest, error)
 
 	GetPlanExecutionRequest(ctx context.Context, planExecutionRequestId string) (*models.PlanExecutionRequest, error)
 	GetPlanExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.PlanExecutionRequests, error)
-	GetPlanExecutionRequestsByStateKey(ctx context.Context, stateKey string, limit int32, cursor string) (*models.PlanExecutionRequests, error)
-	GetPlanExecutionRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.PlanExecutionRequests, error)
+	GetPlanExecutionRequestsByModulePropagationRequestId(ctx context.Context, modulePropagationRequestId string, limit int32, cursor string) (*models.PlanExecutionRequests, error)
 	GetPlanExecutionRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.PlanExecutionRequests, error)
 	PutPlanExecutionRequest(ctx context.Context, input *models.NewPlanExecutionRequest) (*models.PlanExecutionRequest, error)
 	UpdatePlanExecutionRequest(ctx context.Context, planExecutionRequestId string, input *models.PlanExecutionRequestUpdate) (*models.PlanExecutionRequest, error)
 
 	GetApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string) (*models.ApplyExecutionRequest, error)
 	GetApplyExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
-	GetApplyExecutionRequestsByStateKey(ctx context.Context, stateKey string, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
-	GetApplyExecutionRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
+	GetApplyExecutionRequestsByModulePropagationRequestId(ctx context.Context, modulePropagationRequestId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
 	GetApplyExecutionRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
 	PutApplyExecutionRequest(ctx context.Context, input *models.NewApplyExecutionRequest) (*models.ApplyExecutionRequest, error)
 	UpdateApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string, input *models.ApplyExecutionRequestUpdate) (*models.ApplyExecutionRequest, error)
@@ -105,19 +116,21 @@ type OrganizationsAPIClientInterface interface {
 }
 
 type OrganizationsAPIClient struct {
-	dbClient                              database.OrganizationsDatabaseClientInterface
-	workingDirectory                      string
-	sfnClient                             awsclients.StepFunctionsInterface
-	modulePropagationExecutionWorkflowArn string
-	terraformExecutionWorkflowArn         string
+	dbClient                               database.OrganizationsDatabaseClientInterface
+	workingDirectory                       string
+	sfnClient                              awsclients.StepFunctionsInterface
+	modulePropagationExecutionWorkflowArn  string
+	modulePropagationDriftCheckWorkflowArn string
+	terraformExecutionWorkflowArn          string
 }
 
-func NewOrganizationsAPIClient(dbClient database.OrganizationsDatabaseClientInterface, workingDirectory string, sfnClient awsclients.StepFunctionsInterface, modulePropagationExecutionWorkflowArn string, terraformExecutionWorkflowArn string) *OrganizationsAPIClient {
+func NewOrganizationsAPIClient(dbClient database.OrganizationsDatabaseClientInterface, workingDirectory string, sfnClient awsclients.StepFunctionsInterface, modulePropagationExecutionWorkflowArn string, modulePropagationDriftCheckWorkflowArn string, terraformExecutionWorkflowArn string) *OrganizationsAPIClient {
 	return &OrganizationsAPIClient{
-		dbClient:                              dbClient,
-		workingDirectory:                      workingDirectory,
-		sfnClient:                             sfnClient,
-		modulePropagationExecutionWorkflowArn: modulePropagationExecutionWorkflowArn,
-		terraformExecutionWorkflowArn:         terraformExecutionWorkflowArn,
+		dbClient:                               dbClient,
+		workingDirectory:                       workingDirectory,
+		sfnClient:                              sfnClient,
+		modulePropagationExecutionWorkflowArn:  modulePropagationExecutionWorkflowArn,
+		modulePropagationDriftCheckWorkflowArn: modulePropagationDriftCheckWorkflowArn,
+		terraformExecutionWorkflowArn:          terraformExecutionWorkflowArn,
 	}
 }

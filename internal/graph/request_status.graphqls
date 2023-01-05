@@ -1,0 +1,6 @@
+enum RequestStatus {
+  PENDING
+  RUNNING
+  FAILED
+  SUCCEEDED
+}

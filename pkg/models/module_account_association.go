@@ -13,12 +13,12 @@ const (
 )
 
 type ModuleAccountAssociation struct {
-	ModulePropagationId string                         `json:"modulePropagationId"`
-	OrgAccountId        string                         `json:"orgAccountId"`
-	RemoteStateBucket   string                         `json:"remoteStateBucket"`
-	RemoteStateKey      string                         `json:"remoteStateKey"`
-	RemoteStateRegion   string                         `json:"remoteStateRegion"`
-	Status              ModuleAccountAssociationStatus `json:"status"`
+	ModulePropagationId string
+	OrgAccountId        string
+	RemoteStateBucket   string
+	RemoteStateKey      string
+	RemoteStateRegion   string
+	Status              ModuleAccountAssociationStatus
 }
 
 func (m ModuleAccountAssociation) Key() ModuleAccountAssociationKey {
@@ -29,27 +29,27 @@ func (m ModuleAccountAssociation) Key() ModuleAccountAssociationKey {
 }
 
 type ModuleAccountAssociations struct {
-	Items      []ModuleAccountAssociation `json:"items"`
-	NextCursor string                     `json:"nextCursor"`
+	Items      []ModuleAccountAssociation
+	NextCursor string
 }
 
 type NewModuleAccountAssociation struct {
-	ModulePropagationId string `json:"modulePropagationId"`
-	OrgAccountId        string `json:"orgAccountId"`
-	RemoteStateBucket   string `json:"remoteStateBucket"`
-	RemoteStateKey      string `json:"remoteStateKey"`
-	RemoteStateRegion   string `json:"remoteStateRegion"`
+	ModulePropagationId string
+	OrgAccountId        string
+	RemoteStateBucket   string
+	RemoteStateKey      string
+	RemoteStateRegion   string
 }
 
 type ModuleAccountAssociationUpdate struct {
-	RemoteStateBucket *string                         `json:"remoteStateBucket"`
-	RemoteStateKey    *string                         `json:"remoteStateKey"`
-	Status            *ModuleAccountAssociationStatus `json:"status"`
+	RemoteStateBucket *string
+	RemoteStateKey    *string
+	Status            *ModuleAccountAssociationStatus
 }
 
 type ModuleAccountAssociationKey struct {
-	ModulePropagationId string `json:"modulePropagationId"`
-	OrgAccountId        string `json:"orgAccountId"`
+	ModulePropagationId string
+	OrgAccountId        string
 }
 
 func (m ModuleAccountAssociationKey) String() string {

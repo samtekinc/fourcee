@@ -41,6 +41,7 @@ type ResolverRoot interface {
 	ModuleAccountAssociation() ModuleAccountAssociationResolver
 	ModuleGroup() ModuleGroupResolver
 	ModulePropagation() ModulePropagationResolver
+	ModulePropagationDriftCheckRequest() ModulePropagationDriftCheckRequestResolver
 	ModulePropagationExecutionRequest() ModulePropagationExecutionRequestResolver
 	ModuleVersion() ModuleVersionResolver
 	Mutation() MutationResolver
@@ -51,9 +52,10 @@ type ResolverRoot interface {
 	PlanExecutionRequest() PlanExecutionRequestResolver
 	Query() QueryResolver
 	TerraformApplyOutput() TerraformApplyOutputResolver
+	TerraformDriftCheckWorkflowRequest() TerraformDriftCheckWorkflowRequestResolver
+	TerraformExecutionWorkflowRequest() TerraformExecutionWorkflowRequestResolver
 	TerraformInitOutput() TerraformInitOutputResolver
 	TerraformPlanOutput() TerraformPlanOutputResolver
-	TerraformWorkflowRequest() TerraformWorkflowRequestResolver
 }
 
 type DirectiveRoot struct {
@@ -61,23 +63,23 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	ApplyExecutionRequest struct {
-		AdditionalArguments                 func(childComplexity int) int
-		ApplyExecutionRequestId             func(childComplexity int) int
-		ApplyOutput                         func(childComplexity int) int
-		CallbackTaskToken                   func(childComplexity int) int
-		InitOutput                          func(childComplexity int) int
-		ModuleAccountAssociationKey         func(childComplexity int) int
-		ModulePropagation                   func(childComplexity int) int
-		ModulePropagationExecutionRequestId func(childComplexity int) int
-		ModulePropagationID                 func(childComplexity int) int
-		OrgAccount                          func(childComplexity int) int
-		OrgAccountID                        func(childComplexity int) int
-		RequestTime                         func(childComplexity int) int
-		StateKey                            func(childComplexity int) int
-		Status                              func(childComplexity int) int
-		TerraformConfigurationBase64        func(childComplexity int) int
-		TerraformVersion                    func(childComplexity int) int
-		WorkflowExecutionId                 func(childComplexity int) int
+		AdditionalArguments          func(childComplexity int) int
+		ApplyExecutionRequestId      func(childComplexity int) int
+		ApplyOutput                  func(childComplexity int) int
+		CallbackTaskToken            func(childComplexity int) int
+		InitOutput                   func(childComplexity int) int
+		ModuleAccountAssociationKey  func(childComplexity int) int
+		ModulePropagation            func(childComplexity int) int
+		ModulePropagationID          func(childComplexity int) int
+		ModulePropagationRequestId   func(childComplexity int) int
+		OrgAccount                   func(childComplexity int) int
+		OrgAccountID                 func(childComplexity int) int
+		RequestTime                  func(childComplexity int) int
+		StateKey                     func(childComplexity int) int
+		Status                       func(childComplexity int) int
+		TerraformConfigurationBase64 func(childComplexity int) int
+		TerraformVersion             func(childComplexity int) int
+		TerraformWorkflowRequestId   func(childComplexity int) int
 	}
 
 	ApplyExecutionRequests struct {
@@ -129,6 +131,7 @@ type ComplexityRoot struct {
 		Arguments                 func(childComplexity int) int
 		AwsProviderConfigurations func(childComplexity int) int
 		Description               func(childComplexity int) int
+		DriftCheckRequests        func(childComplexity int, limit *int, nextCursor *string) int
 		ExecutionRequests         func(childComplexity int, limit *int, nextCursor *string) int
 		ModuleAccountAssociations func(childComplexity int, limit *int, nextCursor *string) int
 		ModuleGroup               func(childComplexity int) int
@@ -143,6 +146,20 @@ type ComplexityRoot struct {
 		OrgUnitId                 func(childComplexity int) int
 	}
 
+	ModulePropagationDriftCheckRequest struct {
+		ModulePropagationDriftCheckRequestId func(childComplexity int) int
+		ModulePropagationId                  func(childComplexity int) int
+		PlanExecutionRequests                func(childComplexity int, limit *int, nextCursor *string) int
+		RequestTime                          func(childComplexity int) int
+		Status                               func(childComplexity int) int
+		TerraformDriftCheckWorkflowRequests  func(childComplexity int, limit *int, nextCursor *string) int
+	}
+
+	ModulePropagationDriftCheckRequests struct {
+		Items      func(childComplexity int) int
+		NextCursor func(childComplexity int) int
+	}
+
 	ModulePropagationExecutionRequest struct {
 		ApplyExecutionRequests              func(childComplexity int, limit *int, nextCursor *string) int
 		ModulePropagationExecutionRequestId func(childComplexity int) int
@@ -150,7 +167,7 @@ type ComplexityRoot struct {
 		PlanExecutionRequests               func(childComplexity int, limit *int, nextCursor *string) int
 		RequestTime                         func(childComplexity int) int
 		Status                              func(childComplexity int) int
-		TerraformWorkflowRequests           func(childComplexity int, limit *int, nextCursor *string) int
+		TerraformExecutionWorkflowRequests  func(childComplexity int, limit *int, nextCursor *string) int
 	}
 
 	ModulePropagationExecutionRequests struct {
@@ -187,23 +204,24 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateModuleGroup                       func(childComplexity int, moduleGroup models.NewModuleGroup) int
-		CreateModulePropagation                 func(childComplexity int, modulePropagation models.NewModulePropagation) int
-		CreateModulePropagationExecutionRequest func(childComplexity int, modulePropagationExecutionRequest models.NewModulePropagationExecutionRequest) int
-		CreateModuleVersion                     func(childComplexity int, moduleVersion models.NewModuleVersion) int
-		CreateOrganizationalAccount             func(childComplexity int, orgAccount models.NewOrganizationalAccount) int
-		CreateOrganizationalDimension           func(childComplexity int, orgDimension models.NewOrganizationalDimension) int
-		CreateOrganizationalUnit                func(childComplexity int, orgUnit models.NewOrganizationalUnit) int
-		CreateOrganizationalUnitMembership      func(childComplexity int, orgUnitMembership models.NewOrganizationalUnitMembership) int
-		DeleteModuleGroup                       func(childComplexity int, moduleGroupID string) int
-		DeleteModulePropagation                 func(childComplexity int, modulePropagationID string) int
-		DeleteModuleVersion                     func(childComplexity int, moduleGroupID string, moduleVersionID string) int
-		DeleteOrganizationalAccount             func(childComplexity int, orgAccountID string) int
-		DeleteOrganizationalDimension           func(childComplexity int, orgDimensionID string) int
-		DeleteOrganizationalUnit                func(childComplexity int, orgDimensionID string, orgUnitID string) int
-		DeleteOrganizationalUnitMembership      func(childComplexity int, orgDimensionID string, orgAccountID string) int
-		UpdateModulePropagation                 func(childComplexity int, modulePropagationID string, update models.ModulePropagationUpdate) int
-		UpdateOrganizationalUnit                func(childComplexity int, orgDimensionID string, orgUnitID string, update models.OrganizationalUnitUpdate) int
+		CreateModuleGroup                        func(childComplexity int, moduleGroup models.NewModuleGroup) int
+		CreateModulePropagation                  func(childComplexity int, modulePropagation models.NewModulePropagation) int
+		CreateModulePropagationDriftCheckRequest func(childComplexity int, modulePropagationDriftCheckRequest models.NewModulePropagationDriftCheckRequest) int
+		CreateModulePropagationExecutionRequest  func(childComplexity int, modulePropagationExecutionRequest models.NewModulePropagationExecutionRequest) int
+		CreateModuleVersion                      func(childComplexity int, moduleVersion models.NewModuleVersion) int
+		CreateOrganizationalAccount              func(childComplexity int, orgAccount models.NewOrganizationalAccount) int
+		CreateOrganizationalDimension            func(childComplexity int, orgDimension models.NewOrganizationalDimension) int
+		CreateOrganizationalUnit                 func(childComplexity int, orgUnit models.NewOrganizationalUnit) int
+		CreateOrganizationalUnitMembership       func(childComplexity int, orgUnitMembership models.NewOrganizationalUnitMembership) int
+		DeleteModuleGroup                        func(childComplexity int, moduleGroupID string) int
+		DeleteModulePropagation                  func(childComplexity int, modulePropagationID string) int
+		DeleteModuleVersion                      func(childComplexity int, moduleGroupID string, moduleVersionID string) int
+		DeleteOrganizationalAccount              func(childComplexity int, orgAccountID string) int
+		DeleteOrganizationalDimension            func(childComplexity int, orgDimensionID string) int
+		DeleteOrganizationalUnit                 func(childComplexity int, orgDimensionID string, orgUnitID string) int
+		DeleteOrganizationalUnitMembership       func(childComplexity int, orgDimensionID string, orgAccountID string) int
+		UpdateModulePropagation                  func(childComplexity int, modulePropagationID string, update models.ModulePropagationUpdate) int
+		UpdateOrganizationalUnit                 func(childComplexity int, orgDimensionID string, orgUnitID string, update models.OrganizationalUnitUpdate) int
 	}
 
 	OrganizationalAccount struct {
@@ -268,23 +286,23 @@ type ComplexityRoot struct {
 	}
 
 	PlanExecutionRequest struct {
-		AdditionalArguments                 func(childComplexity int) int
-		CallbackTaskToken                   func(childComplexity int) int
-		InitOutput                          func(childComplexity int) int
-		ModuleAccountAssociationKey         func(childComplexity int) int
-		ModulePropagation                   func(childComplexity int) int
-		ModulePropagationExecutionRequestId func(childComplexity int) int
-		ModulePropagationID                 func(childComplexity int) int
-		OrgAccount                          func(childComplexity int) int
-		OrgAccountID                        func(childComplexity int) int
-		PlanExecutionRequestId              func(childComplexity int) int
-		PlanOutput                          func(childComplexity int) int
-		RequestTime                         func(childComplexity int) int
-		StateKey                            func(childComplexity int) int
-		Status                              func(childComplexity int) int
-		TerraformConfigurationBase64        func(childComplexity int) int
-		TerraformVersion                    func(childComplexity int) int
-		WorkflowExecutionId                 func(childComplexity int) int
+		AdditionalArguments          func(childComplexity int) int
+		CallbackTaskToken            func(childComplexity int) int
+		InitOutput                   func(childComplexity int) int
+		ModuleAccountAssociationKey  func(childComplexity int) int
+		ModulePropagation            func(childComplexity int) int
+		ModulePropagationID          func(childComplexity int) int
+		ModulePropagationRequestId   func(childComplexity int) int
+		OrgAccount                   func(childComplexity int) int
+		OrgAccountID                 func(childComplexity int) int
+		PlanExecutionRequestId       func(childComplexity int) int
+		PlanOutput                   func(childComplexity int) int
+		RequestTime                  func(childComplexity int) int
+		StateKey                     func(childComplexity int) int
+		Status                       func(childComplexity int) int
+		TerraformConfigurationBase64 func(childComplexity int) int
+		TerraformVersion             func(childComplexity int) int
+		TerraformWorkflowRequestId   func(childComplexity int) int
 	}
 
 	PlanExecutionRequests struct {
@@ -300,6 +318,8 @@ type ComplexityRoot struct {
 		ModuleGroup                                 func(childComplexity int, moduleGroupID string) int
 		ModuleGroups                                func(childComplexity int, limit *int, nextCursor *string) int
 		ModulePropagation                           func(childComplexity int, modulePropagationID string) int
+		ModulePropagationDriftCheckRequest          func(childComplexity int, modulePropagationID string, modulePropagationDriftCheckRequestID string) int
+		ModulePropagationDriftCheckRequests         func(childComplexity int, limit *int, nextCursor *string) int
 		ModulePropagationExecutionRequest           func(childComplexity int, modulePropagationID string, modulePropagationExecutionRequestID string) int
 		ModulePropagationExecutionRequests          func(childComplexity int, limit *int, nextCursor *string) int
 		ModulePropagations                          func(childComplexity int, limit *int, nextCursor *string) int
@@ -326,19 +346,30 @@ type ComplexityRoot struct {
 		Stdout func(childComplexity int) int
 	}
 
-	TerraformInitOutput struct {
-		Stderr func(childComplexity int) int
-		Stdout func(childComplexity int) int
+	TerraformDriftCheckWorkflowRequest struct {
+		Destroy                              func(childComplexity int) int
+		ModuleAccountAssociation             func(childComplexity int) int
+		ModuleAccountAssociationKey          func(childComplexity int) int
+		ModulePropagation                    func(childComplexity int) int
+		ModulePropagationDriftCheckRequest   func(childComplexity int) int
+		ModulePropagationDriftCheckRequestId func(childComplexity int) int
+		ModulePropagationID                  func(childComplexity int) int
+		OrgAccount                           func(childComplexity int) int
+		OrgAccountID                         func(childComplexity int) int
+		PlanExecutionRequest                 func(childComplexity int) int
+		PlanExecutionRequestId               func(childComplexity int) int
+		RequestTime                          func(childComplexity int) int
+		Status                               func(childComplexity int) int
+		SyncStatus                           func(childComplexity int) int
+		TerraformDriftCheckWorkflowRequestId func(childComplexity int) int
 	}
 
-	TerraformPlanOutput struct {
-		PlanFile func(childComplexity int) int
-		PlanJSON func(childComplexity int) int
-		Stderr   func(childComplexity int) int
-		Stdout   func(childComplexity int) int
+	TerraformDriftCheckWorkflowRequests struct {
+		Items      func(childComplexity int) int
+		NextCursor func(childComplexity int) int
 	}
 
-	TerraformWorkflowRequest struct {
+	TerraformExecutionWorkflowRequest struct {
 		ApplyExecutionRequest               func(childComplexity int) int
 		ApplyExecutionRequestId             func(childComplexity int) int
 		Destroy                             func(childComplexity int) int
@@ -354,12 +385,24 @@ type ComplexityRoot struct {
 		PlanExecutionRequestId              func(childComplexity int) int
 		RequestTime                         func(childComplexity int) int
 		Status                              func(childComplexity int) int
-		TerraformWorkflowRequestId          func(childComplexity int) int
+		TerraformExecutionWorkflowRequestId func(childComplexity int) int
 	}
 
-	TerraformWorkflowRequests struct {
+	TerraformExecutionWorkflowRequests struct {
 		Items      func(childComplexity int) int
 		NextCursor func(childComplexity int) int
+	}
+
+	TerraformInitOutput struct {
+		Stderr func(childComplexity int) int
+		Stdout func(childComplexity int) int
+	}
+
+	TerraformPlanOutput struct {
+		PlanFile func(childComplexity int) int
+		PlanJSON func(childComplexity int) int
+		Stderr   func(childComplexity int) int
+		Stdout   func(childComplexity int) int
 	}
 }
 
@@ -393,11 +436,16 @@ type ModulePropagationResolver interface {
 
 	ModuleAccountAssociations(ctx context.Context, obj *models.ModulePropagation, limit *int, nextCursor *string) (*models.ModuleAccountAssociations, error)
 	ExecutionRequests(ctx context.Context, obj *models.ModulePropagation, limit *int, nextCursor *string) (*models.ModulePropagationExecutionRequests, error)
+	DriftCheckRequests(ctx context.Context, obj *models.ModulePropagation, limit *int, nextCursor *string) (*models.ModulePropagationDriftCheckRequests, error)
+}
+type ModulePropagationDriftCheckRequestResolver interface {
+	PlanExecutionRequests(ctx context.Context, obj *models.ModulePropagationDriftCheckRequest, limit *int, nextCursor *string) (*models.PlanExecutionRequests, error)
+	TerraformDriftCheckWorkflowRequests(ctx context.Context, obj *models.ModulePropagationDriftCheckRequest, limit *int, nextCursor *string) (*models.TerraformDriftCheckWorkflowRequests, error)
 }
 type ModulePropagationExecutionRequestResolver interface {
 	PlanExecutionRequests(ctx context.Context, obj *models.ModulePropagationExecutionRequest, limit *int, nextCursor *string) (*models.PlanExecutionRequests, error)
 	ApplyExecutionRequests(ctx context.Context, obj *models.ModulePropagationExecutionRequest, limit *int, nextCursor *string) (*models.ApplyExecutionRequests, error)
-	TerraformWorkflowRequests(ctx context.Context, obj *models.ModulePropagationExecutionRequest, limit *int, nextCursor *string) (*models.TerraformWorkflowRequests, error)
+	TerraformExecutionWorkflowRequests(ctx context.Context, obj *models.ModulePropagationExecutionRequest, limit *int, nextCursor *string) (*models.TerraformExecutionWorkflowRequests, error)
 }
 type ModuleVersionResolver interface {
 	ModuleGroup(ctx context.Context, obj *models.ModuleVersion) (*models.ModuleGroup, error)
@@ -407,6 +455,7 @@ type ModuleVersionResolver interface {
 type MutationResolver interface {
 	CreateModuleGroup(ctx context.Context, moduleGroup models.NewModuleGroup) (*models.ModuleGroup, error)
 	DeleteModuleGroup(ctx context.Context, moduleGroupID string) (bool, error)
+	CreateModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationDriftCheckRequest models.NewModulePropagationDriftCheckRequest) (*models.ModulePropagationDriftCheckRequest, error)
 	CreateModulePropagationExecutionRequest(ctx context.Context, modulePropagationExecutionRequest models.NewModulePropagationExecutionRequest) (*models.ModulePropagationExecutionRequest, error)
 	CreateModulePropagation(ctx context.Context, modulePropagation models.NewModulePropagation) (*models.ModulePropagation, error)
 	DeleteModulePropagation(ctx context.Context, modulePropagationID string) (bool, error)
@@ -460,6 +509,8 @@ type QueryResolver interface {
 	ModuleAccountAssociations(ctx context.Context, limit *int, nextCursor *string) (*models.ModuleAccountAssociations, error)
 	ModuleGroup(ctx context.Context, moduleGroupID string) (*models.ModuleGroup, error)
 	ModuleGroups(ctx context.Context, limit *int, nextCursor *string) (*models.ModuleGroups, error)
+	ModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationID string, modulePropagationDriftCheckRequestID string) (*models.ModulePropagationDriftCheckRequest, error)
+	ModulePropagationDriftCheckRequests(ctx context.Context, limit *int, nextCursor *string) (*models.ModulePropagationDriftCheckRequests, error)
 	ModulePropagationExecutionRequest(ctx context.Context, modulePropagationID string, modulePropagationExecutionRequestID string) (*models.ModulePropagationExecutionRequest, error)
 	ModulePropagationExecutionRequests(ctx context.Context, limit *int, nextCursor *string) (*models.ModulePropagationExecutionRequests, error)
 	ModulePropagation(ctx context.Context, modulePropagationID string) (*models.ModulePropagation, error)
@@ -485,6 +536,30 @@ type TerraformApplyOutputResolver interface {
 	Stdout(ctx context.Context, obj *models.TerraformApplyOutput) (*string, error)
 	Stderr(ctx context.Context, obj *models.TerraformApplyOutput) (*string, error)
 }
+type TerraformDriftCheckWorkflowRequestResolver interface {
+	ModulePropagationDriftCheckRequest(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (*models.ModulePropagationDriftCheckRequest, error)
+
+	ModuleAccountAssociation(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (*models.ModuleAccountAssociation, error)
+	OrgAccountID(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (string, error)
+	OrgAccount(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (*models.OrganizationalAccount, error)
+	ModulePropagationID(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (string, error)
+	ModulePropagation(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (*models.ModulePropagation, error)
+
+	PlanExecutionRequest(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (*models.PlanExecutionRequest, error)
+}
+type TerraformExecutionWorkflowRequestResolver interface {
+	ModulePropagationExecutionRequest(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.ModulePropagationExecutionRequest, error)
+
+	ModuleAccountAssociation(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.ModuleAccountAssociation, error)
+	OrgAccountID(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (string, error)
+	OrgAccount(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.OrganizationalAccount, error)
+	ModulePropagationID(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (string, error)
+	ModulePropagation(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.ModulePropagation, error)
+
+	PlanExecutionRequest(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.PlanExecutionRequest, error)
+
+	ApplyExecutionRequest(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.ApplyExecutionRequest, error)
+}
 type TerraformInitOutputResolver interface {
 	Stdout(ctx context.Context, obj *models.TerraformInitOutput) (*string, error)
 	Stderr(ctx context.Context, obj *models.TerraformInitOutput) (*string, error)
@@ -494,19 +569,6 @@ type TerraformPlanOutputResolver interface {
 	Stderr(ctx context.Context, obj *models.TerraformPlanOutput) (*string, error)
 	PlanFile(ctx context.Context, obj *models.TerraformPlanOutput) (*string, error)
 	PlanJSON(ctx context.Context, obj *models.TerraformPlanOutput) (*string, error)
-}
-type TerraformWorkflowRequestResolver interface {
-	ModulePropagationExecutionRequest(ctx context.Context, obj *models.TerraformWorkflowRequest) (*models.ModulePropagationExecutionRequest, error)
-
-	ModuleAccountAssociation(ctx context.Context, obj *models.TerraformWorkflowRequest) (*models.ModuleAccountAssociation, error)
-	OrgAccountID(ctx context.Context, obj *models.TerraformWorkflowRequest) (string, error)
-	OrgAccount(ctx context.Context, obj *models.TerraformWorkflowRequest) (*models.OrganizationalAccount, error)
-	ModulePropagationID(ctx context.Context, obj *models.TerraformWorkflowRequest) (string, error)
-	ModulePropagation(ctx context.Context, obj *models.TerraformWorkflowRequest) (*models.ModulePropagation, error)
-
-	PlanExecutionRequest(ctx context.Context, obj *models.TerraformWorkflowRequest) (*models.PlanExecutionRequest, error)
-
-	ApplyExecutionRequest(ctx context.Context, obj *models.TerraformWorkflowRequest) (*models.ApplyExecutionRequest, error)
 }
 
 type executableSchema struct {
@@ -573,19 +635,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ApplyExecutionRequest.ModulePropagation(childComplexity), true
 
-	case "ApplyExecutionRequest.modulePropagationExecutionRequestId":
-		if e.complexity.ApplyExecutionRequest.ModulePropagationExecutionRequestId == nil {
-			break
-		}
-
-		return e.complexity.ApplyExecutionRequest.ModulePropagationExecutionRequestId(childComplexity), true
-
 	case "ApplyExecutionRequest.modulePropagationId":
 		if e.complexity.ApplyExecutionRequest.ModulePropagationID == nil {
 			break
 		}
 
 		return e.complexity.ApplyExecutionRequest.ModulePropagationID(childComplexity), true
+
+	case "ApplyExecutionRequest.modulePropagationRequestId":
+		if e.complexity.ApplyExecutionRequest.ModulePropagationRequestId == nil {
+			break
+		}
+
+		return e.complexity.ApplyExecutionRequest.ModulePropagationRequestId(childComplexity), true
 
 	case "ApplyExecutionRequest.orgAccount":
 		if e.complexity.ApplyExecutionRequest.OrgAccount == nil {
@@ -636,12 +698,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ApplyExecutionRequest.TerraformVersion(childComplexity), true
 
-	case "ApplyExecutionRequest.workflowExecutionId":
-		if e.complexity.ApplyExecutionRequest.WorkflowExecutionId == nil {
+	case "ApplyExecutionRequest.terraformWorkflowRequestId":
+		if e.complexity.ApplyExecutionRequest.TerraformWorkflowRequestId == nil {
 			break
 		}
 
-		return e.complexity.ApplyExecutionRequest.WorkflowExecutionId(childComplexity), true
+		return e.complexity.ApplyExecutionRequest.TerraformWorkflowRequestId(childComplexity), true
 
 	case "ApplyExecutionRequests.items":
 		if e.complexity.ApplyExecutionRequests.Items == nil {
@@ -852,6 +914,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ModulePropagation.Description(childComplexity), true
 
+	case "ModulePropagation.driftCheckRequests":
+		if e.complexity.ModulePropagation.DriftCheckRequests == nil {
+			break
+		}
+
+		args, err := ec.field_ModulePropagation_driftCheckRequests_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ModulePropagation.DriftCheckRequests(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+
 	case "ModulePropagation.executionRequests":
 		if e.complexity.ModulePropagation.ExecutionRequests == nil {
 			break
@@ -946,6 +1020,72 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ModulePropagation.OrgUnitId(childComplexity), true
 
+	case "ModulePropagationDriftCheckRequest.modulePropagationDriftCheckRequestId":
+		if e.complexity.ModulePropagationDriftCheckRequest.ModulePropagationDriftCheckRequestId == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagationDriftCheckRequest.ModulePropagationDriftCheckRequestId(childComplexity), true
+
+	case "ModulePropagationDriftCheckRequest.modulePropagationId":
+		if e.complexity.ModulePropagationDriftCheckRequest.ModulePropagationId == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagationDriftCheckRequest.ModulePropagationId(childComplexity), true
+
+	case "ModulePropagationDriftCheckRequest.planExecutionRequests":
+		if e.complexity.ModulePropagationDriftCheckRequest.PlanExecutionRequests == nil {
+			break
+		}
+
+		args, err := ec.field_ModulePropagationDriftCheckRequest_planExecutionRequests_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ModulePropagationDriftCheckRequest.PlanExecutionRequests(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+
+	case "ModulePropagationDriftCheckRequest.requestTime":
+		if e.complexity.ModulePropagationDriftCheckRequest.RequestTime == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagationDriftCheckRequest.RequestTime(childComplexity), true
+
+	case "ModulePropagationDriftCheckRequest.status":
+		if e.complexity.ModulePropagationDriftCheckRequest.Status == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagationDriftCheckRequest.Status(childComplexity), true
+
+	case "ModulePropagationDriftCheckRequest.terraformDriftCheckWorkflowRequests":
+		if e.complexity.ModulePropagationDriftCheckRequest.TerraformDriftCheckWorkflowRequests == nil {
+			break
+		}
+
+		args, err := ec.field_ModulePropagationDriftCheckRequest_terraformDriftCheckWorkflowRequests_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ModulePropagationDriftCheckRequest.TerraformDriftCheckWorkflowRequests(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+
+	case "ModulePropagationDriftCheckRequests.items":
+		if e.complexity.ModulePropagationDriftCheckRequests.Items == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagationDriftCheckRequests.Items(childComplexity), true
+
+	case "ModulePropagationDriftCheckRequests.nextCursor":
+		if e.complexity.ModulePropagationDriftCheckRequests.NextCursor == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagationDriftCheckRequests.NextCursor(childComplexity), true
+
 	case "ModulePropagationExecutionRequest.applyExecutionRequests":
 		if e.complexity.ModulePropagationExecutionRequest.ApplyExecutionRequests == nil {
 			break
@@ -998,17 +1138,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ModulePropagationExecutionRequest.Status(childComplexity), true
 
-	case "ModulePropagationExecutionRequest.terraformWorkflowRequests":
-		if e.complexity.ModulePropagationExecutionRequest.TerraformWorkflowRequests == nil {
+	case "ModulePropagationExecutionRequest.terraformExecutionWorkflowRequests":
+		if e.complexity.ModulePropagationExecutionRequest.TerraformExecutionWorkflowRequests == nil {
 			break
 		}
 
-		args, err := ec.field_ModulePropagationExecutionRequest_terraformWorkflowRequests_args(context.TODO(), rawArgs)
+		args, err := ec.field_ModulePropagationExecutionRequest_terraformExecutionWorkflowRequests_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.ModulePropagationExecutionRequest.TerraformWorkflowRequests(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+		return e.complexity.ModulePropagationExecutionRequest.TerraformExecutionWorkflowRequests(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
 
 	case "ModulePropagationExecutionRequests.items":
 		if e.complexity.ModulePropagationExecutionRequests.Items == nil {
@@ -1164,6 +1304,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateModulePropagation(childComplexity, args["modulePropagation"].(models.NewModulePropagation)), true
+
+	case "Mutation.createModulePropagationDriftCheckRequest":
+		if e.complexity.Mutation.CreateModulePropagationDriftCheckRequest == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createModulePropagationDriftCheckRequest_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateModulePropagationDriftCheckRequest(childComplexity, args["modulePropagationDriftCheckRequest"].(models.NewModulePropagationDriftCheckRequest)), true
 
 	case "Mutation.createModulePropagationExecutionRequest":
 		if e.complexity.Mutation.CreateModulePropagationExecutionRequest == nil {
@@ -1684,19 +1836,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PlanExecutionRequest.ModulePropagation(childComplexity), true
 
-	case "PlanExecutionRequest.modulePropagationExecutionRequestId":
-		if e.complexity.PlanExecutionRequest.ModulePropagationExecutionRequestId == nil {
-			break
-		}
-
-		return e.complexity.PlanExecutionRequest.ModulePropagationExecutionRequestId(childComplexity), true
-
 	case "PlanExecutionRequest.modulePropagationId":
 		if e.complexity.PlanExecutionRequest.ModulePropagationID == nil {
 			break
 		}
 
 		return e.complexity.PlanExecutionRequest.ModulePropagationID(childComplexity), true
+
+	case "PlanExecutionRequest.modulePropagationRequestId":
+		if e.complexity.PlanExecutionRequest.ModulePropagationRequestId == nil {
+			break
+		}
+
+		return e.complexity.PlanExecutionRequest.ModulePropagationRequestId(childComplexity), true
 
 	case "PlanExecutionRequest.orgAccount":
 		if e.complexity.PlanExecutionRequest.OrgAccount == nil {
@@ -1761,12 +1913,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PlanExecutionRequest.TerraformVersion(childComplexity), true
 
-	case "PlanExecutionRequest.workflowExecutionId":
-		if e.complexity.PlanExecutionRequest.WorkflowExecutionId == nil {
+	case "PlanExecutionRequest.terraformWorkflowRequestId":
+		if e.complexity.PlanExecutionRequest.TerraformWorkflowRequestId == nil {
 			break
 		}
 
-		return e.complexity.PlanExecutionRequest.WorkflowExecutionId(childComplexity), true
+		return e.complexity.PlanExecutionRequest.TerraformWorkflowRequestId(childComplexity), true
 
 	case "PlanExecutionRequests.items":
 		if e.complexity.PlanExecutionRequests.Items == nil {
@@ -1865,6 +2017,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ModulePropagation(childComplexity, args["modulePropagationId"].(string)), true
+
+	case "Query.modulePropagationDriftCheckRequest":
+		if e.complexity.Query.ModulePropagationDriftCheckRequest == nil {
+			break
+		}
+
+		args, err := ec.field_Query_modulePropagationDriftCheckRequest_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ModulePropagationDriftCheckRequest(childComplexity, args["modulePropagationId"].(string), args["modulePropagationDriftCheckRequestId"].(string)), true
+
+	case "Query.modulePropagationDriftCheckRequests":
+		if e.complexity.Query.ModulePropagationDriftCheckRequests == nil {
+			break
+		}
+
+		args, err := ec.field_Query_modulePropagationDriftCheckRequests_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ModulePropagationDriftCheckRequests(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
 
 	case "Query.modulePropagationExecutionRequest":
 		if e.complexity.Query.ModulePropagationExecutionRequest == nil {
@@ -2108,6 +2284,251 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TerraformApplyOutput.Stdout(childComplexity), true
 
+	case "TerraformDriftCheckWorkflowRequest.destroy":
+		if e.complexity.TerraformDriftCheckWorkflowRequest.Destroy == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequest.Destroy(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequest.moduleAccountAssociation":
+		if e.complexity.TerraformDriftCheckWorkflowRequest.ModuleAccountAssociation == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequest.ModuleAccountAssociation(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequest.moduleAccountAssociationKey":
+		if e.complexity.TerraformDriftCheckWorkflowRequest.ModuleAccountAssociationKey == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequest.ModuleAccountAssociationKey(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequest.modulePropagation":
+		if e.complexity.TerraformDriftCheckWorkflowRequest.ModulePropagation == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequest.ModulePropagation(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequest.modulePropagationDriftCheckRequest":
+		if e.complexity.TerraformDriftCheckWorkflowRequest.ModulePropagationDriftCheckRequest == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequest.ModulePropagationDriftCheckRequest(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequest.modulePropagationDriftCheckRequestId":
+		if e.complexity.TerraformDriftCheckWorkflowRequest.ModulePropagationDriftCheckRequestId == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequest.ModulePropagationDriftCheckRequestId(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequest.modulePropagationId":
+		if e.complexity.TerraformDriftCheckWorkflowRequest.ModulePropagationID == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequest.ModulePropagationID(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequest.orgAccount":
+		if e.complexity.TerraformDriftCheckWorkflowRequest.OrgAccount == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequest.OrgAccount(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequest.orgAccountId":
+		if e.complexity.TerraformDriftCheckWorkflowRequest.OrgAccountID == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequest.OrgAccountID(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequest.planExecutionRequest":
+		if e.complexity.TerraformDriftCheckWorkflowRequest.PlanExecutionRequest == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequest.PlanExecutionRequest(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequest.planExecutionRequestId":
+		if e.complexity.TerraformDriftCheckWorkflowRequest.PlanExecutionRequestId == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequest.PlanExecutionRequestId(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequest.requestTime":
+		if e.complexity.TerraformDriftCheckWorkflowRequest.RequestTime == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequest.RequestTime(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequest.status":
+		if e.complexity.TerraformDriftCheckWorkflowRequest.Status == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequest.Status(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequest.syncStatus":
+		if e.complexity.TerraformDriftCheckWorkflowRequest.SyncStatus == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequest.SyncStatus(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequest.terraformDriftCheckWorkflowRequestId":
+		if e.complexity.TerraformDriftCheckWorkflowRequest.TerraformDriftCheckWorkflowRequestId == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequest.TerraformDriftCheckWorkflowRequestId(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequests.items":
+		if e.complexity.TerraformDriftCheckWorkflowRequests.Items == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequests.Items(childComplexity), true
+
+	case "TerraformDriftCheckWorkflowRequests.nextCursor":
+		if e.complexity.TerraformDriftCheckWorkflowRequests.NextCursor == nil {
+			break
+		}
+
+		return e.complexity.TerraformDriftCheckWorkflowRequests.NextCursor(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.applyExecutionRequest":
+		if e.complexity.TerraformExecutionWorkflowRequest.ApplyExecutionRequest == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.ApplyExecutionRequest(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.applyExecutionRequestId":
+		if e.complexity.TerraformExecutionWorkflowRequest.ApplyExecutionRequestId == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.ApplyExecutionRequestId(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.destroy":
+		if e.complexity.TerraformExecutionWorkflowRequest.Destroy == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.Destroy(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.moduleAccountAssociation":
+		if e.complexity.TerraformExecutionWorkflowRequest.ModuleAccountAssociation == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.ModuleAccountAssociation(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.moduleAccountAssociationKey":
+		if e.complexity.TerraformExecutionWorkflowRequest.ModuleAccountAssociationKey == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.ModuleAccountAssociationKey(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.modulePropagation":
+		if e.complexity.TerraformExecutionWorkflowRequest.ModulePropagation == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.ModulePropagation(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.modulePropagationExecutionRequest":
+		if e.complexity.TerraformExecutionWorkflowRequest.ModulePropagationExecutionRequest == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.ModulePropagationExecutionRequest(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.modulePropagationExecutionRequestId":
+		if e.complexity.TerraformExecutionWorkflowRequest.ModulePropagationExecutionRequestId == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.ModulePropagationExecutionRequestId(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.modulePropagationId":
+		if e.complexity.TerraformExecutionWorkflowRequest.ModulePropagationID == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.ModulePropagationID(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.orgAccount":
+		if e.complexity.TerraformExecutionWorkflowRequest.OrgAccount == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.OrgAccount(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.orgAccountId":
+		if e.complexity.TerraformExecutionWorkflowRequest.OrgAccountID == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.OrgAccountID(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.planExecutionRequest":
+		if e.complexity.TerraformExecutionWorkflowRequest.PlanExecutionRequest == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.PlanExecutionRequest(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.planExecutionRequestId":
+		if e.complexity.TerraformExecutionWorkflowRequest.PlanExecutionRequestId == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.PlanExecutionRequestId(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.requestTime":
+		if e.complexity.TerraformExecutionWorkflowRequest.RequestTime == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.RequestTime(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.status":
+		if e.complexity.TerraformExecutionWorkflowRequest.Status == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.Status(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequest.terraformExecutionWorkflowRequestId":
+		if e.complexity.TerraformExecutionWorkflowRequest.TerraformExecutionWorkflowRequestId == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequest.TerraformExecutionWorkflowRequestId(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequests.items":
+		if e.complexity.TerraformExecutionWorkflowRequests.Items == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequests.Items(childComplexity), true
+
+	case "TerraformExecutionWorkflowRequests.nextCursor":
+		if e.complexity.TerraformExecutionWorkflowRequests.NextCursor == nil {
+			break
+		}
+
+		return e.complexity.TerraformExecutionWorkflowRequests.NextCursor(childComplexity), true
+
 	case "TerraformInitOutput.Stderr":
 		if e.complexity.TerraformInitOutput.Stderr == nil {
 			break
@@ -2150,132 +2571,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TerraformPlanOutput.Stdout(childComplexity), true
 
-	case "TerraformWorkflowRequest.applyExecutionRequest":
-		if e.complexity.TerraformWorkflowRequest.ApplyExecutionRequest == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.ApplyExecutionRequest(childComplexity), true
-
-	case "TerraformWorkflowRequest.applyExecutionRequestId":
-		if e.complexity.TerraformWorkflowRequest.ApplyExecutionRequestId == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.ApplyExecutionRequestId(childComplexity), true
-
-	case "TerraformWorkflowRequest.destroy":
-		if e.complexity.TerraformWorkflowRequest.Destroy == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.Destroy(childComplexity), true
-
-	case "TerraformWorkflowRequest.moduleAccountAssociation":
-		if e.complexity.TerraformWorkflowRequest.ModuleAccountAssociation == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.ModuleAccountAssociation(childComplexity), true
-
-	case "TerraformWorkflowRequest.moduleAccountAssociationKey":
-		if e.complexity.TerraformWorkflowRequest.ModuleAccountAssociationKey == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.ModuleAccountAssociationKey(childComplexity), true
-
-	case "TerraformWorkflowRequest.modulePropagation":
-		if e.complexity.TerraformWorkflowRequest.ModulePropagation == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.ModulePropagation(childComplexity), true
-
-	case "TerraformWorkflowRequest.modulePropagationExecutionRequest":
-		if e.complexity.TerraformWorkflowRequest.ModulePropagationExecutionRequest == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.ModulePropagationExecutionRequest(childComplexity), true
-
-	case "TerraformWorkflowRequest.modulePropagationExecutionRequestId":
-		if e.complexity.TerraformWorkflowRequest.ModulePropagationExecutionRequestId == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.ModulePropagationExecutionRequestId(childComplexity), true
-
-	case "TerraformWorkflowRequest.modulePropagationId":
-		if e.complexity.TerraformWorkflowRequest.ModulePropagationID == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.ModulePropagationID(childComplexity), true
-
-	case "TerraformWorkflowRequest.orgAccount":
-		if e.complexity.TerraformWorkflowRequest.OrgAccount == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.OrgAccount(childComplexity), true
-
-	case "TerraformWorkflowRequest.orgAccountId":
-		if e.complexity.TerraformWorkflowRequest.OrgAccountID == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.OrgAccountID(childComplexity), true
-
-	case "TerraformWorkflowRequest.planExecutionRequest":
-		if e.complexity.TerraformWorkflowRequest.PlanExecutionRequest == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.PlanExecutionRequest(childComplexity), true
-
-	case "TerraformWorkflowRequest.planExecutionRequestId":
-		if e.complexity.TerraformWorkflowRequest.PlanExecutionRequestId == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.PlanExecutionRequestId(childComplexity), true
-
-	case "TerraformWorkflowRequest.requestTime":
-		if e.complexity.TerraformWorkflowRequest.RequestTime == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.RequestTime(childComplexity), true
-
-	case "TerraformWorkflowRequest.status":
-		if e.complexity.TerraformWorkflowRequest.Status == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.Status(childComplexity), true
-
-	case "TerraformWorkflowRequest.terraformWorkflowRequestId":
-		if e.complexity.TerraformWorkflowRequest.TerraformWorkflowRequestId == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequest.TerraformWorkflowRequestId(childComplexity), true
-
-	case "TerraformWorkflowRequests.items":
-		if e.complexity.TerraformWorkflowRequests.Items == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequests.Items(childComplexity), true
-
-	case "TerraformWorkflowRequests.nextCursor":
-		if e.complexity.TerraformWorkflowRequests.NextCursor == nil {
-			break
-		}
-
-		return e.complexity.TerraformWorkflowRequests.NextCursor(childComplexity), true
-
 	}
 	return 0, false
 }
@@ -2289,6 +2584,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputModulePropagationUpdate,
 		ec.unmarshalInputNewModuleGroup,
 		ec.unmarshalInputNewModulePropagation,
+		ec.unmarshalInputNewModulePropagationDriftCheckRequest,
 		ec.unmarshalInputNewModulePropagationExecutionRequest,
 		ec.unmarshalInputNewModuleVersion,
 		ec.unmarshalInputNewOrganizationalAccount,
@@ -2361,7 +2657,8 @@ var sources = []*ast.Source{
   terraformVersion: String!
   callbackTaskToken: String!
   stateKey: String!
-  modulePropagationExecutionRequestId: String!
+  modulePropagationRequestId: String!
+  terraformWorkflowRequestId: String!
   moduleAccountAssociationKey: String!
   modulePropagationId: ID!
   modulePropagation: ModulePropagation!
@@ -2369,8 +2666,7 @@ var sources = []*ast.Source{
   orgAccount: OrganizationalAccount!
   terraformConfigurationBase64: String!
   additionalArguments: [String]!
-  workflowExecutionId: String!
-  status: ApplyExecutionStatus!
+  status: RequestStatus!
   requestTime: Time!
   initOutput: TerraformInitOutput
   applyOutput: TerraformApplyOutput
@@ -2387,13 +2683,6 @@ extend type Query {
     limit: Int
     nextCursor: String
   ): ApplyExecutionRequests!
-}
-
-enum ApplyExecutionStatus {
-  PENDING
-  RUNNING
-  FAILED
-  SUCCEEDED
 }
 `, BuiltIn: false},
 	{Name: "../module_account_associations.graphqls", Input: `type ModuleAccountAssociation {
@@ -2459,20 +2748,58 @@ extend type Mutation {
   deleteModuleGroup(moduleGroupId: ID!): Boolean!
 }
 `, BuiltIn: false},
+	{Name: "../module_propagation_drift_check_requests.graphqls", Input: `type ModulePropagationDriftCheckRequest {
+  modulePropagationDriftCheckRequestId: ID!
+  modulePropagationId: ID!
+  requestTime: Time!
+  status: RequestStatus!
+  planExecutionRequests(limit: Int, nextCursor: String): PlanExecutionRequests!
+  terraformDriftCheckWorkflowRequests(
+    limit: Int
+    nextCursor: String
+  ): TerraformDriftCheckWorkflowRequests!
+}
+
+type ModulePropagationDriftCheckRequests {
+  items: [ModulePropagationDriftCheckRequest]!
+  nextCursor: String
+}
+
+input NewModulePropagationDriftCheckRequest {
+  modulePropagationId: ID!
+}
+
+extend type Query {
+  modulePropagationDriftCheckRequest(
+    modulePropagationId: ID!
+    modulePropagationDriftCheckRequestId: ID!
+  ): ModulePropagationDriftCheckRequest!
+  modulePropagationDriftCheckRequests(
+    limit: Int
+    nextCursor: String
+  ): ModulePropagationDriftCheckRequests!
+}
+
+extend type Mutation {
+  createModulePropagationDriftCheckRequest(
+    modulePropagationDriftCheckRequest: NewModulePropagationDriftCheckRequest!
+  ): ModulePropagationDriftCheckRequest!
+}
+`, BuiltIn: false},
 	{Name: "../module_propagation_execution_requests.graphqls", Input: `type ModulePropagationExecutionRequest {
   modulePropagationExecutionRequestId: ID!
   modulePropagationId: ID!
   requestTime: Time!
-  status: ModulePropagationExecutionRequestStatus!
+  status: RequestStatus!
   planExecutionRequests(limit: Int, nextCursor: String): PlanExecutionRequests!
   applyExecutionRequests(
     limit: Int
     nextCursor: String
   ): ApplyExecutionRequests!
-  terraformWorkflowRequests(
+  terraformExecutionWorkflowRequests(
     limit: Int
     nextCursor: String
-  ): TerraformWorkflowRequests!
+  ): TerraformExecutionWorkflowRequests!
 }
 
 type ModulePropagationExecutionRequests {
@@ -2500,13 +2827,6 @@ extend type Mutation {
     modulePropagationExecutionRequest: NewModulePropagationExecutionRequest!
   ): ModulePropagationExecutionRequest!
 }
-
-enum ModulePropagationExecutionRequestStatus {
-  PENDING
-  RUNNING
-  FAILED
-  SUCCEEDED
-}
 `, BuiltIn: false},
 	{Name: "../module_propagations.graphqls", Input: `type ModulePropagation {
   modulePropagationId: ID!
@@ -2530,6 +2850,10 @@ enum ModulePropagationExecutionRequestStatus {
     limit: Int
     nextCursor: String
   ): ModulePropagationExecutionRequests!
+  driftCheckRequests(
+    limit: Int
+    nextCursor: String
+  ): ModulePropagationDriftCheckRequests!
 }
 
 type AwsProviderConfiguration {
@@ -2834,7 +3158,8 @@ extend type Mutation {
   terraformVersion: String!
   callbackTaskToken: String!
   stateKey: String!
-  modulePropagationExecutionRequestId: String!
+  modulePropagationRequestId: String!
+  terraformWorkflowRequestId: String!
   moduleAccountAssociationKey: String!
   modulePropagationId: ID!
   modulePropagation: ModulePropagation!
@@ -2842,8 +3167,7 @@ extend type Mutation {
   orgAccount: OrganizationalAccount!
   terraformConfigurationBase64: String!
   additionalArguments: [String]!
-  workflowExecutionId: String!
-  status: PlanExecutionStatus!
+  status: RequestStatus!
   requestTime: Time!
   initOutput: TerraformInitOutput
   planOutput: TerraformPlanOutput
@@ -2858,8 +3182,8 @@ extend type Query {
   planExecutionRequest(planExecutionRequestId: ID!): PlanExecutionRequest!
   planExecutionRequests(limit: Int, nextCursor: String): PlanExecutionRequests!
 }
-
-enum PlanExecutionStatus {
+`, BuiltIn: false},
+	{Name: "../request_status.graphqls", Input: `enum RequestStatus {
   PENDING
   RUNNING
   FAILED
@@ -2867,6 +3191,59 @@ enum PlanExecutionStatus {
 }
 `, BuiltIn: false},
 	{Name: "../scalar.graphqls", Input: `scalar Time
+`, BuiltIn: false},
+	{Name: "../terraform_drift_check_workflow_requests.graphqls", Input: `type TerraformDriftCheckWorkflowRequest {
+  terraformDriftCheckWorkflowRequestId: ID!
+  modulePropagationDriftCheckRequestId: ID!
+  modulePropagationDriftCheckRequest: ModulePropagationDriftCheckRequest!
+  moduleAccountAssociationKey: String!
+  moduleAccountAssociation: ModuleAccountAssociation!
+  orgAccountId: ID!
+  orgAccount: OrganizationalAccount!
+  modulePropagationId: ID!
+  modulePropagation: ModulePropagation!
+  planExecutionRequestId: ID
+  planExecutionRequest: PlanExecutionRequest
+  status: RequestStatus!
+  requestTime: Time!
+  destroy: Boolean!
+  syncStatus: TerraformDriftCheckStatus!
+}
+
+type TerraformDriftCheckWorkflowRequests {
+  items: [TerraformDriftCheckWorkflowRequest]!
+  nextCursor: String
+}
+
+enum TerraformDriftCheckStatus {
+  PENDING
+  IN_SYNC
+  OUT_OF_SYNC
+}
+`, BuiltIn: false},
+	{Name: "../terraform_execution_workflow_requests.graphqls", Input: `type TerraformExecutionWorkflowRequest {
+  terraformExecutionWorkflowRequestId: ID!
+  modulePropagationExecutionRequestId: ID!
+  modulePropagationExecutionRequest: ModulePropagationExecutionRequest!
+  moduleAccountAssociationKey: String!
+  moduleAccountAssociation: ModuleAccountAssociation!
+  orgAccountId: ID!
+  orgAccount: OrganizationalAccount!
+  modulePropagationId: ID!
+  modulePropagation: ModulePropagation!
+  planExecutionRequestId: ID
+  planExecutionRequest: PlanExecutionRequest
+  applyExecutionRequestId: ID
+  applyExecutionRequest: ApplyExecutionRequest
+  status: RequestStatus!
+  requestTime: Time!
+  destroy: Boolean!
+}
+
+type TerraformExecutionWorkflowRequests {
+  items: [TerraformExecutionWorkflowRequest]!
+  nextCursor: String
+}
 `, BuiltIn: false},
 	{Name: "../terraform_output.graphqls", Input: `type TerraformInitOutput {
   Stdout: String
@@ -2883,37 +3260,6 @@ type TerraformPlanOutput {
 type TerraformApplyOutput {
   Stdout: String
   Stderr: String
-}
-`, BuiltIn: false},
-	{Name: "../terraform_workflow_requests.graphqls", Input: `type TerraformWorkflowRequest {
-  terraformWorkflowRequestId: ID!
-  modulePropagationExecutionRequestId: ID!
-  modulePropagationExecutionRequest: ModulePropagationExecutionRequest!
-  moduleAccountAssociationKey: String!
-  moduleAccountAssociation: ModuleAccountAssociation!
-  orgAccountId: ID!
-  orgAccount: OrganizationalAccount!
-  modulePropagationId: ID!
-  modulePropagation: ModulePropagation!
-  planExecutionRequestId: ID
-  planExecutionRequest: PlanExecutionRequest
-  applyExecutionRequestId: ID
-  applyExecutionRequest: ApplyExecutionRequest
-  status: TerraformWorkflowRequestStatus!
-  requestTime: Time!
-  destroy: Boolean!
-}
-
-type TerraformWorkflowRequests {
-  items: [TerraformWorkflowRequest]!
-  nextCursor: String
-}
-
-enum TerraformWorkflowRequestStatus {
-  PENDING
-  RUNNING
-  FAILED
-  SUCCEEDED
 }
 `, BuiltIn: false},
 }
@@ -3019,6 +3365,54 @@ func (ec *executionContext) field_ModuleGroup_versions_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_ModulePropagationDriftCheckRequest_planExecutionRequests_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["nextCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nextCursor"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_ModulePropagationDriftCheckRequest_terraformDriftCheckWorkflowRequests_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["nextCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nextCursor"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_ModulePropagationExecutionRequest_applyExecutionRequests_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3067,7 +3461,31 @@ func (ec *executionContext) field_ModulePropagationExecutionRequest_planExecutio
 	return args, nil
 }
 
-func (ec *executionContext) field_ModulePropagationExecutionRequest_terraformWorkflowRequests_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_ModulePropagationExecutionRequest_terraformExecutionWorkflowRequests_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["nextCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nextCursor"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_ModulePropagation_driftCheckRequests_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
@@ -3175,6 +3593,21 @@ func (ec *executionContext) field_Mutation_createModuleGroup_args(ctx context.Co
 		}
 	}
 	args["moduleGroup"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createModulePropagationDriftCheckRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.NewModulePropagationDriftCheckRequest
+	if tmp, ok := rawArgs["modulePropagationDriftCheckRequest"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("modulePropagationDriftCheckRequest"))
+		arg0, err = ec.unmarshalNNewModulePropagationDriftCheckRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewModulePropagationDriftCheckRequest(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["modulePropagationDriftCheckRequest"] = arg0
 	return args, nil
 }
 
@@ -3806,6 +4239,54 @@ func (ec *executionContext) field_Query_moduleGroup_args(ctx context.Context, ra
 }
 
 func (ec *executionContext) field_Query_moduleGroups_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["nextCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nextCursor"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_modulePropagationDriftCheckRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["modulePropagationId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("modulePropagationId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["modulePropagationId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["modulePropagationDriftCheckRequestId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("modulePropagationDriftCheckRequestId"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["modulePropagationDriftCheckRequestId"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_modulePropagationDriftCheckRequests_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
@@ -4568,8 +5049,8 @@ func (ec *executionContext) fieldContext_ApplyExecutionRequest_stateKey(ctx cont
 	return fc, nil
 }
 
-func (ec *executionContext) _ApplyExecutionRequest_modulePropagationExecutionRequestId(ctx context.Context, field graphql.CollectedField, obj *models.ApplyExecutionRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ApplyExecutionRequest_modulePropagationExecutionRequestId(ctx, field)
+func (ec *executionContext) _ApplyExecutionRequest_modulePropagationRequestId(ctx context.Context, field graphql.CollectedField, obj *models.ApplyExecutionRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplyExecutionRequest_modulePropagationRequestId(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4582,7 +5063,7 @@ func (ec *executionContext) _ApplyExecutionRequest_modulePropagationExecutionReq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ModulePropagationExecutionRequestId, nil
+		return obj.ModulePropagationRequestId, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4599,7 +5080,51 @@ func (ec *executionContext) _ApplyExecutionRequest_modulePropagationExecutionReq
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ApplyExecutionRequest_modulePropagationExecutionRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ApplyExecutionRequest_modulePropagationRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplyExecutionRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ApplyExecutionRequest_terraformWorkflowRequestId(ctx context.Context, field graphql.CollectedField, obj *models.ApplyExecutionRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ApplyExecutionRequest_terraformWorkflowRequestId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TerraformWorkflowRequestId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ApplyExecutionRequest_terraformWorkflowRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ApplyExecutionRequest",
 		Field:      field,
@@ -4769,6 +5294,8 @@ func (ec *executionContext) fieldContext_ApplyExecutionRequest_modulePropagation
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
 				return ec.fieldContext_ModulePropagation_executionRequests(ctx, field)
+			case "driftCheckRequests":
+				return ec.fieldContext_ModulePropagation_driftCheckRequests(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModulePropagation", field.Name)
 		},
@@ -4966,50 +5493,6 @@ func (ec *executionContext) fieldContext_ApplyExecutionRequest_additionalArgumen
 	return fc, nil
 }
 
-func (ec *executionContext) _ApplyExecutionRequest_workflowExecutionId(ctx context.Context, field graphql.CollectedField, obj *models.ApplyExecutionRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ApplyExecutionRequest_workflowExecutionId(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.WorkflowExecutionId, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ApplyExecutionRequest_workflowExecutionId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ApplyExecutionRequest",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _ApplyExecutionRequest_status(ctx context.Context, field graphql.CollectedField, obj *models.ApplyExecutionRequest) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ApplyExecutionRequest_status(ctx, field)
 	if err != nil {
@@ -5036,9 +5519,9 @@ func (ec *executionContext) _ApplyExecutionRequest_status(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.ApplyExecutionStatus)
+	res := resTmp.(models.RequestStatus)
 	fc.Result = res
-	return ec.marshalNApplyExecutionStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐApplyExecutionStatus(ctx, field.Selections, res)
+	return ec.marshalNRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐRequestStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ApplyExecutionRequest_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5048,7 +5531,7 @@ func (ec *executionContext) fieldContext_ApplyExecutionRequest_status(ctx contex
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ApplyExecutionStatus does not have child fields")
+			return nil, errors.New("field of type RequestStatus does not have child fields")
 		},
 	}
 	return fc, nil
@@ -5239,8 +5722,10 @@ func (ec *executionContext) fieldContext_ApplyExecutionRequests_items(ctx contex
 				return ec.fieldContext_ApplyExecutionRequest_callbackTaskToken(ctx, field)
 			case "stateKey":
 				return ec.fieldContext_ApplyExecutionRequest_stateKey(ctx, field)
-			case "modulePropagationExecutionRequestId":
-				return ec.fieldContext_ApplyExecutionRequest_modulePropagationExecutionRequestId(ctx, field)
+			case "modulePropagationRequestId":
+				return ec.fieldContext_ApplyExecutionRequest_modulePropagationRequestId(ctx, field)
+			case "terraformWorkflowRequestId":
+				return ec.fieldContext_ApplyExecutionRequest_terraformWorkflowRequestId(ctx, field)
 			case "moduleAccountAssociationKey":
 				return ec.fieldContext_ApplyExecutionRequest_moduleAccountAssociationKey(ctx, field)
 			case "modulePropagationId":
@@ -5255,8 +5740,6 @@ func (ec *executionContext) fieldContext_ApplyExecutionRequests_items(ctx contex
 				return ec.fieldContext_ApplyExecutionRequest_terraformConfigurationBase64(ctx, field)
 			case "additionalArguments":
 				return ec.fieldContext_ApplyExecutionRequest_additionalArguments(ctx, field)
-			case "workflowExecutionId":
-				return ec.fieldContext_ApplyExecutionRequest_workflowExecutionId(ctx, field)
 			case "status":
 				return ec.fieldContext_ApplyExecutionRequest_status(ctx, field)
 			case "requestTime":
@@ -5602,6 +6085,8 @@ func (ec *executionContext) fieldContext_ModuleAccountAssociation_modulePropagat
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
 				return ec.fieldContext_ModulePropagation_executionRequests(ctx, field)
+			case "driftCheckRequests":
+				return ec.fieldContext_ModulePropagation_driftCheckRequests(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModulePropagation", field.Name)
 		},
@@ -7190,6 +7675,464 @@ func (ec *executionContext) fieldContext_ModulePropagation_executionRequests(ctx
 	return fc, nil
 }
 
+func (ec *executionContext) _ModulePropagation_driftCheckRequests(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagation_driftCheckRequests(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ModulePropagation().DriftCheckRequests(rctx, obj, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModulePropagationDriftCheckRequests)
+	fc.Result = res
+	return ec.marshalNModulePropagationDriftCheckRequests2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationDriftCheckRequests(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagation_driftCheckRequests(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_ModulePropagationDriftCheckRequests_items(ctx, field)
+			case "nextCursor":
+				return ec.fieldContext_ModulePropagationDriftCheckRequests_nextCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagationDriftCheckRequests", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_ModulePropagation_driftCheckRequests_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagationDriftCheckRequest_modulePropagationDriftCheckRequestId(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationDriftCheckRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagationDriftCheckRequest_modulePropagationDriftCheckRequestId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModulePropagationDriftCheckRequestId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagationDriftCheckRequest_modulePropagationDriftCheckRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagationDriftCheckRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagationDriftCheckRequest_modulePropagationId(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationDriftCheckRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagationDriftCheckRequest_modulePropagationId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModulePropagationId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagationDriftCheckRequest_modulePropagationId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagationDriftCheckRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagationDriftCheckRequest_requestTime(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationDriftCheckRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagationDriftCheckRequest_requestTime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RequestTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagationDriftCheckRequest_requestTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagationDriftCheckRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagationDriftCheckRequest_status(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationDriftCheckRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagationDriftCheckRequest_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.RequestStatus)
+	fc.Result = res
+	return ec.marshalNRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐRequestStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagationDriftCheckRequest_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagationDriftCheckRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RequestStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagationDriftCheckRequest_planExecutionRequests(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationDriftCheckRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagationDriftCheckRequest_planExecutionRequests(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ModulePropagationDriftCheckRequest().PlanExecutionRequests(rctx, obj, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.PlanExecutionRequests)
+	fc.Result = res
+	return ec.marshalNPlanExecutionRequests2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐPlanExecutionRequests(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagationDriftCheckRequest_planExecutionRequests(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagationDriftCheckRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_PlanExecutionRequests_items(ctx, field)
+			case "nextCursor":
+				return ec.fieldContext_PlanExecutionRequests_nextCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PlanExecutionRequests", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_ModulePropagationDriftCheckRequest_planExecutionRequests_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagationDriftCheckRequest_terraformDriftCheckWorkflowRequests(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationDriftCheckRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagationDriftCheckRequest_terraformDriftCheckWorkflowRequests(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ModulePropagationDriftCheckRequest().TerraformDriftCheckWorkflowRequests(rctx, obj, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.TerraformDriftCheckWorkflowRequests)
+	fc.Result = res
+	return ec.marshalNTerraformDriftCheckWorkflowRequests2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformDriftCheckWorkflowRequests(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagationDriftCheckRequest_terraformDriftCheckWorkflowRequests(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagationDriftCheckRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequests_items(ctx, field)
+			case "nextCursor":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequests_nextCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TerraformDriftCheckWorkflowRequests", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_ModulePropagationDriftCheckRequest_terraformDriftCheckWorkflowRequests_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagationDriftCheckRequests_items(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationDriftCheckRequests) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagationDriftCheckRequests_items(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Items, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]models.ModulePropagationDriftCheckRequest)
+	fc.Result = res
+	return ec.marshalNModulePropagationDriftCheckRequest2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationDriftCheckRequest(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagationDriftCheckRequests_items(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagationDriftCheckRequests",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationDriftCheckRequestId":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_modulePropagationDriftCheckRequestId(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_modulePropagationId(ctx, field)
+			case "requestTime":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_requestTime(ctx, field)
+			case "status":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_status(ctx, field)
+			case "planExecutionRequests":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_planExecutionRequests(ctx, field)
+			case "terraformDriftCheckWorkflowRequests":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_terraformDriftCheckWorkflowRequests(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagationDriftCheckRequest", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagationDriftCheckRequests_nextCursor(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationDriftCheckRequests) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagationDriftCheckRequests_nextCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NextCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagationDriftCheckRequests_nextCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagationDriftCheckRequests",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ModulePropagationExecutionRequest_modulePropagationExecutionRequestId(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationExecutionRequest) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ModulePropagationExecutionRequest_modulePropagationExecutionRequestId(ctx, field)
 	if err != nil {
@@ -7348,9 +8291,9 @@ func (ec *executionContext) _ModulePropagationExecutionRequest_status(ctx contex
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.ModulePropagationExecutionRequestStatus)
+	res := resTmp.(models.RequestStatus)
 	fc.Result = res
-	return ec.marshalNModulePropagationExecutionRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequestStatus(ctx, field.Selections, res)
+	return ec.marshalNRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐRequestStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ModulePropagationExecutionRequest_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7360,7 +8303,7 @@ func (ec *executionContext) fieldContext_ModulePropagationExecutionRequest_statu
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ModulePropagationExecutionRequestStatus does not have child fields")
+			return nil, errors.New("field of type RequestStatus does not have child fields")
 		},
 	}
 	return fc, nil
@@ -7488,8 +8431,8 @@ func (ec *executionContext) fieldContext_ModulePropagationExecutionRequest_apply
 	return fc, nil
 }
 
-func (ec *executionContext) _ModulePropagationExecutionRequest_terraformWorkflowRequests(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationExecutionRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ModulePropagationExecutionRequest_terraformWorkflowRequests(ctx, field)
+func (ec *executionContext) _ModulePropagationExecutionRequest_terraformExecutionWorkflowRequests(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagationExecutionRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagationExecutionRequest_terraformExecutionWorkflowRequests(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7502,7 +8445,7 @@ func (ec *executionContext) _ModulePropagationExecutionRequest_terraformWorkflow
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ModulePropagationExecutionRequest().TerraformWorkflowRequests(rctx, obj, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+		return ec.resolvers.ModulePropagationExecutionRequest().TerraformExecutionWorkflowRequests(rctx, obj, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7514,12 +8457,12 @@ func (ec *executionContext) _ModulePropagationExecutionRequest_terraformWorkflow
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.TerraformWorkflowRequests)
+	res := resTmp.(*models.TerraformExecutionWorkflowRequests)
 	fc.Result = res
-	return ec.marshalNTerraformWorkflowRequests2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformWorkflowRequests(ctx, field.Selections, res)
+	return ec.marshalNTerraformExecutionWorkflowRequests2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformExecutionWorkflowRequests(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ModulePropagationExecutionRequest_terraformWorkflowRequests(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ModulePropagationExecutionRequest_terraformExecutionWorkflowRequests(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ModulePropagationExecutionRequest",
 		Field:      field,
@@ -7528,11 +8471,11 @@ func (ec *executionContext) fieldContext_ModulePropagationExecutionRequest_terra
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "items":
-				return ec.fieldContext_TerraformWorkflowRequests_items(ctx, field)
+				return ec.fieldContext_TerraformExecutionWorkflowRequests_items(ctx, field)
 			case "nextCursor":
-				return ec.fieldContext_TerraformWorkflowRequests_nextCursor(ctx, field)
+				return ec.fieldContext_TerraformExecutionWorkflowRequests_nextCursor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type TerraformWorkflowRequests", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type TerraformExecutionWorkflowRequests", field.Name)
 		},
 	}
 	defer func() {
@@ -7542,7 +8485,7 @@ func (ec *executionContext) fieldContext_ModulePropagationExecutionRequest_terra
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_ModulePropagationExecutionRequest_terraformWorkflowRequests_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_ModulePropagationExecutionRequest_terraformExecutionWorkflowRequests_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -7600,8 +8543,8 @@ func (ec *executionContext) fieldContext_ModulePropagationExecutionRequests_item
 				return ec.fieldContext_ModulePropagationExecutionRequest_planExecutionRequests(ctx, field)
 			case "applyExecutionRequests":
 				return ec.fieldContext_ModulePropagationExecutionRequest_applyExecutionRequests(ctx, field)
-			case "terraformWorkflowRequests":
-				return ec.fieldContext_ModulePropagationExecutionRequest_terraformWorkflowRequests(ctx, field)
+			case "terraformExecutionWorkflowRequests":
+				return ec.fieldContext_ModulePropagationExecutionRequest_terraformExecutionWorkflowRequests(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModulePropagationExecutionRequest", field.Name)
 		},
@@ -7719,6 +8662,8 @@ func (ec *executionContext) fieldContext_ModulePropagations_items(ctx context.Co
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
 				return ec.fieldContext_ModulePropagation_executionRequests(ctx, field)
+			case "driftCheckRequests":
+				return ec.fieldContext_ModulePropagation_driftCheckRequests(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModulePropagation", field.Name)
 		},
@@ -8552,6 +9497,75 @@ func (ec *executionContext) fieldContext_Mutation_deleteModuleGroup(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createModulePropagationDriftCheckRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createModulePropagationDriftCheckRequest(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateModulePropagationDriftCheckRequest(rctx, fc.Args["modulePropagationDriftCheckRequest"].(models.NewModulePropagationDriftCheckRequest))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModulePropagationDriftCheckRequest)
+	fc.Result = res
+	return ec.marshalNModulePropagationDriftCheckRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationDriftCheckRequest(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createModulePropagationDriftCheckRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationDriftCheckRequestId":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_modulePropagationDriftCheckRequestId(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_modulePropagationId(ctx, field)
+			case "requestTime":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_requestTime(ctx, field)
+			case "status":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_status(ctx, field)
+			case "planExecutionRequests":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_planExecutionRequests(ctx, field)
+			case "terraformDriftCheckWorkflowRequests":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_terraformDriftCheckWorkflowRequests(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagationDriftCheckRequest", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createModulePropagationDriftCheckRequest_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createModulePropagationExecutionRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createModulePropagationExecutionRequest(ctx, field)
 	if err != nil {
@@ -8603,8 +9617,8 @@ func (ec *executionContext) fieldContext_Mutation_createModulePropagationExecuti
 				return ec.fieldContext_ModulePropagationExecutionRequest_planExecutionRequests(ctx, field)
 			case "applyExecutionRequests":
 				return ec.fieldContext_ModulePropagationExecutionRequest_applyExecutionRequests(ctx, field)
-			case "terraformWorkflowRequests":
-				return ec.fieldContext_ModulePropagationExecutionRequest_terraformWorkflowRequests(ctx, field)
+			case "terraformExecutionWorkflowRequests":
+				return ec.fieldContext_ModulePropagationExecutionRequest_terraformExecutionWorkflowRequests(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModulePropagationExecutionRequest", field.Name)
 		},
@@ -8692,6 +9706,8 @@ func (ec *executionContext) fieldContext_Mutation_createModulePropagation(ctx co
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
 				return ec.fieldContext_ModulePropagation_executionRequests(ctx, field)
+			case "driftCheckRequests":
+				return ec.fieldContext_ModulePropagation_driftCheckRequests(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModulePropagation", field.Name)
 		},
@@ -8834,6 +9850,8 @@ func (ec *executionContext) fieldContext_Mutation_updateModulePropagation(ctx co
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
 				return ec.fieldContext_ModulePropagation_executionRequests(ctx, field)
+			case "driftCheckRequests":
+				return ec.fieldContext_ModulePropagation_driftCheckRequests(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModulePropagation", field.Name)
 		},
@@ -11664,8 +12682,8 @@ func (ec *executionContext) fieldContext_PlanExecutionRequest_stateKey(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _PlanExecutionRequest_modulePropagationExecutionRequestId(ctx context.Context, field graphql.CollectedField, obj *models.PlanExecutionRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_PlanExecutionRequest_modulePropagationExecutionRequestId(ctx, field)
+func (ec *executionContext) _PlanExecutionRequest_modulePropagationRequestId(ctx context.Context, field graphql.CollectedField, obj *models.PlanExecutionRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PlanExecutionRequest_modulePropagationRequestId(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -11678,7 +12696,7 @@ func (ec *executionContext) _PlanExecutionRequest_modulePropagationExecutionRequ
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ModulePropagationExecutionRequestId, nil
+		return obj.ModulePropagationRequestId, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11695,7 +12713,51 @@ func (ec *executionContext) _PlanExecutionRequest_modulePropagationExecutionRequ
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_PlanExecutionRequest_modulePropagationExecutionRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_PlanExecutionRequest_modulePropagationRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PlanExecutionRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PlanExecutionRequest_terraformWorkflowRequestId(ctx context.Context, field graphql.CollectedField, obj *models.PlanExecutionRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PlanExecutionRequest_terraformWorkflowRequestId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TerraformWorkflowRequestId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PlanExecutionRequest_terraformWorkflowRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "PlanExecutionRequest",
 		Field:      field,
@@ -11865,6 +12927,8 @@ func (ec *executionContext) fieldContext_PlanExecutionRequest_modulePropagation(
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
 				return ec.fieldContext_ModulePropagation_executionRequests(ctx, field)
+			case "driftCheckRequests":
+				return ec.fieldContext_ModulePropagation_driftCheckRequests(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModulePropagation", field.Name)
 		},
@@ -12062,50 +13126,6 @@ func (ec *executionContext) fieldContext_PlanExecutionRequest_additionalArgument
 	return fc, nil
 }
 
-func (ec *executionContext) _PlanExecutionRequest_workflowExecutionId(ctx context.Context, field graphql.CollectedField, obj *models.PlanExecutionRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_PlanExecutionRequest_workflowExecutionId(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.WorkflowExecutionId, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_PlanExecutionRequest_workflowExecutionId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "PlanExecutionRequest",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _PlanExecutionRequest_status(ctx context.Context, field graphql.CollectedField, obj *models.PlanExecutionRequest) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PlanExecutionRequest_status(ctx, field)
 	if err != nil {
@@ -12132,9 +13152,9 @@ func (ec *executionContext) _PlanExecutionRequest_status(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.PlanExecutionStatus)
+	res := resTmp.(models.RequestStatus)
 	fc.Result = res
-	return ec.marshalNPlanExecutionStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐPlanExecutionStatus(ctx, field.Selections, res)
+	return ec.marshalNRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐRequestStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PlanExecutionRequest_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -12144,7 +13164,7 @@ func (ec *executionContext) fieldContext_PlanExecutionRequest_status(ctx context
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type PlanExecutionStatus does not have child fields")
+			return nil, errors.New("field of type RequestStatus does not have child fields")
 		},
 	}
 	return fc, nil
@@ -12339,8 +13359,10 @@ func (ec *executionContext) fieldContext_PlanExecutionRequests_items(ctx context
 				return ec.fieldContext_PlanExecutionRequest_callbackTaskToken(ctx, field)
 			case "stateKey":
 				return ec.fieldContext_PlanExecutionRequest_stateKey(ctx, field)
-			case "modulePropagationExecutionRequestId":
-				return ec.fieldContext_PlanExecutionRequest_modulePropagationExecutionRequestId(ctx, field)
+			case "modulePropagationRequestId":
+				return ec.fieldContext_PlanExecutionRequest_modulePropagationRequestId(ctx, field)
+			case "terraformWorkflowRequestId":
+				return ec.fieldContext_PlanExecutionRequest_terraformWorkflowRequestId(ctx, field)
 			case "moduleAccountAssociationKey":
 				return ec.fieldContext_PlanExecutionRequest_moduleAccountAssociationKey(ctx, field)
 			case "modulePropagationId":
@@ -12355,8 +13377,6 @@ func (ec *executionContext) fieldContext_PlanExecutionRequests_items(ctx context
 				return ec.fieldContext_PlanExecutionRequest_terraformConfigurationBase64(ctx, field)
 			case "additionalArguments":
 				return ec.fieldContext_PlanExecutionRequest_additionalArguments(ctx, field)
-			case "workflowExecutionId":
-				return ec.fieldContext_PlanExecutionRequest_workflowExecutionId(ctx, field)
 			case "status":
 				return ec.fieldContext_PlanExecutionRequest_status(ctx, field)
 			case "requestTime":
@@ -12460,8 +13480,10 @@ func (ec *executionContext) fieldContext_Query_applyExecutionRequest(ctx context
 				return ec.fieldContext_ApplyExecutionRequest_callbackTaskToken(ctx, field)
 			case "stateKey":
 				return ec.fieldContext_ApplyExecutionRequest_stateKey(ctx, field)
-			case "modulePropagationExecutionRequestId":
-				return ec.fieldContext_ApplyExecutionRequest_modulePropagationExecutionRequestId(ctx, field)
+			case "modulePropagationRequestId":
+				return ec.fieldContext_ApplyExecutionRequest_modulePropagationRequestId(ctx, field)
+			case "terraformWorkflowRequestId":
+				return ec.fieldContext_ApplyExecutionRequest_terraformWorkflowRequestId(ctx, field)
 			case "moduleAccountAssociationKey":
 				return ec.fieldContext_ApplyExecutionRequest_moduleAccountAssociationKey(ctx, field)
 			case "modulePropagationId":
@@ -12476,8 +13498,6 @@ func (ec *executionContext) fieldContext_Query_applyExecutionRequest(ctx context
 				return ec.fieldContext_ApplyExecutionRequest_terraformConfigurationBase64(ctx, field)
 			case "additionalArguments":
 				return ec.fieldContext_ApplyExecutionRequest_additionalArguments(ctx, field)
-			case "workflowExecutionId":
-				return ec.fieldContext_ApplyExecutionRequest_workflowExecutionId(ctx, field)
 			case "status":
 				return ec.fieldContext_ApplyExecutionRequest_status(ctx, field)
 			case "requestTime":
@@ -12829,6 +13849,136 @@ func (ec *executionContext) fieldContext_Query_moduleGroups(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_modulePropagationDriftCheckRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_modulePropagationDriftCheckRequest(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ModulePropagationDriftCheckRequest(rctx, fc.Args["modulePropagationId"].(string), fc.Args["modulePropagationDriftCheckRequestId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModulePropagationDriftCheckRequest)
+	fc.Result = res
+	return ec.marshalNModulePropagationDriftCheckRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationDriftCheckRequest(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_modulePropagationDriftCheckRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationDriftCheckRequestId":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_modulePropagationDriftCheckRequestId(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_modulePropagationId(ctx, field)
+			case "requestTime":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_requestTime(ctx, field)
+			case "status":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_status(ctx, field)
+			case "planExecutionRequests":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_planExecutionRequests(ctx, field)
+			case "terraformDriftCheckWorkflowRequests":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_terraformDriftCheckWorkflowRequests(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagationDriftCheckRequest", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_modulePropagationDriftCheckRequest_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_modulePropagationDriftCheckRequests(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_modulePropagationDriftCheckRequests(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ModulePropagationDriftCheckRequests(rctx, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModulePropagationDriftCheckRequests)
+	fc.Result = res
+	return ec.marshalNModulePropagationDriftCheckRequests2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationDriftCheckRequests(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_modulePropagationDriftCheckRequests(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_ModulePropagationDriftCheckRequests_items(ctx, field)
+			case "nextCursor":
+				return ec.fieldContext_ModulePropagationDriftCheckRequests_nextCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagationDriftCheckRequests", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_modulePropagationDriftCheckRequests_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_modulePropagationExecutionRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_modulePropagationExecutionRequest(ctx, field)
 	if err != nil {
@@ -12880,8 +14030,8 @@ func (ec *executionContext) fieldContext_Query_modulePropagationExecutionRequest
 				return ec.fieldContext_ModulePropagationExecutionRequest_planExecutionRequests(ctx, field)
 			case "applyExecutionRequests":
 				return ec.fieldContext_ModulePropagationExecutionRequest_applyExecutionRequests(ctx, field)
-			case "terraformWorkflowRequests":
-				return ec.fieldContext_ModulePropagationExecutionRequest_terraformWorkflowRequests(ctx, field)
+			case "terraformExecutionWorkflowRequests":
+				return ec.fieldContext_ModulePropagationExecutionRequest_terraformExecutionWorkflowRequests(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModulePropagationExecutionRequest", field.Name)
 		},
@@ -13030,6 +14180,8 @@ func (ec *executionContext) fieldContext_Query_modulePropagation(ctx context.Con
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
 				return ec.fieldContext_ModulePropagation_executionRequests(ctx, field)
+			case "driftCheckRequests":
+				return ec.fieldContext_ModulePropagation_driftCheckRequests(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModulePropagation", field.Name)
 		},
@@ -14056,8 +15208,10 @@ func (ec *executionContext) fieldContext_Query_planExecutionRequest(ctx context.
 				return ec.fieldContext_PlanExecutionRequest_callbackTaskToken(ctx, field)
 			case "stateKey":
 				return ec.fieldContext_PlanExecutionRequest_stateKey(ctx, field)
-			case "modulePropagationExecutionRequestId":
-				return ec.fieldContext_PlanExecutionRequest_modulePropagationExecutionRequestId(ctx, field)
+			case "modulePropagationRequestId":
+				return ec.fieldContext_PlanExecutionRequest_modulePropagationRequestId(ctx, field)
+			case "terraformWorkflowRequestId":
+				return ec.fieldContext_PlanExecutionRequest_terraformWorkflowRequestId(ctx, field)
 			case "moduleAccountAssociationKey":
 				return ec.fieldContext_PlanExecutionRequest_moduleAccountAssociationKey(ctx, field)
 			case "modulePropagationId":
@@ -14072,8 +15226,6 @@ func (ec *executionContext) fieldContext_Query_planExecutionRequest(ctx context.
 				return ec.fieldContext_PlanExecutionRequest_terraformConfigurationBase64(ctx, field)
 			case "additionalArguments":
 				return ec.fieldContext_PlanExecutionRequest_additionalArguments(ctx, field)
-			case "workflowExecutionId":
-				return ec.fieldContext_PlanExecutionRequest_workflowExecutionId(ctx, field)
 			case "status":
 				return ec.fieldContext_PlanExecutionRequest_status(ctx, field)
 			case "requestTime":
@@ -14372,6 +15524,1866 @@ func (ec *executionContext) fieldContext_TerraformApplyOutput_Stderr(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest_terraformDriftCheckWorkflowRequestId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequest_terraformDriftCheckWorkflowRequestId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TerraformDriftCheckWorkflowRequestId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_terraformDriftCheckWorkflowRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest_modulePropagationDriftCheckRequestId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagationDriftCheckRequestId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModulePropagationDriftCheckRequestId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagationDriftCheckRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest_modulePropagationDriftCheckRequest(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagationDriftCheckRequest(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TerraformDriftCheckWorkflowRequest().ModulePropagationDriftCheckRequest(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModulePropagationDriftCheckRequest)
+	fc.Result = res
+	return ec.marshalNModulePropagationDriftCheckRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationDriftCheckRequest(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagationDriftCheckRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationDriftCheckRequestId":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_modulePropagationDriftCheckRequestId(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_modulePropagationId(ctx, field)
+			case "requestTime":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_requestTime(ctx, field)
+			case "status":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_status(ctx, field)
+			case "planExecutionRequests":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_planExecutionRequests(ctx, field)
+			case "terraformDriftCheckWorkflowRequests":
+				return ec.fieldContext_ModulePropagationDriftCheckRequest_terraformDriftCheckWorkflowRequests(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagationDriftCheckRequest", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest_moduleAccountAssociationKey(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequest_moduleAccountAssociationKey(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModuleAccountAssociationKey, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_moduleAccountAssociationKey(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest_moduleAccountAssociation(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequest_moduleAccountAssociation(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TerraformDriftCheckWorkflowRequest().ModuleAccountAssociation(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleAccountAssociation)
+	fc.Result = res
+	return ec.marshalNModuleAccountAssociation2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_moduleAccountAssociation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationId":
+				return ec.fieldContext_ModuleAccountAssociation_modulePropagationId(ctx, field)
+			case "modulePropagation":
+				return ec.fieldContext_ModuleAccountAssociation_modulePropagation(ctx, field)
+			case "orgAccountId":
+				return ec.fieldContext_ModuleAccountAssociation_orgAccountId(ctx, field)
+			case "orgAccount":
+				return ec.fieldContext_ModuleAccountAssociation_orgAccount(ctx, field)
+			case "remoteStateBucket":
+				return ec.fieldContext_ModuleAccountAssociation_remoteStateBucket(ctx, field)
+			case "remoteStateKey":
+				return ec.fieldContext_ModuleAccountAssociation_remoteStateKey(ctx, field)
+			case "status":
+				return ec.fieldContext_ModuleAccountAssociation_status(ctx, field)
+			case "planExecutionRequests":
+				return ec.fieldContext_ModuleAccountAssociation_planExecutionRequests(ctx, field)
+			case "applyExecutionRequests":
+				return ec.fieldContext_ModuleAccountAssociation_applyExecutionRequests(ctx, field)
+			case "terraformConfiguration":
+				return ec.fieldContext_ModuleAccountAssociation_terraformConfiguration(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleAccountAssociation", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest_orgAccountId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequest_orgAccountId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TerraformDriftCheckWorkflowRequest().OrgAccountID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_orgAccountId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest_orgAccount(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequest_orgAccount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TerraformDriftCheckWorkflowRequest().OrgAccount(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.OrganizationalAccount)
+	fc.Result = res
+	return ec.marshalNOrganizationalAccount2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐOrganizationalAccount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_orgAccount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "orgAccountId":
+				return ec.fieldContext_OrganizationalAccount_orgAccountId(ctx, field)
+			case "name":
+				return ec.fieldContext_OrganizationalAccount_name(ctx, field)
+			case "cloudPlatform":
+				return ec.fieldContext_OrganizationalAccount_cloudPlatform(ctx, field)
+			case "cloudIdentifier":
+				return ec.fieldContext_OrganizationalAccount_cloudIdentifier(ctx, field)
+			case "orgUnitMemberships":
+				return ec.fieldContext_OrganizationalAccount_orgUnitMemberships(ctx, field)
+			case "moduleAccountAssociations":
+				return ec.fieldContext_OrganizationalAccount_moduleAccountAssociations(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OrganizationalAccount", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest_modulePropagationId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagationId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TerraformDriftCheckWorkflowRequest().ModulePropagationID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagationId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest_modulePropagation(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagation(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TerraformDriftCheckWorkflowRequest().ModulePropagation(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModulePropagation)
+	fc.Result = res
+	return ec.marshalNModulePropagation2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationId":
+				return ec.fieldContext_ModulePropagation_modulePropagationId(ctx, field)
+			case "moduleVersionId":
+				return ec.fieldContext_ModulePropagation_moduleVersionId(ctx, field)
+			case "moduleVersion":
+				return ec.fieldContext_ModulePropagation_moduleVersion(ctx, field)
+			case "moduleGroupId":
+				return ec.fieldContext_ModulePropagation_moduleGroupId(ctx, field)
+			case "moduleGroup":
+				return ec.fieldContext_ModulePropagation_moduleGroup(ctx, field)
+			case "orgUnitId":
+				return ec.fieldContext_ModulePropagation_orgUnitId(ctx, field)
+			case "orgUnit":
+				return ec.fieldContext_ModulePropagation_orgUnit(ctx, field)
+			case "orgDimensionId":
+				return ec.fieldContext_ModulePropagation_orgDimensionId(ctx, field)
+			case "orgDimension":
+				return ec.fieldContext_ModulePropagation_orgDimension(ctx, field)
+			case "name":
+				return ec.fieldContext_ModulePropagation_name(ctx, field)
+			case "description":
+				return ec.fieldContext_ModulePropagation_description(ctx, field)
+			case "arguments":
+				return ec.fieldContext_ModulePropagation_arguments(ctx, field)
+			case "awsProviderConfigurations":
+				return ec.fieldContext_ModulePropagation_awsProviderConfigurations(ctx, field)
+			case "moduleAccountAssociations":
+				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
+			case "executionRequests":
+				return ec.fieldContext_ModulePropagation_executionRequests(ctx, field)
+			case "driftCheckRequests":
+				return ec.fieldContext_ModulePropagation_driftCheckRequests(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagation", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest_planExecutionRequestId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequest_planExecutionRequestId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PlanExecutionRequestId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_planExecutionRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest_planExecutionRequest(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequest_planExecutionRequest(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TerraformDriftCheckWorkflowRequest().PlanExecutionRequest(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.PlanExecutionRequest)
+	fc.Result = res
+	return ec.marshalOPlanExecutionRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐPlanExecutionRequest(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_planExecutionRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "planExecutionRequestId":
+				return ec.fieldContext_PlanExecutionRequest_planExecutionRequestId(ctx, field)
+			case "terraformVersion":
+				return ec.fieldContext_PlanExecutionRequest_terraformVersion(ctx, field)
+			case "callbackTaskToken":
+				return ec.fieldContext_PlanExecutionRequest_callbackTaskToken(ctx, field)
+			case "stateKey":
+				return ec.fieldContext_PlanExecutionRequest_stateKey(ctx, field)
+			case "modulePropagationRequestId":
+				return ec.fieldContext_PlanExecutionRequest_modulePropagationRequestId(ctx, field)
+			case "terraformWorkflowRequestId":
+				return ec.fieldContext_PlanExecutionRequest_terraformWorkflowRequestId(ctx, field)
+			case "moduleAccountAssociationKey":
+				return ec.fieldContext_PlanExecutionRequest_moduleAccountAssociationKey(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_PlanExecutionRequest_modulePropagationId(ctx, field)
+			case "modulePropagation":
+				return ec.fieldContext_PlanExecutionRequest_modulePropagation(ctx, field)
+			case "orgAccountId":
+				return ec.fieldContext_PlanExecutionRequest_orgAccountId(ctx, field)
+			case "orgAccount":
+				return ec.fieldContext_PlanExecutionRequest_orgAccount(ctx, field)
+			case "terraformConfigurationBase64":
+				return ec.fieldContext_PlanExecutionRequest_terraformConfigurationBase64(ctx, field)
+			case "additionalArguments":
+				return ec.fieldContext_PlanExecutionRequest_additionalArguments(ctx, field)
+			case "status":
+				return ec.fieldContext_PlanExecutionRequest_status(ctx, field)
+			case "requestTime":
+				return ec.fieldContext_PlanExecutionRequest_requestTime(ctx, field)
+			case "initOutput":
+				return ec.fieldContext_PlanExecutionRequest_initOutput(ctx, field)
+			case "planOutput":
+				return ec.fieldContext_PlanExecutionRequest_planOutput(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PlanExecutionRequest", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest_status(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequest_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.RequestStatus)
+	fc.Result = res
+	return ec.marshalNRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐRequestStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RequestStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest_requestTime(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequest_requestTime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RequestTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_requestTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest_destroy(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequest_destroy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Destroy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_destroy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest_syncStatus(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequest_syncStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SyncStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.TerraformDriftCheckStatus)
+	fc.Result = res
+	return ec.marshalNTerraformDriftCheckStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformDriftCheckStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_syncStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type TerraformDriftCheckStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequests_items(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequests) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequests_items(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Items, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]models.TerraformDriftCheckWorkflowRequest)
+	fc.Result = res
+	return ec.marshalNTerraformDriftCheckWorkflowRequest2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformDriftCheckWorkflowRequest(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequests_items(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequests",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "terraformDriftCheckWorkflowRequestId":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_terraformDriftCheckWorkflowRequestId(ctx, field)
+			case "modulePropagationDriftCheckRequestId":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagationDriftCheckRequestId(ctx, field)
+			case "modulePropagationDriftCheckRequest":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagationDriftCheckRequest(ctx, field)
+			case "moduleAccountAssociationKey":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_moduleAccountAssociationKey(ctx, field)
+			case "moduleAccountAssociation":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_moduleAccountAssociation(ctx, field)
+			case "orgAccountId":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_orgAccountId(ctx, field)
+			case "orgAccount":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_orgAccount(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagationId(ctx, field)
+			case "modulePropagation":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagation(ctx, field)
+			case "planExecutionRequestId":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_planExecutionRequestId(ctx, field)
+			case "planExecutionRequest":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_planExecutionRequest(ctx, field)
+			case "status":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_status(ctx, field)
+			case "requestTime":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_requestTime(ctx, field)
+			case "destroy":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_destroy(ctx, field)
+			case "syncStatus":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_syncStatus(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TerraformDriftCheckWorkflowRequest", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequests_nextCursor(ctx context.Context, field graphql.CollectedField, obj *models.TerraformDriftCheckWorkflowRequests) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformDriftCheckWorkflowRequests_nextCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NextCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequests_nextCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformDriftCheckWorkflowRequests",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_terraformExecutionWorkflowRequestId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_terraformExecutionWorkflowRequestId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TerraformExecutionWorkflowRequestId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_terraformExecutionWorkflowRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_modulePropagationExecutionRequestId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_modulePropagationExecutionRequestId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModulePropagationExecutionRequestId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_modulePropagationExecutionRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_modulePropagationExecutionRequest(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_modulePropagationExecutionRequest(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TerraformExecutionWorkflowRequest().ModulePropagationExecutionRequest(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModulePropagationExecutionRequest)
+	fc.Result = res
+	return ec.marshalNModulePropagationExecutionRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequest(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_modulePropagationExecutionRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationExecutionRequestId":
+				return ec.fieldContext_ModulePropagationExecutionRequest_modulePropagationExecutionRequestId(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_ModulePropagationExecutionRequest_modulePropagationId(ctx, field)
+			case "requestTime":
+				return ec.fieldContext_ModulePropagationExecutionRequest_requestTime(ctx, field)
+			case "status":
+				return ec.fieldContext_ModulePropagationExecutionRequest_status(ctx, field)
+			case "planExecutionRequests":
+				return ec.fieldContext_ModulePropagationExecutionRequest_planExecutionRequests(ctx, field)
+			case "applyExecutionRequests":
+				return ec.fieldContext_ModulePropagationExecutionRequest_applyExecutionRequests(ctx, field)
+			case "terraformExecutionWorkflowRequests":
+				return ec.fieldContext_ModulePropagationExecutionRequest_terraformExecutionWorkflowRequests(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagationExecutionRequest", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_moduleAccountAssociationKey(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_moduleAccountAssociationKey(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ModuleAccountAssociationKey, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_moduleAccountAssociationKey(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_moduleAccountAssociation(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_moduleAccountAssociation(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TerraformExecutionWorkflowRequest().ModuleAccountAssociation(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleAccountAssociation)
+	fc.Result = res
+	return ec.marshalNModuleAccountAssociation2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_moduleAccountAssociation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationId":
+				return ec.fieldContext_ModuleAccountAssociation_modulePropagationId(ctx, field)
+			case "modulePropagation":
+				return ec.fieldContext_ModuleAccountAssociation_modulePropagation(ctx, field)
+			case "orgAccountId":
+				return ec.fieldContext_ModuleAccountAssociation_orgAccountId(ctx, field)
+			case "orgAccount":
+				return ec.fieldContext_ModuleAccountAssociation_orgAccount(ctx, field)
+			case "remoteStateBucket":
+				return ec.fieldContext_ModuleAccountAssociation_remoteStateBucket(ctx, field)
+			case "remoteStateKey":
+				return ec.fieldContext_ModuleAccountAssociation_remoteStateKey(ctx, field)
+			case "status":
+				return ec.fieldContext_ModuleAccountAssociation_status(ctx, field)
+			case "planExecutionRequests":
+				return ec.fieldContext_ModuleAccountAssociation_planExecutionRequests(ctx, field)
+			case "applyExecutionRequests":
+				return ec.fieldContext_ModuleAccountAssociation_applyExecutionRequests(ctx, field)
+			case "terraformConfiguration":
+				return ec.fieldContext_ModuleAccountAssociation_terraformConfiguration(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleAccountAssociation", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_orgAccountId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_orgAccountId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TerraformExecutionWorkflowRequest().OrgAccountID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_orgAccountId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_orgAccount(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_orgAccount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TerraformExecutionWorkflowRequest().OrgAccount(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.OrganizationalAccount)
+	fc.Result = res
+	return ec.marshalNOrganizationalAccount2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐOrganizationalAccount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_orgAccount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "orgAccountId":
+				return ec.fieldContext_OrganizationalAccount_orgAccountId(ctx, field)
+			case "name":
+				return ec.fieldContext_OrganizationalAccount_name(ctx, field)
+			case "cloudPlatform":
+				return ec.fieldContext_OrganizationalAccount_cloudPlatform(ctx, field)
+			case "cloudIdentifier":
+				return ec.fieldContext_OrganizationalAccount_cloudIdentifier(ctx, field)
+			case "orgUnitMemberships":
+				return ec.fieldContext_OrganizationalAccount_orgUnitMemberships(ctx, field)
+			case "moduleAccountAssociations":
+				return ec.fieldContext_OrganizationalAccount_moduleAccountAssociations(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OrganizationalAccount", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_modulePropagationId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_modulePropagationId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TerraformExecutionWorkflowRequest().ModulePropagationID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_modulePropagationId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_modulePropagation(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_modulePropagation(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TerraformExecutionWorkflowRequest().ModulePropagation(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModulePropagation)
+	fc.Result = res
+	return ec.marshalNModulePropagation2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_modulePropagation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modulePropagationId":
+				return ec.fieldContext_ModulePropagation_modulePropagationId(ctx, field)
+			case "moduleVersionId":
+				return ec.fieldContext_ModulePropagation_moduleVersionId(ctx, field)
+			case "moduleVersion":
+				return ec.fieldContext_ModulePropagation_moduleVersion(ctx, field)
+			case "moduleGroupId":
+				return ec.fieldContext_ModulePropagation_moduleGroupId(ctx, field)
+			case "moduleGroup":
+				return ec.fieldContext_ModulePropagation_moduleGroup(ctx, field)
+			case "orgUnitId":
+				return ec.fieldContext_ModulePropagation_orgUnitId(ctx, field)
+			case "orgUnit":
+				return ec.fieldContext_ModulePropagation_orgUnit(ctx, field)
+			case "orgDimensionId":
+				return ec.fieldContext_ModulePropagation_orgDimensionId(ctx, field)
+			case "orgDimension":
+				return ec.fieldContext_ModulePropagation_orgDimension(ctx, field)
+			case "name":
+				return ec.fieldContext_ModulePropagation_name(ctx, field)
+			case "description":
+				return ec.fieldContext_ModulePropagation_description(ctx, field)
+			case "arguments":
+				return ec.fieldContext_ModulePropagation_arguments(ctx, field)
+			case "awsProviderConfigurations":
+				return ec.fieldContext_ModulePropagation_awsProviderConfigurations(ctx, field)
+			case "moduleAccountAssociations":
+				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
+			case "executionRequests":
+				return ec.fieldContext_ModulePropagation_executionRequests(ctx, field)
+			case "driftCheckRequests":
+				return ec.fieldContext_ModulePropagation_driftCheckRequests(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModulePropagation", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_planExecutionRequestId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_planExecutionRequestId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PlanExecutionRequestId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_planExecutionRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_planExecutionRequest(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_planExecutionRequest(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TerraformExecutionWorkflowRequest().PlanExecutionRequest(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.PlanExecutionRequest)
+	fc.Result = res
+	return ec.marshalOPlanExecutionRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐPlanExecutionRequest(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_planExecutionRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "planExecutionRequestId":
+				return ec.fieldContext_PlanExecutionRequest_planExecutionRequestId(ctx, field)
+			case "terraformVersion":
+				return ec.fieldContext_PlanExecutionRequest_terraformVersion(ctx, field)
+			case "callbackTaskToken":
+				return ec.fieldContext_PlanExecutionRequest_callbackTaskToken(ctx, field)
+			case "stateKey":
+				return ec.fieldContext_PlanExecutionRequest_stateKey(ctx, field)
+			case "modulePropagationRequestId":
+				return ec.fieldContext_PlanExecutionRequest_modulePropagationRequestId(ctx, field)
+			case "terraformWorkflowRequestId":
+				return ec.fieldContext_PlanExecutionRequest_terraformWorkflowRequestId(ctx, field)
+			case "moduleAccountAssociationKey":
+				return ec.fieldContext_PlanExecutionRequest_moduleAccountAssociationKey(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_PlanExecutionRequest_modulePropagationId(ctx, field)
+			case "modulePropagation":
+				return ec.fieldContext_PlanExecutionRequest_modulePropagation(ctx, field)
+			case "orgAccountId":
+				return ec.fieldContext_PlanExecutionRequest_orgAccountId(ctx, field)
+			case "orgAccount":
+				return ec.fieldContext_PlanExecutionRequest_orgAccount(ctx, field)
+			case "terraformConfigurationBase64":
+				return ec.fieldContext_PlanExecutionRequest_terraformConfigurationBase64(ctx, field)
+			case "additionalArguments":
+				return ec.fieldContext_PlanExecutionRequest_additionalArguments(ctx, field)
+			case "status":
+				return ec.fieldContext_PlanExecutionRequest_status(ctx, field)
+			case "requestTime":
+				return ec.fieldContext_PlanExecutionRequest_requestTime(ctx, field)
+			case "initOutput":
+				return ec.fieldContext_PlanExecutionRequest_initOutput(ctx, field)
+			case "planOutput":
+				return ec.fieldContext_PlanExecutionRequest_planOutput(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PlanExecutionRequest", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_applyExecutionRequestId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_applyExecutionRequestId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ApplyExecutionRequestId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_applyExecutionRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_applyExecutionRequest(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_applyExecutionRequest(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TerraformExecutionWorkflowRequest().ApplyExecutionRequest(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.ApplyExecutionRequest)
+	fc.Result = res
+	return ec.marshalOApplyExecutionRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐApplyExecutionRequest(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_applyExecutionRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "applyExecutionRequestId":
+				return ec.fieldContext_ApplyExecutionRequest_applyExecutionRequestId(ctx, field)
+			case "terraformVersion":
+				return ec.fieldContext_ApplyExecutionRequest_terraformVersion(ctx, field)
+			case "callbackTaskToken":
+				return ec.fieldContext_ApplyExecutionRequest_callbackTaskToken(ctx, field)
+			case "stateKey":
+				return ec.fieldContext_ApplyExecutionRequest_stateKey(ctx, field)
+			case "modulePropagationRequestId":
+				return ec.fieldContext_ApplyExecutionRequest_modulePropagationRequestId(ctx, field)
+			case "terraformWorkflowRequestId":
+				return ec.fieldContext_ApplyExecutionRequest_terraformWorkflowRequestId(ctx, field)
+			case "moduleAccountAssociationKey":
+				return ec.fieldContext_ApplyExecutionRequest_moduleAccountAssociationKey(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_ApplyExecutionRequest_modulePropagationId(ctx, field)
+			case "modulePropagation":
+				return ec.fieldContext_ApplyExecutionRequest_modulePropagation(ctx, field)
+			case "orgAccountId":
+				return ec.fieldContext_ApplyExecutionRequest_orgAccountId(ctx, field)
+			case "orgAccount":
+				return ec.fieldContext_ApplyExecutionRequest_orgAccount(ctx, field)
+			case "terraformConfigurationBase64":
+				return ec.fieldContext_ApplyExecutionRequest_terraformConfigurationBase64(ctx, field)
+			case "additionalArguments":
+				return ec.fieldContext_ApplyExecutionRequest_additionalArguments(ctx, field)
+			case "status":
+				return ec.fieldContext_ApplyExecutionRequest_status(ctx, field)
+			case "requestTime":
+				return ec.fieldContext_ApplyExecutionRequest_requestTime(ctx, field)
+			case "initOutput":
+				return ec.fieldContext_ApplyExecutionRequest_initOutput(ctx, field)
+			case "applyOutput":
+				return ec.fieldContext_ApplyExecutionRequest_applyOutput(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ApplyExecutionRequest", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_status(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.RequestStatus)
+	fc.Result = res
+	return ec.marshalNRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐRequestStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RequestStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_requestTime(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_requestTime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RequestTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_requestTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest_destroy(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequest_destroy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Destroy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_destroy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequest",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequests_items(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequests) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequests_items(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Items, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]models.TerraformExecutionWorkflowRequest)
+	fc.Result = res
+	return ec.marshalNTerraformExecutionWorkflowRequest2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformExecutionWorkflowRequest(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequests_items(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequests",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "terraformExecutionWorkflowRequestId":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_terraformExecutionWorkflowRequestId(ctx, field)
+			case "modulePropagationExecutionRequestId":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_modulePropagationExecutionRequestId(ctx, field)
+			case "modulePropagationExecutionRequest":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_modulePropagationExecutionRequest(ctx, field)
+			case "moduleAccountAssociationKey":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_moduleAccountAssociationKey(ctx, field)
+			case "moduleAccountAssociation":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_moduleAccountAssociation(ctx, field)
+			case "orgAccountId":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_orgAccountId(ctx, field)
+			case "orgAccount":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_orgAccount(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_modulePropagationId(ctx, field)
+			case "modulePropagation":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_modulePropagation(ctx, field)
+			case "planExecutionRequestId":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_planExecutionRequestId(ctx, field)
+			case "planExecutionRequest":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_planExecutionRequest(ctx, field)
+			case "applyExecutionRequestId":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_applyExecutionRequestId(ctx, field)
+			case "applyExecutionRequest":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_applyExecutionRequest(ctx, field)
+			case "status":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_status(ctx, field)
+			case "requestTime":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_requestTime(ctx, field)
+			case "destroy":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_destroy(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TerraformExecutionWorkflowRequest", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequests_nextCursor(ctx context.Context, field graphql.CollectedField, obj *models.TerraformExecutionWorkflowRequests) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TerraformExecutionWorkflowRequests_nextCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NextCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequests_nextCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TerraformExecutionWorkflowRequests",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _TerraformInitOutput_Stdout(ctx context.Context, field graphql.CollectedField, obj *models.TerraformInitOutput) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_TerraformInitOutput_Stdout(ctx, field)
 	if err != nil {
@@ -14611,973 +17623,6 @@ func (ec *executionContext) fieldContext_TerraformPlanOutput_PlanJSON(ctx contex
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_terraformWorkflowRequestId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_terraformWorkflowRequestId(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TerraformWorkflowRequestId, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_terraformWorkflowRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_modulePropagationExecutionRequestId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_modulePropagationExecutionRequestId(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ModulePropagationExecutionRequestId, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_modulePropagationExecutionRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_modulePropagationExecutionRequest(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_modulePropagationExecutionRequest(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.TerraformWorkflowRequest().ModulePropagationExecutionRequest(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.ModulePropagationExecutionRequest)
-	fc.Result = res
-	return ec.marshalNModulePropagationExecutionRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequest(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_modulePropagationExecutionRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "modulePropagationExecutionRequestId":
-				return ec.fieldContext_ModulePropagationExecutionRequest_modulePropagationExecutionRequestId(ctx, field)
-			case "modulePropagationId":
-				return ec.fieldContext_ModulePropagationExecutionRequest_modulePropagationId(ctx, field)
-			case "requestTime":
-				return ec.fieldContext_ModulePropagationExecutionRequest_requestTime(ctx, field)
-			case "status":
-				return ec.fieldContext_ModulePropagationExecutionRequest_status(ctx, field)
-			case "planExecutionRequests":
-				return ec.fieldContext_ModulePropagationExecutionRequest_planExecutionRequests(ctx, field)
-			case "applyExecutionRequests":
-				return ec.fieldContext_ModulePropagationExecutionRequest_applyExecutionRequests(ctx, field)
-			case "terraformWorkflowRequests":
-				return ec.fieldContext_ModulePropagationExecutionRequest_terraformWorkflowRequests(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ModulePropagationExecutionRequest", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_moduleAccountAssociationKey(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_moduleAccountAssociationKey(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ModuleAccountAssociationKey, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_moduleAccountAssociationKey(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_moduleAccountAssociation(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_moduleAccountAssociation(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.TerraformWorkflowRequest().ModuleAccountAssociation(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.ModuleAccountAssociation)
-	fc.Result = res
-	return ec.marshalNModuleAccountAssociation2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociation(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_moduleAccountAssociation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "modulePropagationId":
-				return ec.fieldContext_ModuleAccountAssociation_modulePropagationId(ctx, field)
-			case "modulePropagation":
-				return ec.fieldContext_ModuleAccountAssociation_modulePropagation(ctx, field)
-			case "orgAccountId":
-				return ec.fieldContext_ModuleAccountAssociation_orgAccountId(ctx, field)
-			case "orgAccount":
-				return ec.fieldContext_ModuleAccountAssociation_orgAccount(ctx, field)
-			case "remoteStateBucket":
-				return ec.fieldContext_ModuleAccountAssociation_remoteStateBucket(ctx, field)
-			case "remoteStateKey":
-				return ec.fieldContext_ModuleAccountAssociation_remoteStateKey(ctx, field)
-			case "status":
-				return ec.fieldContext_ModuleAccountAssociation_status(ctx, field)
-			case "planExecutionRequests":
-				return ec.fieldContext_ModuleAccountAssociation_planExecutionRequests(ctx, field)
-			case "applyExecutionRequests":
-				return ec.fieldContext_ModuleAccountAssociation_applyExecutionRequests(ctx, field)
-			case "terraformConfiguration":
-				return ec.fieldContext_ModuleAccountAssociation_terraformConfiguration(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ModuleAccountAssociation", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_orgAccountId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_orgAccountId(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.TerraformWorkflowRequest().OrgAccountID(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_orgAccountId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_orgAccount(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_orgAccount(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.TerraformWorkflowRequest().OrgAccount(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.OrganizationalAccount)
-	fc.Result = res
-	return ec.marshalNOrganizationalAccount2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐOrganizationalAccount(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_orgAccount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "orgAccountId":
-				return ec.fieldContext_OrganizationalAccount_orgAccountId(ctx, field)
-			case "name":
-				return ec.fieldContext_OrganizationalAccount_name(ctx, field)
-			case "cloudPlatform":
-				return ec.fieldContext_OrganizationalAccount_cloudPlatform(ctx, field)
-			case "cloudIdentifier":
-				return ec.fieldContext_OrganizationalAccount_cloudIdentifier(ctx, field)
-			case "orgUnitMemberships":
-				return ec.fieldContext_OrganizationalAccount_orgUnitMemberships(ctx, field)
-			case "moduleAccountAssociations":
-				return ec.fieldContext_OrganizationalAccount_moduleAccountAssociations(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type OrganizationalAccount", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_modulePropagationId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_modulePropagationId(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.TerraformWorkflowRequest().ModulePropagationID(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_modulePropagationId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_modulePropagation(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_modulePropagation(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.TerraformWorkflowRequest().ModulePropagation(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.ModulePropagation)
-	fc.Result = res
-	return ec.marshalNModulePropagation2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagation(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_modulePropagation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "modulePropagationId":
-				return ec.fieldContext_ModulePropagation_modulePropagationId(ctx, field)
-			case "moduleVersionId":
-				return ec.fieldContext_ModulePropagation_moduleVersionId(ctx, field)
-			case "moduleVersion":
-				return ec.fieldContext_ModulePropagation_moduleVersion(ctx, field)
-			case "moduleGroupId":
-				return ec.fieldContext_ModulePropagation_moduleGroupId(ctx, field)
-			case "moduleGroup":
-				return ec.fieldContext_ModulePropagation_moduleGroup(ctx, field)
-			case "orgUnitId":
-				return ec.fieldContext_ModulePropagation_orgUnitId(ctx, field)
-			case "orgUnit":
-				return ec.fieldContext_ModulePropagation_orgUnit(ctx, field)
-			case "orgDimensionId":
-				return ec.fieldContext_ModulePropagation_orgDimensionId(ctx, field)
-			case "orgDimension":
-				return ec.fieldContext_ModulePropagation_orgDimension(ctx, field)
-			case "name":
-				return ec.fieldContext_ModulePropagation_name(ctx, field)
-			case "description":
-				return ec.fieldContext_ModulePropagation_description(ctx, field)
-			case "arguments":
-				return ec.fieldContext_ModulePropagation_arguments(ctx, field)
-			case "awsProviderConfigurations":
-				return ec.fieldContext_ModulePropagation_awsProviderConfigurations(ctx, field)
-			case "moduleAccountAssociations":
-				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
-			case "executionRequests":
-				return ec.fieldContext_ModulePropagation_executionRequests(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ModulePropagation", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_planExecutionRequestId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_planExecutionRequestId(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PlanExecutionRequestId, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_planExecutionRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_planExecutionRequest(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_planExecutionRequest(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.TerraformWorkflowRequest().PlanExecutionRequest(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*models.PlanExecutionRequest)
-	fc.Result = res
-	return ec.marshalOPlanExecutionRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐPlanExecutionRequest(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_planExecutionRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "planExecutionRequestId":
-				return ec.fieldContext_PlanExecutionRequest_planExecutionRequestId(ctx, field)
-			case "terraformVersion":
-				return ec.fieldContext_PlanExecutionRequest_terraformVersion(ctx, field)
-			case "callbackTaskToken":
-				return ec.fieldContext_PlanExecutionRequest_callbackTaskToken(ctx, field)
-			case "stateKey":
-				return ec.fieldContext_PlanExecutionRequest_stateKey(ctx, field)
-			case "modulePropagationExecutionRequestId":
-				return ec.fieldContext_PlanExecutionRequest_modulePropagationExecutionRequestId(ctx, field)
-			case "moduleAccountAssociationKey":
-				return ec.fieldContext_PlanExecutionRequest_moduleAccountAssociationKey(ctx, field)
-			case "modulePropagationId":
-				return ec.fieldContext_PlanExecutionRequest_modulePropagationId(ctx, field)
-			case "modulePropagation":
-				return ec.fieldContext_PlanExecutionRequest_modulePropagation(ctx, field)
-			case "orgAccountId":
-				return ec.fieldContext_PlanExecutionRequest_orgAccountId(ctx, field)
-			case "orgAccount":
-				return ec.fieldContext_PlanExecutionRequest_orgAccount(ctx, field)
-			case "terraformConfigurationBase64":
-				return ec.fieldContext_PlanExecutionRequest_terraformConfigurationBase64(ctx, field)
-			case "additionalArguments":
-				return ec.fieldContext_PlanExecutionRequest_additionalArguments(ctx, field)
-			case "workflowExecutionId":
-				return ec.fieldContext_PlanExecutionRequest_workflowExecutionId(ctx, field)
-			case "status":
-				return ec.fieldContext_PlanExecutionRequest_status(ctx, field)
-			case "requestTime":
-				return ec.fieldContext_PlanExecutionRequest_requestTime(ctx, field)
-			case "initOutput":
-				return ec.fieldContext_PlanExecutionRequest_initOutput(ctx, field)
-			case "planOutput":
-				return ec.fieldContext_PlanExecutionRequest_planOutput(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type PlanExecutionRequest", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_applyExecutionRequestId(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_applyExecutionRequestId(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ApplyExecutionRequestId, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_applyExecutionRequestId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_applyExecutionRequest(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_applyExecutionRequest(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.TerraformWorkflowRequest().ApplyExecutionRequest(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*models.ApplyExecutionRequest)
-	fc.Result = res
-	return ec.marshalOApplyExecutionRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐApplyExecutionRequest(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_applyExecutionRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "applyExecutionRequestId":
-				return ec.fieldContext_ApplyExecutionRequest_applyExecutionRequestId(ctx, field)
-			case "terraformVersion":
-				return ec.fieldContext_ApplyExecutionRequest_terraformVersion(ctx, field)
-			case "callbackTaskToken":
-				return ec.fieldContext_ApplyExecutionRequest_callbackTaskToken(ctx, field)
-			case "stateKey":
-				return ec.fieldContext_ApplyExecutionRequest_stateKey(ctx, field)
-			case "modulePropagationExecutionRequestId":
-				return ec.fieldContext_ApplyExecutionRequest_modulePropagationExecutionRequestId(ctx, field)
-			case "moduleAccountAssociationKey":
-				return ec.fieldContext_ApplyExecutionRequest_moduleAccountAssociationKey(ctx, field)
-			case "modulePropagationId":
-				return ec.fieldContext_ApplyExecutionRequest_modulePropagationId(ctx, field)
-			case "modulePropagation":
-				return ec.fieldContext_ApplyExecutionRequest_modulePropagation(ctx, field)
-			case "orgAccountId":
-				return ec.fieldContext_ApplyExecutionRequest_orgAccountId(ctx, field)
-			case "orgAccount":
-				return ec.fieldContext_ApplyExecutionRequest_orgAccount(ctx, field)
-			case "terraformConfigurationBase64":
-				return ec.fieldContext_ApplyExecutionRequest_terraformConfigurationBase64(ctx, field)
-			case "additionalArguments":
-				return ec.fieldContext_ApplyExecutionRequest_additionalArguments(ctx, field)
-			case "workflowExecutionId":
-				return ec.fieldContext_ApplyExecutionRequest_workflowExecutionId(ctx, field)
-			case "status":
-				return ec.fieldContext_ApplyExecutionRequest_status(ctx, field)
-			case "requestTime":
-				return ec.fieldContext_ApplyExecutionRequest_requestTime(ctx, field)
-			case "initOutput":
-				return ec.fieldContext_ApplyExecutionRequest_initOutput(ctx, field)
-			case "applyOutput":
-				return ec.fieldContext_ApplyExecutionRequest_applyOutput(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ApplyExecutionRequest", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_status(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_status(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Status, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(models.TerraformWorkflowRequestStatus)
-	fc.Result = res
-	return ec.marshalNTerraformWorkflowRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformWorkflowRequestStatus(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type TerraformWorkflowRequestStatus does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_requestTime(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_requestTime(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.RequestTime, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_requestTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequest_destroy(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequest_destroy(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Destroy, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequest_destroy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequest",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequests_items(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequests) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequests_items(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Items, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]models.TerraformWorkflowRequest)
-	fc.Result = res
-	return ec.marshalNTerraformWorkflowRequest2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformWorkflowRequest(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequests_items(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequests",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "terraformWorkflowRequestId":
-				return ec.fieldContext_TerraformWorkflowRequest_terraformWorkflowRequestId(ctx, field)
-			case "modulePropagationExecutionRequestId":
-				return ec.fieldContext_TerraformWorkflowRequest_modulePropagationExecutionRequestId(ctx, field)
-			case "modulePropagationExecutionRequest":
-				return ec.fieldContext_TerraformWorkflowRequest_modulePropagationExecutionRequest(ctx, field)
-			case "moduleAccountAssociationKey":
-				return ec.fieldContext_TerraformWorkflowRequest_moduleAccountAssociationKey(ctx, field)
-			case "moduleAccountAssociation":
-				return ec.fieldContext_TerraformWorkflowRequest_moduleAccountAssociation(ctx, field)
-			case "orgAccountId":
-				return ec.fieldContext_TerraformWorkflowRequest_orgAccountId(ctx, field)
-			case "orgAccount":
-				return ec.fieldContext_TerraformWorkflowRequest_orgAccount(ctx, field)
-			case "modulePropagationId":
-				return ec.fieldContext_TerraformWorkflowRequest_modulePropagationId(ctx, field)
-			case "modulePropagation":
-				return ec.fieldContext_TerraformWorkflowRequest_modulePropagation(ctx, field)
-			case "planExecutionRequestId":
-				return ec.fieldContext_TerraformWorkflowRequest_planExecutionRequestId(ctx, field)
-			case "planExecutionRequest":
-				return ec.fieldContext_TerraformWorkflowRequest_planExecutionRequest(ctx, field)
-			case "applyExecutionRequestId":
-				return ec.fieldContext_TerraformWorkflowRequest_applyExecutionRequestId(ctx, field)
-			case "applyExecutionRequest":
-				return ec.fieldContext_TerraformWorkflowRequest_applyExecutionRequest(ctx, field)
-			case "status":
-				return ec.fieldContext_TerraformWorkflowRequest_status(ctx, field)
-			case "requestTime":
-				return ec.fieldContext_TerraformWorkflowRequest_requestTime(ctx, field)
-			case "destroy":
-				return ec.fieldContext_TerraformWorkflowRequest_destroy(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TerraformWorkflowRequest", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TerraformWorkflowRequests_nextCursor(ctx context.Context, field graphql.CollectedField, obj *models.TerraformWorkflowRequests) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TerraformWorkflowRequests_nextCursor(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.NextCursor, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_TerraformWorkflowRequests_nextCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TerraformWorkflowRequests",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -17610,6 +19655,34 @@ func (ec *executionContext) unmarshalInputNewModulePropagation(ctx context.Conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputNewModulePropagationDriftCheckRequest(ctx context.Context, obj interface{}) (models.NewModulePropagationDriftCheckRequest, error) {
+	var it models.NewModulePropagationDriftCheckRequest
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"modulePropagationId"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "modulePropagationId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("modulePropagationId"))
+			it.ModulePropagationId, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewModulePropagationExecutionRequest(ctx context.Context, obj interface{}) (models.NewModulePropagationExecutionRequest, error) {
 	var it models.NewModulePropagationExecutionRequest
 	asMap := map[string]interface{}{}
@@ -17932,9 +20005,16 @@ func (ec *executionContext) _ApplyExecutionRequest(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "modulePropagationExecutionRequestId":
+		case "modulePropagationRequestId":
 
-			out.Values[i] = ec._ApplyExecutionRequest_modulePropagationExecutionRequestId(ctx, field, obj)
+			out.Values[i] = ec._ApplyExecutionRequest_modulePropagationRequestId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "terraformWorkflowRequestId":
+
+			out.Values[i] = ec._ApplyExecutionRequest_terraformWorkflowRequestId(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
@@ -18036,13 +20116,6 @@ func (ec *executionContext) _ApplyExecutionRequest(ctx context.Context, sel ast.
 		case "additionalArguments":
 
 			out.Values[i] = ec._ApplyExecutionRequest_additionalArguments(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "workflowExecutionId":
-
-			out.Values[i] = ec._ApplyExecutionRequest_workflowExecutionId(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
@@ -18667,6 +20740,147 @@ func (ec *executionContext) _ModulePropagation(ctx context.Context, sel ast.Sele
 				return innerFunc(ctx)
 
 			})
+		case "driftCheckRequests":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ModulePropagation_driftCheckRequests(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var modulePropagationDriftCheckRequestImplementors = []string{"ModulePropagationDriftCheckRequest"}
+
+func (ec *executionContext) _ModulePropagationDriftCheckRequest(ctx context.Context, sel ast.SelectionSet, obj *models.ModulePropagationDriftCheckRequest) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, modulePropagationDriftCheckRequestImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ModulePropagationDriftCheckRequest")
+		case "modulePropagationDriftCheckRequestId":
+
+			out.Values[i] = ec._ModulePropagationDriftCheckRequest_modulePropagationDriftCheckRequestId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "modulePropagationId":
+
+			out.Values[i] = ec._ModulePropagationDriftCheckRequest_modulePropagationId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "requestTime":
+
+			out.Values[i] = ec._ModulePropagationDriftCheckRequest_requestTime(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "status":
+
+			out.Values[i] = ec._ModulePropagationDriftCheckRequest_status(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "planExecutionRequests":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ModulePropagationDriftCheckRequest_planExecutionRequests(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "terraformDriftCheckWorkflowRequests":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ModulePropagationDriftCheckRequest_terraformDriftCheckWorkflowRequests(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var modulePropagationDriftCheckRequestsImplementors = []string{"ModulePropagationDriftCheckRequests"}
+
+func (ec *executionContext) _ModulePropagationDriftCheckRequests(ctx context.Context, sel ast.SelectionSet, obj *models.ModulePropagationDriftCheckRequests) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, modulePropagationDriftCheckRequestsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ModulePropagationDriftCheckRequests")
+		case "items":
+
+			out.Values[i] = ec._ModulePropagationDriftCheckRequests_items(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "nextCursor":
+
+			out.Values[i] = ec._ModulePropagationDriftCheckRequests_nextCursor(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -18756,7 +20970,7 @@ func (ec *executionContext) _ModulePropagationExecutionRequest(ctx context.Conte
 				return innerFunc(ctx)
 
 			})
-		case "terraformWorkflowRequests":
+		case "terraformExecutionWorkflowRequests":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -18765,7 +20979,7 @@ func (ec *executionContext) _ModulePropagationExecutionRequest(ctx context.Conte
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._ModulePropagationExecutionRequest_terraformWorkflowRequests(ctx, field, obj)
+				res = ec._ModulePropagationExecutionRequest_terraformExecutionWorkflowRequests(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -19064,6 +21278,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteModuleGroup(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createModulePropagationDriftCheckRequest":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createModulePropagationDriftCheckRequest(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -19844,9 +22067,16 @@ func (ec *executionContext) _PlanExecutionRequest(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "modulePropagationExecutionRequestId":
+		case "modulePropagationRequestId":
 
-			out.Values[i] = ec._PlanExecutionRequest_modulePropagationExecutionRequestId(ctx, field, obj)
+			out.Values[i] = ec._PlanExecutionRequest_modulePropagationRequestId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "terraformWorkflowRequestId":
+
+			out.Values[i] = ec._PlanExecutionRequest_terraformWorkflowRequestId(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
@@ -19948,13 +22178,6 @@ func (ec *executionContext) _PlanExecutionRequest(ctx context.Context, sel ast.S
 		case "additionalArguments":
 
 			out.Values[i] = ec._PlanExecutionRequest_additionalArguments(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "workflowExecutionId":
-
-			out.Values[i] = ec._PlanExecutionRequest_workflowExecutionId(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
@@ -20168,6 +22391,52 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_moduleGroups(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "modulePropagationDriftCheckRequest":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_modulePropagationDriftCheckRequest(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "modulePropagationDriftCheckRequests":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_modulePropagationDriftCheckRequests(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -20719,6 +22988,506 @@ func (ec *executionContext) _TerraformApplyOutput(ctx context.Context, sel ast.S
 	return out
 }
 
+var terraformDriftCheckWorkflowRequestImplementors = []string{"TerraformDriftCheckWorkflowRequest"}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequest(ctx context.Context, sel ast.SelectionSet, obj *models.TerraformDriftCheckWorkflowRequest) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, terraformDriftCheckWorkflowRequestImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TerraformDriftCheckWorkflowRequest")
+		case "terraformDriftCheckWorkflowRequestId":
+
+			out.Values[i] = ec._TerraformDriftCheckWorkflowRequest_terraformDriftCheckWorkflowRequestId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "modulePropagationDriftCheckRequestId":
+
+			out.Values[i] = ec._TerraformDriftCheckWorkflowRequest_modulePropagationDriftCheckRequestId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "modulePropagationDriftCheckRequest":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TerraformDriftCheckWorkflowRequest_modulePropagationDriftCheckRequest(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "moduleAccountAssociationKey":
+
+			out.Values[i] = ec._TerraformDriftCheckWorkflowRequest_moduleAccountAssociationKey(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "moduleAccountAssociation":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TerraformDriftCheckWorkflowRequest_moduleAccountAssociation(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "orgAccountId":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TerraformDriftCheckWorkflowRequest_orgAccountId(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "orgAccount":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TerraformDriftCheckWorkflowRequest_orgAccount(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "modulePropagationId":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TerraformDriftCheckWorkflowRequest_modulePropagationId(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "modulePropagation":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TerraformDriftCheckWorkflowRequest_modulePropagation(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "planExecutionRequestId":
+
+			out.Values[i] = ec._TerraformDriftCheckWorkflowRequest_planExecutionRequestId(ctx, field, obj)
+
+		case "planExecutionRequest":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TerraformDriftCheckWorkflowRequest_planExecutionRequest(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "status":
+
+			out.Values[i] = ec._TerraformDriftCheckWorkflowRequest_status(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "requestTime":
+
+			out.Values[i] = ec._TerraformDriftCheckWorkflowRequest_requestTime(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "destroy":
+
+			out.Values[i] = ec._TerraformDriftCheckWorkflowRequest_destroy(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "syncStatus":
+
+			out.Values[i] = ec._TerraformDriftCheckWorkflowRequest_syncStatus(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var terraformDriftCheckWorkflowRequestsImplementors = []string{"TerraformDriftCheckWorkflowRequests"}
+
+func (ec *executionContext) _TerraformDriftCheckWorkflowRequests(ctx context.Context, sel ast.SelectionSet, obj *models.TerraformDriftCheckWorkflowRequests) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, terraformDriftCheckWorkflowRequestsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TerraformDriftCheckWorkflowRequests")
+		case "items":
+
+			out.Values[i] = ec._TerraformDriftCheckWorkflowRequests_items(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "nextCursor":
+
+			out.Values[i] = ec._TerraformDriftCheckWorkflowRequests_nextCursor(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var terraformExecutionWorkflowRequestImplementors = []string{"TerraformExecutionWorkflowRequest"}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequest(ctx context.Context, sel ast.SelectionSet, obj *models.TerraformExecutionWorkflowRequest) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, terraformExecutionWorkflowRequestImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TerraformExecutionWorkflowRequest")
+		case "terraformExecutionWorkflowRequestId":
+
+			out.Values[i] = ec._TerraformExecutionWorkflowRequest_terraformExecutionWorkflowRequestId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "modulePropagationExecutionRequestId":
+
+			out.Values[i] = ec._TerraformExecutionWorkflowRequest_modulePropagationExecutionRequestId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "modulePropagationExecutionRequest":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TerraformExecutionWorkflowRequest_modulePropagationExecutionRequest(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "moduleAccountAssociationKey":
+
+			out.Values[i] = ec._TerraformExecutionWorkflowRequest_moduleAccountAssociationKey(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "moduleAccountAssociation":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TerraformExecutionWorkflowRequest_moduleAccountAssociation(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "orgAccountId":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TerraformExecutionWorkflowRequest_orgAccountId(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "orgAccount":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TerraformExecutionWorkflowRequest_orgAccount(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "modulePropagationId":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TerraformExecutionWorkflowRequest_modulePropagationId(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "modulePropagation":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TerraformExecutionWorkflowRequest_modulePropagation(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "planExecutionRequestId":
+
+			out.Values[i] = ec._TerraformExecutionWorkflowRequest_planExecutionRequestId(ctx, field, obj)
+
+		case "planExecutionRequest":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TerraformExecutionWorkflowRequest_planExecutionRequest(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "applyExecutionRequestId":
+
+			out.Values[i] = ec._TerraformExecutionWorkflowRequest_applyExecutionRequestId(ctx, field, obj)
+
+		case "applyExecutionRequest":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TerraformExecutionWorkflowRequest_applyExecutionRequest(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "status":
+
+			out.Values[i] = ec._TerraformExecutionWorkflowRequest_status(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "requestTime":
+
+			out.Values[i] = ec._TerraformExecutionWorkflowRequest_requestTime(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "destroy":
+
+			out.Values[i] = ec._TerraformExecutionWorkflowRequest_destroy(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var terraformExecutionWorkflowRequestsImplementors = []string{"TerraformExecutionWorkflowRequests"}
+
+func (ec *executionContext) _TerraformExecutionWorkflowRequests(ctx context.Context, sel ast.SelectionSet, obj *models.TerraformExecutionWorkflowRequests) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, terraformExecutionWorkflowRequestsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TerraformExecutionWorkflowRequests")
+		case "items":
+
+			out.Values[i] = ec._TerraformExecutionWorkflowRequests_items(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "nextCursor":
+
+			out.Values[i] = ec._TerraformExecutionWorkflowRequests_nextCursor(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var terraformInitOutputImplementors = []string{"TerraformInitOutput"}
 
 func (ec *executionContext) _TerraformInitOutput(ctx context.Context, sel ast.SelectionSet, obj *models.TerraformInitOutput) graphql.Marshaler {
@@ -20852,263 +23621,6 @@ func (ec *executionContext) _TerraformPlanOutput(ctx context.Context, sel ast.Se
 				return innerFunc(ctx)
 
 			})
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var terraformWorkflowRequestImplementors = []string{"TerraformWorkflowRequest"}
-
-func (ec *executionContext) _TerraformWorkflowRequest(ctx context.Context, sel ast.SelectionSet, obj *models.TerraformWorkflowRequest) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, terraformWorkflowRequestImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("TerraformWorkflowRequest")
-		case "terraformWorkflowRequestId":
-
-			out.Values[i] = ec._TerraformWorkflowRequest_terraformWorkflowRequestId(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "modulePropagationExecutionRequestId":
-
-			out.Values[i] = ec._TerraformWorkflowRequest_modulePropagationExecutionRequestId(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "modulePropagationExecutionRequest":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._TerraformWorkflowRequest_modulePropagationExecutionRequest(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "moduleAccountAssociationKey":
-
-			out.Values[i] = ec._TerraformWorkflowRequest_moduleAccountAssociationKey(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "moduleAccountAssociation":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._TerraformWorkflowRequest_moduleAccountAssociation(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "orgAccountId":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._TerraformWorkflowRequest_orgAccountId(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "orgAccount":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._TerraformWorkflowRequest_orgAccount(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "modulePropagationId":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._TerraformWorkflowRequest_modulePropagationId(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "modulePropagation":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._TerraformWorkflowRequest_modulePropagation(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "planExecutionRequestId":
-
-			out.Values[i] = ec._TerraformWorkflowRequest_planExecutionRequestId(ctx, field, obj)
-
-		case "planExecutionRequest":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._TerraformWorkflowRequest_planExecutionRequest(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "applyExecutionRequestId":
-
-			out.Values[i] = ec._TerraformWorkflowRequest_applyExecutionRequestId(ctx, field, obj)
-
-		case "applyExecutionRequest":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._TerraformWorkflowRequest_applyExecutionRequest(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "status":
-
-			out.Values[i] = ec._TerraformWorkflowRequest_status(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "requestTime":
-
-			out.Values[i] = ec._TerraformWorkflowRequest_requestTime(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "destroy":
-
-			out.Values[i] = ec._TerraformWorkflowRequest_destroy(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var terraformWorkflowRequestsImplementors = []string{"TerraformWorkflowRequests"}
-
-func (ec *executionContext) _TerraformWorkflowRequests(ctx context.Context, sel ast.SelectionSet, obj *models.TerraformWorkflowRequests) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, terraformWorkflowRequestsImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("TerraformWorkflowRequests")
-		case "items":
-
-			out.Values[i] = ec._TerraformWorkflowRequests_items(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "nextCursor":
-
-			out.Values[i] = ec._TerraformWorkflowRequests_nextCursor(ctx, field, obj)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21504,22 +24016,6 @@ func (ec *executionContext) marshalNApplyExecutionRequests2ᚖgithubᚗcomᚋshe
 	return ec._ApplyExecutionRequests(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNApplyExecutionStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐApplyExecutionStatus(ctx context.Context, v interface{}) (models.ApplyExecutionStatus, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	res := models.ApplyExecutionStatus(tmp)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNApplyExecutionStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐApplyExecutionStatus(ctx context.Context, sel ast.SelectionSet, v models.ApplyExecutionStatus) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) marshalNArgument2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐArgument(ctx context.Context, sel ast.SelectionSet, v models.Argument) graphql.Marshaler {
 	return ec._Argument(ctx, sel, &v)
 }
@@ -21874,6 +24370,72 @@ func (ec *executionContext) marshalNModulePropagation2ᚖgithubᚗcomᚋsheaclou
 	return ec._ModulePropagation(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNModulePropagationDriftCheckRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationDriftCheckRequest(ctx context.Context, sel ast.SelectionSet, v models.ModulePropagationDriftCheckRequest) graphql.Marshaler {
+	return ec._ModulePropagationDriftCheckRequest(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNModulePropagationDriftCheckRequest2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationDriftCheckRequest(ctx context.Context, sel ast.SelectionSet, v []models.ModulePropagationDriftCheckRequest) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOModulePropagationDriftCheckRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationDriftCheckRequest(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalNModulePropagationDriftCheckRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationDriftCheckRequest(ctx context.Context, sel ast.SelectionSet, v *models.ModulePropagationDriftCheckRequest) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ModulePropagationDriftCheckRequest(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNModulePropagationDriftCheckRequests2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationDriftCheckRequests(ctx context.Context, sel ast.SelectionSet, v models.ModulePropagationDriftCheckRequests) graphql.Marshaler {
+	return ec._ModulePropagationDriftCheckRequests(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNModulePropagationDriftCheckRequests2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationDriftCheckRequests(ctx context.Context, sel ast.SelectionSet, v *models.ModulePropagationDriftCheckRequests) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ModulePropagationDriftCheckRequests(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNModulePropagationExecutionRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequest(ctx context.Context, sel ast.SelectionSet, v models.ModulePropagationExecutionRequest) graphql.Marshaler {
 	return ec._ModulePropagationExecutionRequest(ctx, sel, &v)
 }
@@ -21924,22 +24486,6 @@ func (ec *executionContext) marshalNModulePropagationExecutionRequest2ᚖgithub�
 		return graphql.Null
 	}
 	return ec._ModulePropagationExecutionRequest(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNModulePropagationExecutionRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequestStatus(ctx context.Context, v interface{}) (models.ModulePropagationExecutionRequestStatus, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	res := models.ModulePropagationExecutionRequestStatus(tmp)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNModulePropagationExecutionRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequestStatus(ctx context.Context, sel ast.SelectionSet, v models.ModulePropagationExecutionRequestStatus) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
 }
 
 func (ec *executionContext) marshalNModulePropagationExecutionRequests2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequests(ctx context.Context, sel ast.SelectionSet, v models.ModulePropagationExecutionRequests) graphql.Marshaler {
@@ -22086,6 +24632,11 @@ func (ec *executionContext) unmarshalNNewModuleGroup2githubᚗcomᚋsheacloudᚋ
 
 func (ec *executionContext) unmarshalNNewModulePropagation2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewModulePropagation(ctx context.Context, v interface{}) (models.NewModulePropagation, error) {
 	res, err := ec.unmarshalInputNewModulePropagation(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNNewModulePropagationDriftCheckRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewModulePropagationDriftCheckRequest(ctx context.Context, v interface{}) (models.NewModulePropagationDriftCheckRequest, error) {
+	res, err := ec.unmarshalInputNewModulePropagationDriftCheckRequest(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -22454,13 +25005,13 @@ func (ec *executionContext) marshalNPlanExecutionRequests2ᚖgithubᚗcomᚋshea
 	return ec._PlanExecutionRequests(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPlanExecutionStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐPlanExecutionStatus(ctx context.Context, v interface{}) (models.PlanExecutionStatus, error) {
+func (ec *executionContext) unmarshalNRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐRequestStatus(ctx context.Context, v interface{}) (models.RequestStatus, error) {
 	tmp, err := graphql.UnmarshalString(v)
-	res := models.PlanExecutionStatus(tmp)
+	res := models.RequestStatus(tmp)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPlanExecutionStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐPlanExecutionStatus(ctx context.Context, sel ast.SelectionSet, v models.PlanExecutionStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐRequestStatus(ctx context.Context, sel ast.SelectionSet, v models.RequestStatus) graphql.Marshaler {
 	res := graphql.MarshalString(string(v))
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -22511,7 +25062,23 @@ func (ec *executionContext) marshalNString2ᚕstring(ctx context.Context, sel as
 	return ret
 }
 
-func (ec *executionContext) marshalNTerraformWorkflowRequest2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformWorkflowRequest(ctx context.Context, sel ast.SelectionSet, v []models.TerraformWorkflowRequest) graphql.Marshaler {
+func (ec *executionContext) unmarshalNTerraformDriftCheckStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformDriftCheckStatus(ctx context.Context, v interface{}) (models.TerraformDriftCheckStatus, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := models.TerraformDriftCheckStatus(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTerraformDriftCheckStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformDriftCheckStatus(ctx context.Context, sel ast.SelectionSet, v models.TerraformDriftCheckStatus) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) marshalNTerraformDriftCheckWorkflowRequest2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformDriftCheckWorkflowRequest(ctx context.Context, sel ast.SelectionSet, v []models.TerraformDriftCheckWorkflowRequest) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -22535,7 +25102,7 @@ func (ec *executionContext) marshalNTerraformWorkflowRequest2ᚕgithubᚗcomᚋs
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOTerraformWorkflowRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformWorkflowRequest(ctx, sel, v[i])
+			ret[i] = ec.marshalOTerraformDriftCheckWorkflowRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformDriftCheckWorkflowRequest(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -22549,34 +25116,70 @@ func (ec *executionContext) marshalNTerraformWorkflowRequest2ᚕgithubᚗcomᚋs
 	return ret
 }
 
-func (ec *executionContext) unmarshalNTerraformWorkflowRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformWorkflowRequestStatus(ctx context.Context, v interface{}) (models.TerraformWorkflowRequestStatus, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	res := models.TerraformWorkflowRequestStatus(tmp)
-	return res, graphql.ErrorOnPath(ctx, err)
+func (ec *executionContext) marshalNTerraformDriftCheckWorkflowRequests2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformDriftCheckWorkflowRequests(ctx context.Context, sel ast.SelectionSet, v models.TerraformDriftCheckWorkflowRequests) graphql.Marshaler {
+	return ec._TerraformDriftCheckWorkflowRequests(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNTerraformWorkflowRequestStatus2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformWorkflowRequestStatus(ctx context.Context, sel ast.SelectionSet, v models.TerraformWorkflowRequestStatus) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
-func (ec *executionContext) marshalNTerraformWorkflowRequests2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformWorkflowRequests(ctx context.Context, sel ast.SelectionSet, v models.TerraformWorkflowRequests) graphql.Marshaler {
-	return ec._TerraformWorkflowRequests(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNTerraformWorkflowRequests2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformWorkflowRequests(ctx context.Context, sel ast.SelectionSet, v *models.TerraformWorkflowRequests) graphql.Marshaler {
+func (ec *executionContext) marshalNTerraformDriftCheckWorkflowRequests2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformDriftCheckWorkflowRequests(ctx context.Context, sel ast.SelectionSet, v *models.TerraformDriftCheckWorkflowRequests) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._TerraformWorkflowRequests(ctx, sel, v)
+	return ec._TerraformDriftCheckWorkflowRequests(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNTerraformExecutionWorkflowRequest2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformExecutionWorkflowRequest(ctx context.Context, sel ast.SelectionSet, v []models.TerraformExecutionWorkflowRequest) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOTerraformExecutionWorkflowRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformExecutionWorkflowRequest(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalNTerraformExecutionWorkflowRequests2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformExecutionWorkflowRequests(ctx context.Context, sel ast.SelectionSet, v models.TerraformExecutionWorkflowRequests) graphql.Marshaler {
+	return ec._TerraformExecutionWorkflowRequests(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTerraformExecutionWorkflowRequests2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformExecutionWorkflowRequests(ctx context.Context, sel ast.SelectionSet, v *models.TerraformExecutionWorkflowRequests) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._TerraformExecutionWorkflowRequests(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
@@ -22989,6 +25592,10 @@ func (ec *executionContext) marshalOModulePropagation2githubᚗcomᚋsheacloud�
 	return ec._ModulePropagation(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalOModulePropagationDriftCheckRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationDriftCheckRequest(ctx context.Context, sel ast.SelectionSet, v models.ModulePropagationDriftCheckRequest) graphql.Marshaler {
+	return ec._ModulePropagationDriftCheckRequest(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalOModulePropagationExecutionRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationExecutionRequest(ctx context.Context, sel ast.SelectionSet, v models.ModulePropagationExecutionRequest) graphql.Marshaler {
 	return ec._ModulePropagationExecutionRequest(ctx, sel, &v)
 }
@@ -23071,6 +25678,14 @@ func (ec *executionContext) marshalOTerraformApplyOutput2ᚖgithubᚗcomᚋsheac
 	return ec._TerraformApplyOutput(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOTerraformDriftCheckWorkflowRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformDriftCheckWorkflowRequest(ctx context.Context, sel ast.SelectionSet, v models.TerraformDriftCheckWorkflowRequest) graphql.Marshaler {
+	return ec._TerraformDriftCheckWorkflowRequest(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOTerraformExecutionWorkflowRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformExecutionWorkflowRequest(ctx context.Context, sel ast.SelectionSet, v models.TerraformExecutionWorkflowRequest) graphql.Marshaler {
+	return ec._TerraformExecutionWorkflowRequest(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalOTerraformInitOutput2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformInitOutput(ctx context.Context, sel ast.SelectionSet, v *models.TerraformInitOutput) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -23083,10 +25698,6 @@ func (ec *executionContext) marshalOTerraformPlanOutput2ᚖgithubᚗcomᚋsheacl
 		return graphql.Null
 	}
 	return ec._TerraformPlanOutput(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOTerraformWorkflowRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformWorkflowRequest(ctx context.Context, sel ast.SelectionSet, v models.TerraformWorkflowRequest) graphql.Marshaler {
-	return ec._TerraformWorkflowRequest(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

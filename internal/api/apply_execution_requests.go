@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/sheacloud/tfom/internal/identifiers"
 	"github.com/sheacloud/tfom/pkg/models"
 )
@@ -63,36 +62,8 @@ func (c *OrganizationsAPIClient) GetApplyExecutionRequests(ctx context.Context, 
 	return requests, nil
 }
 
-func (c *OrganizationsAPIClient) GetApplyExecutionRequestsByStateKey(ctx context.Context, stateKey string, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
-	requests, err := c.dbClient.GetApplyExecutionRequestsByStateKey(ctx, stateKey, limit, cursor)
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range requests.Items {
-		// fetch init and apply outputs from S3
-		if requests.Items[i].InitOutputKey != "" {
-			initOutput, err := c.DownloadTerraformApplyInitResults(ctx, requests.Items[i].InitOutputKey)
-			if err != nil {
-				return nil, err
-			}
-			requests.Items[i].InitOutput = initOutput
-		}
-
-		if requests.Items[i].ApplyOutputKey != "" {
-			applyOutput, err := c.DownloadTerraformApplyResults(ctx, requests.Items[i].ApplyOutputKey)
-			if err != nil {
-				return nil, err
-			}
-			requests.Items[i].ApplyOutput = applyOutput
-		}
-	}
-
-	return requests, nil
-}
-
-func (c *OrganizationsAPIClient) GetApplyExecutionRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
-	requests, err := c.dbClient.GetApplyExecutionRequestsByModulePropagationExecutionRequestId(ctx, modulePropagationExecutionRequestId, limit, cursor)
+func (c *OrganizationsAPIClient) GetApplyExecutionRequestsByModulePropagationRequestId(ctx context.Context, modulePropagationRequestId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
+	requests, err := c.dbClient.GetApplyExecutionRequestsByModulePropagationRequestId(ctx, modulePropagationRequestId, limit, cursor)
 	if err != nil {
 		return nil, err
 	}
@@ -153,21 +124,19 @@ func (c *OrganizationsAPIClient) PutApplyExecutionRequest(ctx context.Context, i
 		return nil, err
 	}
 
-	workflowExecutionId := uuid.New().String()
-
 	applyExecutionRequest := models.ApplyExecutionRequest{
-		ApplyExecutionRequestId:             applyExecutionRequestId.String(),
-		TerraformVersion:                    input.TerraformVersion,
-		CallbackTaskToken:                   input.CallbackTaskToken,
-		StateKey:                            input.StateKey,
-		ModulePropagationExecutionRequestId: input.ModulePropagationExecutionRequestId,
-		ModuleAccountAssociationKey:         input.ModuleAccountAssociationKey,
-		TerraformConfigurationBase64:        input.TerraformConfigurationBase64,
-		TerraformPlanBase64:                 input.TerraformPlanBase64,
-		AdditionalArguments:                 input.AdditionalArguments,
-		WorkflowExecutionId:                 workflowExecutionId,
-		Status:                              models.ApplyExecutionStatusPending,
-		RequestTime:                         time.Now().UTC(),
+		ApplyExecutionRequestId:      applyExecutionRequestId.String(),
+		TerraformVersion:             input.TerraformVersion,
+		CallbackTaskToken:            input.CallbackTaskToken,
+		StateKey:                     input.StateKey,
+		ModulePropagationRequestId:   input.ModulePropagationRequestId,
+		TerraformWorkflowRequestId:   input.TerraformWorkflowRequestId,
+		ModuleAccountAssociationKey:  input.ModuleAccountAssociationKey,
+		TerraformConfigurationBase64: input.TerraformConfigurationBase64,
+		TerraformPlanBase64:          input.TerraformPlanBase64,
+		AdditionalArguments:          input.AdditionalArguments,
+		Status:                       models.RequestStatusPending,
+		RequestTime:                  time.Now().UTC(),
 	}
 	err = c.dbClient.PutApplyExecutionRequest(ctx, &applyExecutionRequest)
 	if err != nil {

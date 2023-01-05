@@ -22,7 +22,7 @@ type ScheduleTerraformApplyOutput struct {
 
 func (t *TaskHandler) ScheduleTerraformApply(ctx context.Context, input ScheduleTerraformApplyInput) (*ScheduleTerraformApplyOutput, error) {
 	// get workflow details
-	tfWorkflow, err := t.apiClient.GetTerraformWorkflowRequest(ctx, input.TerraformWorkflowRequestId)
+	tfWorkflow, err := t.apiClient.GetTerraformExecutionWorkflowRequest(ctx, input.TerraformWorkflowRequestId)
 	if err != nil {
 		return nil, err
 	}
@@ -63,21 +63,22 @@ func (t *TaskHandler) ScheduleTerraformApply(ctx context.Context, input Schedule
 	}
 
 	applyRequest, err := t.apiClient.PutApplyExecutionRequest(ctx, &models.NewApplyExecutionRequest{
-		TerraformVersion:                    moduleVersion.TerraformVersion,
-		CallbackTaskToken:                   input.TaskToken,
-		StateKey:                            moduleAccountAssociation.RemoteStateKey,
-		ModulePropagationExecutionRequestId: tfWorkflow.ModulePropagationExecutionRequestId,
-		ModuleAccountAssociationKey:         tfWorkflow.ModuleAccountAssociationKey,
-		TerraformConfigurationBase64:        planRequest.TerraformConfigurationBase64,
-		TerraformPlanBase64:                 planBase64,
-		AdditionalArguments:                 additionalArguments,
+		TerraformVersion:             moduleVersion.TerraformVersion,
+		CallbackTaskToken:            input.TaskToken,
+		StateKey:                     moduleAccountAssociation.RemoteStateKey,
+		ModulePropagationRequestId:   tfWorkflow.ModulePropagationExecutionRequestId,
+		TerraformWorkflowRequestId:   input.TerraformWorkflowRequestId,
+		ModuleAccountAssociationKey:  tfWorkflow.ModuleAccountAssociationKey,
+		TerraformConfigurationBase64: planRequest.TerraformConfigurationBase64,
+		TerraformPlanBase64:          planBase64,
+		AdditionalArguments:          additionalArguments,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	// update tf workflow with apply request id
-	_, err = t.apiClient.UpdateTerraformWorkflowRequest(ctx, tfWorkflow.TerraformWorkflowRequestId, &models.TerraformWorkflowRequestUpdate{
+	_, err = t.apiClient.UpdateTerraformExecutionWorkflowRequest(ctx, input.TerraformWorkflowRequestId, &models.TerraformExecutionWorkflowRequestUpdate{
 		ApplyExecutionRequestId: &applyRequest.ApplyExecutionRequestId,
 	})
 	if err != nil {

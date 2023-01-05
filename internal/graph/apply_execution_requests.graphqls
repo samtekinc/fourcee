@@ -3,7 +3,8 @@ type ApplyExecutionRequest {
   terraformVersion: String!
   callbackTaskToken: String!
   stateKey: String!
-  modulePropagationExecutionRequestId: String!
+  modulePropagationRequestId: String!
+  terraformWorkflowRequestId: String!
   moduleAccountAssociationKey: String!
   modulePropagationId: ID!
   modulePropagation: ModulePropagation!
@@ -11,8 +12,7 @@ type ApplyExecutionRequest {
   orgAccount: OrganizationalAccount!
   terraformConfigurationBase64: String!
   additionalArguments: [String]!
-  workflowExecutionId: String!
-  status: ApplyExecutionStatus!
+  status: RequestStatus!
   requestTime: Time!
   initOutput: TerraformInitOutput
   applyOutput: TerraformApplyOutput
@@ -29,11 +29,4 @@ extend type Query {
     limit: Int
     nextCursor: String
   ): ApplyExecutionRequests!
-}
-
-enum ApplyExecutionStatus {
-  PENDING
-  RUNNING
-  FAILED
-  SUCCEEDED
 }

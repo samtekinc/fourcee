@@ -15,6 +15,7 @@ import { ModuleAccountAssociationPage } from "./components/ModuleAccountAssociat
 import { ModuleGroupsList } from "./components/ModuleGroupList";
 import { ModuleGroupPage } from "./components/ModuleGroupPage";
 import { ModuleVersionPage } from "./components/ModuleVersionPage";
+import { ModulePropagationDriftCheckRequestPage } from "./components/ModulePropagationDriftCheckPage";
 
 function App() {
   return (
@@ -28,6 +29,10 @@ function App() {
         <Route
           path="/module-propagations/:modulePropagationId/executions/:modulePropagationExecutionRequestId"
           element={<ModulePropagationExecutionRequestPage />}
+        />
+        <Route
+          path="/module-propagations/:modulePropagationId/drift-checks/:modulePropagationDriftCheckRequestId"
+          element={<ModulePropagationDriftCheckRequestPage />}
         />
         <Route
           path="/module-propagations/:modulePropagationId/account-associations/:orgAccountId"

@@ -1,25 +1,24 @@
 
-resource "aws_cloudwatch_log_group" "execute_module_propagation" {
+resource "aws_cloudwatch_log_group" "module_propagation_execution" {
   # The /aws/vendedlogs/* path is special -- it gets policy length limit mitigation strategies.
-  name              = "/aws/vendedlogs/AsyncWorkflow/${var.prefix}-execute-module-propagation"
+  name              = "/aws/vendedlogs/AsyncWorkflow/${var.prefix}-module-propagation-execution"
   retention_in_days = 731
 }
 
 
-resource "aws_sfn_state_machine" "execute_module_propagation" {
-  name     = "${var.prefix}-execute-module-propagation"
+resource "aws_sfn_state_machine" "module_propagation_execution" {
+  name     = "${var.prefix}-module-propagation-execution"
   type     = "STANDARD"
   role_arn = aws_iam_role.step_functions_role.arn
 
   logging_configuration {
     include_execution_data = true
     level                  = "ALL"
-    log_destination        = "${aws_cloudwatch_log_group.execute_module_propagation.arn}:*"
+    log_destination        = "${aws_cloudwatch_log_group.module_propagation_execution.arn}:*"
   }
 
   definition = <<EOF
 {
-  "Comment": "A description of my state machine",
   "StartAt": "UpdateExecutionRequestRunning",
   "States": {
     "UpdateExecutionRequestRunning": {
@@ -56,119 +55,20 @@ resource "aws_sfn_state_machine" "execute_module_propagation" {
       "Next": "UpdateExecutionRequestCompleted",
       "Branches": [
         {
-          "StartAt": "GatherImpactedAccounts",
+          "StartAt": "ListModulePropagationAccounts",
           "States": {
-            "GatherImpactedAccounts": {
-              "Type": "Parallel",
-              "Branches": [
-                {
-                  "StartAt": "ListModulePropagationOrgUnits",
-                  "States": {
-                    "ListModulePropagationOrgUnits": {
-                      "Type": "Task",
-                      "Resource": "arn:aws:states:::lambda:invoke",
-                      "OutputPath": "$.Payload",
-                      "Parameters": {
-                        "Payload": {
-                          "Payload.$": "$",
-                          "Task": "ListModulePropagationOrgUnits",
-                          "Workflow": "ExecuteModulePropagation"
-                        },
-                        "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
-                      },
-                      "Retry": [
-                        {
-                          "ErrorEquals": [
-                            "Lambda.ServiceException",
-                            "Lambda.AWSLambdaException",
-                            "Lambda.SdkClientException",
-                            "Lambda.TooManyRequestsException"
-                          ],
-                          "IntervalSeconds": 2,
-                          "MaxAttempts": 6,
-                          "BackoffRate": 2
-                        }
-                      ],
-                      "Next": "MapOrgUnits"
-                    },
-                    "MapOrgUnits": {
-                      "Type": "Map",
-                      "ItemProcessor": {
-                        "ProcessorConfig": {
-                          "Mode": "INLINE"
-                        },
-                        "StartAt": "ListOrgUnitAccounts",
-                        "States": {
-                          "ListOrgUnitAccounts": {
-                            "Type": "Task",
-                            "Resource": "arn:aws:states:::lambda:invoke",
-                            "OutputPath": "$.Payload",
-                            "Parameters": {
-                              "Payload": {
-                                "Payload": {
-                                  "OrgUnit.$": "$"
-                                },
-                                "Task": "ListOrgUnitAccounts",
-                                "Workflow": "ExecuteModulePropagation"
-                              },
-                              "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
-                            },
-                            "Retry": [
-                              {
-                                "ErrorEquals": [
-                                  "Lambda.ServiceException",
-                                  "Lambda.AWSLambdaException",
-                                  "Lambda.SdkClientException",
-                                  "Lambda.TooManyRequestsException"
-                                ],
-                                "IntervalSeconds": 2,
-                                "MaxAttempts": 6,
-                                "BackoffRate": 2
-                              }
-                            ],
-                            "End": true
-                          }
-                        }
-                      },
-                      "End": true,
-                      "ItemsPath": "$.OrgUnits"
-                    }
-                  }
-                },
-                {
-                  "StartAt": "ListActiveModuleAccountAssociations",
-                  "States": {
-                    "ListActiveModuleAccountAssociations": {
-                      "Type": "Task",
-                      "Resource": "arn:aws:states:::lambda:invoke",
-                      "OutputPath": "$.Payload",
-                      "Parameters": {
-                        "Payload": {
-                          "Payload.$": "$",
-                          "Task": "ListActiveModuleAccountAssociations",
-                          "Workflow": "ExecuteModulePropagation"
-                        },
-                        "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
-                      },
-                      "Retry": [
-                        {
-                          "ErrorEquals": [
-                            "Lambda.ServiceException",
-                            "Lambda.AWSLambdaException",
-                            "Lambda.SdkClientException",
-                            "Lambda.TooManyRequestsException"
-                          ],
-                          "IntervalSeconds": 2,
-                          "MaxAttempts": 6,
-                          "BackoffRate": 2
-                        }
-                      ],
-                      "End": true
-                    }
-                  }
+            "ListModulePropagationAccounts": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "StateMachineArn": "${aws_sfn_state_machine.list_mp_accounts.arn}",
+                "Input": {
+                  "StatePayload.$": "$",
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id"
                 }
-              ],
-              "Next": "ClassifyModuleAccountAssociations"
+              },
+              "Next": "ClassifyModuleAccountAssociations",
+              "OutputPath": "$.Output"
             },
             "ClassifyModuleAccountAssociations": {
               "Type": "Task",
@@ -176,10 +76,7 @@ resource "aws_sfn_state_machine" "execute_module_propagation" {
               "OutputPath": "$.Payload",
               "Parameters": {
                 "Payload": {
-                  "Payload": {
-                    "OrgAccountsPerOrgUnit.$": "$[0]",
-                    "ActiveModuleAccountAssociations.$": "$[1].ModuleAccountAssociations"
-                  },
+                  "Payload.$": "$",
                   "Task": "ClassifyModuleAccountAssociations",
                   "Workflow": "ExecuteModulePropagation"
                 },
@@ -243,13 +140,13 @@ resource "aws_sfn_state_machine" "execute_module_propagation" {
                         "ProcessorConfig": {
                           "Mode": "INLINE"
                         },
-                        "StartAt": "ExecuteTerraformApply",
+                        "StartAt": "RunTerraformExecution",
                         "States": {
-                          "ExecuteTerraformApply": {
+                          "RunTerraformExecution": {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::states:startExecution.sync:2",
                             "Parameters": {
-                              "StateMachineArn": "${aws_sfn_state_machine.execute_terraform_workflow.arn}",
+                              "StateMachineArn": "${aws_sfn_state_machine.terraform_execution_workflow.arn}",
                               "Input": {
                                 "StatePayload": {
                                   "ModuleAccountAssociation.$": "$",
@@ -288,13 +185,13 @@ resource "aws_sfn_state_machine" "execute_module_propagation" {
                         "ProcessorConfig": {
                           "Mode": "INLINE"
                         },
-                        "StartAt": "ExecuteTerraformApplyDestroy",
+                        "StartAt": "RunTerraformExecutionDestroy",
                         "States": {
-                          "ExecuteTerraformApplyDestroy": {
+                          "RunTerraformExecutionDestroy": {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::states:startExecution.sync:2",
                             "Parameters": {
-                              "StateMachineArn": "${aws_sfn_state_machine.execute_terraform_workflow.arn}",
+                              "StateMachineArn": "${aws_sfn_state_machine.terraform_execution_workflow.arn}",
                               "Input": {
                                 "StatePayload": {
                                   "ModuleAccountAssociation.$": "$",

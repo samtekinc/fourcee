@@ -51,6 +51,14 @@ const MODULE_PROPAGATION_QUERY = gql`
           status
         }
       }
+      driftCheckRequests(limit: 5) {
+        items {
+          modulePropagationId
+          modulePropagationDriftCheckRequestId
+          requestTime
+          status
+        }
+      }
       moduleAccountAssociations {
         items {
           modulePropagationId
@@ -143,6 +151,38 @@ export const ModulePropagationPage = () => {
                   </td>
                   <td>{renderStatus(executionRequest?.status)}</td>
                   {renderTimeField(executionRequest?.requestTime)}
+                </tr>
+              );
+            }
+          )}
+        </tbody>
+      </Table>
+      <h2>Drift Check Requests</h2>
+      <DriftCheckModulePropagationButton
+        modulePropagationId={modulePropagationId}
+      />
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            <th>Request ID</th>
+            <th>Status</th>
+            <th>Request Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data?.modulePropagation.driftCheckRequests.items.map(
+            (driftCheckRequest) => {
+              return (
+                <tr>
+                  <td>
+                    <NavLink
+                      to={`/module-propagations/${driftCheckRequest?.modulePropagationId}/drift-checks/${driftCheckRequest?.modulePropagationDriftCheckRequestId}`}
+                    >
+                      {driftCheckRequest?.modulePropagationDriftCheckRequestId}
+                    </NavLink>
+                  </td>
+                  <td>{renderStatus(driftCheckRequest?.status)}</td>
+                  {renderTimeField(driftCheckRequest?.requestTime)}
                 </tr>
               );
             }
@@ -280,6 +320,70 @@ const ExecuteModulePropagationButton: React.VFC<
       }}
     >
       {loading ? "Submitting..." : "Execute Module Propagation"}
+    </Button>
+  );
+};
+
+const DRIFT_CHECK_MODULE_PROPAGATION_MUTATION = gql(`
+  mutation createModulePropagationDriftCheckRequest($modulePropagationId: ID!) {
+    createModulePropagationDriftCheckRequest(
+      modulePropagationDriftCheckRequest: {
+        modulePropagationId: $modulePropagationId
+      }
+    ) {
+      modulePropagationDriftCheckRequestId
+      status
+    }
+  }
+`);
+
+interface DriftCheckModulePropagationButtonProps {
+  modulePropagationId: string;
+}
+
+type DriftCheckModulePropagationResponse = {
+  createModulePropagationDriftCheckRequest: {
+    modulePropagationDriftCheckRequestId: string;
+    status: string;
+  };
+};
+
+const DriftCheckModulePropagationButton: React.VFC<
+  DriftCheckModulePropagationButtonProps
+> = (props: DriftCheckModulePropagationButtonProps) => {
+  const [mutation, { loading }] =
+    useMutation<DriftCheckModulePropagationResponse>(
+      DRIFT_CHECK_MODULE_PROPAGATION_MUTATION,
+      {
+        variables: {
+          modulePropagationId: props.modulePropagationId,
+        },
+        onError: (error) => {
+          console.log(error);
+          NotificationManager.error(
+            error.message,
+            `Error running drift check on module propagation`,
+            5000
+          );
+        },
+        onCompleted: (data) => {
+          NotificationManager.success(
+            `Initiated ${data.createModulePropagationDriftCheckRequest.modulePropagationDriftCheckRequestId}`,
+            "",
+            5000
+          );
+        },
+      }
+    );
+
+  return (
+    <Button
+      disabled={loading}
+      onClick={() => {
+        mutation();
+      }}
+    >
+      {loading ? "Submitting..." : "DriftCheck Module Propagation"}
     </Button>
   );
 };

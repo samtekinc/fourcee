@@ -51,15 +51,17 @@ func main() {
 		GroupsTableName:       "tfom-module-groups",
 		VersionsTableName:     "tfom-module-versions",
 		PropagationsTableName: "tfom-module-propagations",
-		ModulePropagationExecutionRequestsTableName: "tfom-module-propagation-execution-requests",
-		ModuleAccountAssociationsTableName:          "tfom-module-account-associations",
-		TerraformWorkflowRequestsTableName:          "tfom-terraform-workflow-requests",
-		PlanExecutionsTableName:                     "tfom-plan-execution-requests",
-		ApplyExecutionsTableName:                    "tfom-apply-execution-requests",
-		ResultsBucketName:                           "tfom-execution-results",
+		ModulePropagationExecutionRequestsTableName:  "tfom-module-propagation-execution-requests",
+		ModulePropagationDriftCheckRequestsTableName: "tfom-module-propagation-drift-check-requests",
+		ModuleAccountAssociationsTableName:           "tfom-module-account-associations",
+		TerraformExecutionWorkflowRequestsTableName:  "tfom-terraform-execution-workflow-requests",
+		TerraformDriftCheckWorkflowRequestsTableName: "tfom-terraform-drift-check-workflow-requests",
+		PlanExecutionsTableName:                      "tfom-plan-execution-requests",
+		ApplyExecutionsTableName:                     "tfom-apply-execution-requests",
+		ResultsBucketName:                            "tfom-execution-results",
 	}
 	dbClient := database.NewOrganizationsDatabaseClient(&dbInput)
-	apiClient := api.NewOrganizationsAPIClient(dbClient, "./tmp/", sfnClient, "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-execute-module-propagation", "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-execution")
+	apiClient := api.NewOrganizationsAPIClient(dbClient, "./tmp/", sfnClient, "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-execution", "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-drift-check", "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-execution")
 
 	installationDirectory, err := terraform.NewTerraformInstallationDirectory(TF_INSTALLATION_DIRECTORY)
 	if err != nil {

@@ -12,7 +12,7 @@ import (
 )
 
 // ModulePropagationExecutionRequest is the resolver for the modulePropagationExecutionRequest field.
-func (r *terraformWorkflowRequestResolver) ModulePropagationExecutionRequest(ctx context.Context, obj *models.TerraformWorkflowRequest) (*models.ModulePropagationExecutionRequest, error) {
+func (r *terraformExecutionWorkflowRequestResolver) ModulePropagationExecutionRequest(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.ModulePropagationExecutionRequest, error) {
 	modulePropagationId, err := r.ModulePropagationID(ctx, obj)
 	if err != nil {
 		return nil, err
@@ -21,7 +21,7 @@ func (r *terraformWorkflowRequestResolver) ModulePropagationExecutionRequest(ctx
 }
 
 // ModuleAccountAssociation is the resolver for the moduleAccountAssociation field.
-func (r *terraformWorkflowRequestResolver) ModuleAccountAssociation(ctx context.Context, obj *models.TerraformWorkflowRequest) (*models.ModuleAccountAssociation, error) {
+func (r *terraformExecutionWorkflowRequestResolver) ModuleAccountAssociation(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.ModuleAccountAssociation, error) {
 	key, err := models.ParseModuleAccountAssociationKey(obj.ModuleAccountAssociationKey)
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func (r *terraformWorkflowRequestResolver) ModuleAccountAssociation(ctx context.
 }
 
 // OrgAccountID is the resolver for the orgAccountId field.
-func (r *terraformWorkflowRequestResolver) OrgAccountID(ctx context.Context, obj *models.TerraformWorkflowRequest) (string, error) {
+func (r *terraformExecutionWorkflowRequestResolver) OrgAccountID(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (string, error) {
 	key, err := models.ParseModuleAccountAssociationKey(obj.ModuleAccountAssociationKey)
 	if err != nil {
 		return "", err
@@ -39,7 +39,7 @@ func (r *terraformWorkflowRequestResolver) OrgAccountID(ctx context.Context, obj
 }
 
 // OrgAccount is the resolver for the orgAccount field.
-func (r *terraformWorkflowRequestResolver) OrgAccount(ctx context.Context, obj *models.TerraformWorkflowRequest) (*models.OrganizationalAccount, error) {
+func (r *terraformExecutionWorkflowRequestResolver) OrgAccount(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.OrganizationalAccount, error) {
 	orgAccountId, err := r.OrgAccountID(ctx, obj)
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (r *terraformWorkflowRequestResolver) OrgAccount(ctx context.Context, obj *
 }
 
 // ModulePropagationID is the resolver for the modulePropagationId field.
-func (r *terraformWorkflowRequestResolver) ModulePropagationID(ctx context.Context, obj *models.TerraformWorkflowRequest) (string, error) {
+func (r *terraformExecutionWorkflowRequestResolver) ModulePropagationID(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (string, error) {
 	key, err := models.ParseModuleAccountAssociationKey(obj.ModuleAccountAssociationKey)
 	if err != nil {
 		return "", err
@@ -57,7 +57,7 @@ func (r *terraformWorkflowRequestResolver) ModulePropagationID(ctx context.Conte
 }
 
 // ModulePropagation is the resolver for the modulePropagation field.
-func (r *terraformWorkflowRequestResolver) ModulePropagation(ctx context.Context, obj *models.TerraformWorkflowRequest) (*models.ModulePropagation, error) {
+func (r *terraformExecutionWorkflowRequestResolver) ModulePropagation(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.ModulePropagation, error) {
 	modulePropagationId, err := r.ModulePropagationID(ctx, obj)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (r *terraformWorkflowRequestResolver) ModulePropagation(ctx context.Context
 }
 
 // PlanExecutionRequest is the resolver for the planExecutionRequest field.
-func (r *terraformWorkflowRequestResolver) PlanExecutionRequest(ctx context.Context, obj *models.TerraformWorkflowRequest) (*models.PlanExecutionRequest, error) {
+func (r *terraformExecutionWorkflowRequestResolver) PlanExecutionRequest(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.PlanExecutionRequest, error) {
 	if obj.PlanExecutionRequestId == nil {
 		return nil, nil
 	}
@@ -74,16 +74,16 @@ func (r *terraformWorkflowRequestResolver) PlanExecutionRequest(ctx context.Cont
 }
 
 // ApplyExecutionRequest is the resolver for the applyExecutionRequest field.
-func (r *terraformWorkflowRequestResolver) ApplyExecutionRequest(ctx context.Context, obj *models.TerraformWorkflowRequest) (*models.ApplyExecutionRequest, error) {
+func (r *terraformExecutionWorkflowRequestResolver) ApplyExecutionRequest(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.ApplyExecutionRequest, error) {
 	if obj.ApplyExecutionRequestId == nil {
 		return nil, nil
 	}
 	return r.apiClient.GetApplyExecutionRequest(ctx, *obj.ApplyExecutionRequestId)
 }
 
-// TerraformWorkflowRequest returns generated.TerraformWorkflowRequestResolver implementation.
-func (r *Resolver) TerraformWorkflowRequest() generated.TerraformWorkflowRequestResolver {
-	return &terraformWorkflowRequestResolver{r}
+// TerraformExecutionWorkflowRequest returns generated.TerraformExecutionWorkflowRequestResolver implementation.
+func (r *Resolver) TerraformExecutionWorkflowRequest() generated.TerraformExecutionWorkflowRequestResolver {
+	return &terraformExecutionWorkflowRequestResolver{r}
 }
 
-type terraformWorkflowRequestResolver struct{ *Resolver }
+type terraformExecutionWorkflowRequestResolver struct{ *Resolver }
