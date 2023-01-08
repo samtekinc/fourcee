@@ -29,6 +29,16 @@ func (c *OrganizationsAPIClient) PutModulePropagationDriftCheckRequest(ctx conte
 		return nil, err
 	}
 
+	modulePropagation, err := c.GetModulePropagation(ctx, input.ModulePropagationId)
+	if err != nil {
+		return nil, err
+	}
+
+	moduleGroup, err := c.GetModuleGroup(ctx, modulePropagation.ModuleGroupId)
+	if err != nil {
+		return nil, err
+	}
+
 	modulePropagationDriftCheckRequest := models.ModulePropagationDriftCheckRequest{
 		ModulePropagationDriftCheckRequestId: modulePropagationDriftCheckRequestId.String(),
 		ModulePropagationId:                  input.ModulePropagationId,
@@ -44,6 +54,7 @@ func (c *OrganizationsAPIClient) PutModulePropagationDriftCheckRequest(ctx conte
 	workflowSyncInput, err := json.Marshal(map[string]string{
 		"ModulePropagationId":                  input.ModulePropagationId,
 		"ModulePropagationDriftCheckRequestId": modulePropagationDriftCheckRequestId.String(),
+		"CloudPlatform":                        string(moduleGroup.CloudPlatform),
 	})
 	if err != nil {
 		return nil, err

@@ -1,8 +1,9 @@
 type OrganizationalAccount {
   orgAccountId: ID!
   name: String!
-  cloudPlatform: String!
+  cloudPlatform: CloudPlatform!
   cloudIdentifier: String!
+  metadata: [Metadata!]!
   orgUnitMemberships(
     limit: Int
     nextCursor: String
@@ -20,8 +21,13 @@ type OrganizationalAccounts {
 
 input NewOrganizationalAccount {
   name: String!
-  cloudPlatform: String!
+  cloudPlatform: CloudPlatform!
   cloudIdentifier: String!
+  metadata: [MetadataInput!]!
+}
+
+input OrganizationalAccountUpdate {
+  metadata: [MetadataInput!]
 }
 
 extend type Query {
@@ -37,4 +43,8 @@ extend type Mutation {
     orgAccount: NewOrganizationalAccount!
   ): OrganizationalAccount!
   deleteOrganizationalAccount(orgAccountId: ID!): Boolean!
+  updateOrganizationalAccount(
+    orgAccountId: ID!
+    update: OrganizationalAccountUpdate!
+  ): OrganizationalAccount!
 }

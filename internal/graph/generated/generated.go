@@ -97,6 +97,16 @@ type ComplexityRoot struct {
 		Region func(childComplexity int) int
 	}
 
+	GcpProviderConfiguration struct {
+		Alias  func(childComplexity int) int
+		Region func(childComplexity int) int
+	}
+
+	Metadata struct {
+		Name  func(childComplexity int) int
+		Value func(childComplexity int) int
+	}
+
 	ModuleAccountAssociation struct {
 		ApplyExecutionRequests func(childComplexity int, limit *int, nextCursor *string) int
 		ModulePropagation      func(childComplexity int) int
@@ -116,6 +126,7 @@ type ComplexityRoot struct {
 	}
 
 	ModuleGroup struct {
+		CloudPlatform      func(childComplexity int) int
 		ModuleGroupId      func(childComplexity int) int
 		ModulePropagations func(childComplexity int, limit *int, nextCursor *string) int
 		Name               func(childComplexity int) int
@@ -133,6 +144,7 @@ type ComplexityRoot struct {
 		Description               func(childComplexity int) int
 		DriftCheckRequests        func(childComplexity int, limit *int, nextCursor *string) int
 		ExecutionRequests         func(childComplexity int, limit *int, nextCursor *string) int
+		GcpProviderConfigurations func(childComplexity int) int
 		ModuleAccountAssociations func(childComplexity int, limit *int, nextCursor *string) int
 		ModuleGroup               func(childComplexity int) int
 		ModuleGroupId             func(childComplexity int) int
@@ -221,12 +233,14 @@ type ComplexityRoot struct {
 		DeleteOrganizationalUnit                 func(childComplexity int, orgDimensionID string, orgUnitID string) int
 		DeleteOrganizationalUnitMembership       func(childComplexity int, orgDimensionID string, orgAccountID string) int
 		UpdateModulePropagation                  func(childComplexity int, modulePropagationID string, update models.ModulePropagationUpdate) int
+		UpdateOrganizationalAccount              func(childComplexity int, orgAccountID string, update models.OrganizationalAccountUpdate) int
 		UpdateOrganizationalUnit                 func(childComplexity int, orgDimensionID string, orgUnitID string, update models.OrganizationalUnitUpdate) int
 	}
 
 	OrganizationalAccount struct {
 		CloudIdentifier           func(childComplexity int) int
 		CloudPlatform             func(childComplexity int) int
+		Metadata                  func(childComplexity int) int
 		ModuleAccountAssociations func(childComplexity int, limit *int, nextCursor *string) int
 		Name                      func(childComplexity int) int
 		OrgAccountId              func(childComplexity int) int
@@ -464,6 +478,7 @@ type MutationResolver interface {
 	DeleteModuleVersion(ctx context.Context, moduleGroupID string, moduleVersionID string) (bool, error)
 	CreateOrganizationalAccount(ctx context.Context, orgAccount models.NewOrganizationalAccount) (*models.OrganizationalAccount, error)
 	DeleteOrganizationalAccount(ctx context.Context, orgAccountID string) (bool, error)
+	UpdateOrganizationalAccount(ctx context.Context, orgAccountID string, update models.OrganizationalAccountUpdate) (*models.OrganizationalAccount, error)
 	CreateOrganizationalDimension(ctx context.Context, orgDimension models.NewOrganizationalDimension) (*models.OrganizationalDimension, error)
 	DeleteOrganizationalDimension(ctx context.Context, orgDimensionID string) (bool, error)
 	CreateOrganizationalUnitMembership(ctx context.Context, orgUnitMembership models.NewOrganizationalUnitMembership) (*models.OrganizationalUnitMembership, error)
@@ -747,6 +762,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AwsProviderConfiguration.Region(childComplexity), true
 
+	case "GcpProviderConfiguration.alias":
+		if e.complexity.GcpProviderConfiguration.Alias == nil {
+			break
+		}
+
+		return e.complexity.GcpProviderConfiguration.Alias(childComplexity), true
+
+	case "GcpProviderConfiguration.region":
+		if e.complexity.GcpProviderConfiguration.Region == nil {
+			break
+		}
+
+		return e.complexity.GcpProviderConfiguration.Region(childComplexity), true
+
+	case "Metadata.name":
+		if e.complexity.Metadata.Name == nil {
+			break
+		}
+
+		return e.complexity.Metadata.Name(childComplexity), true
+
+	case "Metadata.value":
+		if e.complexity.Metadata.Value == nil {
+			break
+		}
+
+		return e.complexity.Metadata.Value(childComplexity), true
+
 	case "ModuleAccountAssociation.applyExecutionRequests":
 		if e.complexity.ModuleAccountAssociation.ApplyExecutionRequests == nil {
 			break
@@ -840,6 +883,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ModuleAccountAssociations.NextCursor(childComplexity), true
+
+	case "ModuleGroup.cloudPlatform":
+		if e.complexity.ModuleGroup.CloudPlatform == nil {
+			break
+		}
+
+		return e.complexity.ModuleGroup.CloudPlatform(childComplexity), true
 
 	case "ModuleGroup.moduleGroupId":
 		if e.complexity.ModuleGroup.ModuleGroupId == nil {
@@ -937,6 +987,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ModulePropagation.ExecutionRequests(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+
+	case "ModulePropagation.gcpProviderConfigurations":
+		if e.complexity.ModulePropagation.GcpProviderConfigurations == nil {
+			break
+		}
+
+		return e.complexity.ModulePropagation.GcpProviderConfigurations(childComplexity), true
 
 	case "ModulePropagation.moduleAccountAssociations":
 		if e.complexity.ModulePropagation.ModuleAccountAssociations == nil {
@@ -1485,6 +1542,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateModulePropagation(childComplexity, args["modulePropagationId"].(string), args["update"].(models.ModulePropagationUpdate)), true
 
+	case "Mutation.updateOrganizationalAccount":
+		if e.complexity.Mutation.UpdateOrganizationalAccount == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateOrganizationalAccount_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateOrganizationalAccount(childComplexity, args["orgAccountId"].(string), args["update"].(models.OrganizationalAccountUpdate)), true
+
 	case "Mutation.updateOrganizationalUnit":
 		if e.complexity.Mutation.UpdateOrganizationalUnit == nil {
 			break
@@ -1510,6 +1579,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.OrganizationalAccount.CloudPlatform(childComplexity), true
+
+	case "OrganizationalAccount.metadata":
+		if e.complexity.OrganizationalAccount.Metadata == nil {
+			break
+		}
+
+		return e.complexity.OrganizationalAccount.Metadata(childComplexity), true
 
 	case "OrganizationalAccount.moduleAccountAssociations":
 		if e.complexity.OrganizationalAccount.ModuleAccountAssociations == nil {
@@ -2581,6 +2657,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputArgumentInput,
 		ec.unmarshalInputAwsProviderConfigurationInput,
+		ec.unmarshalInputGcpProviderConfigurationInput,
+		ec.unmarshalInputMetadataInput,
 		ec.unmarshalInputModulePropagationUpdate,
 		ec.unmarshalInputNewModuleGroup,
 		ec.unmarshalInputNewModulePropagation,
@@ -2591,6 +2669,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputNewOrganizationalDimension,
 		ec.unmarshalInputNewOrganizationalUnit,
 		ec.unmarshalInputNewOrganizationalUnitMembership,
+		ec.unmarshalInputOrganizationalAccountUpdate,
 		ec.unmarshalInputOrganizationalUnitUpdate,
 	)
 	first := true
@@ -2685,6 +2764,22 @@ extend type Query {
   ): ApplyExecutionRequests!
 }
 `, BuiltIn: false},
+	{Name: "../cloud_platform.graphqls", Input: `enum CloudPlatform {
+  aws
+  azure
+  gcp
+}
+`, BuiltIn: false},
+	{Name: "../metadata.graphqls", Input: `type Metadata {
+  name: String!
+  value: String!
+}
+
+input MetadataInput {
+  name: String!
+  value: String!
+}
+`, BuiltIn: false},
 	{Name: "../module_account_associations.graphqls", Input: `type ModuleAccountAssociation {
   modulePropagationId: ID!
   modulePropagation: ModulePropagation!
@@ -2725,6 +2820,7 @@ enum ModuleAccountAssociationStatus {
 	{Name: "../module_groups.graphqls", Input: `type ModuleGroup {
   moduleGroupId: ID!
   name: String!
+  cloudPlatform: CloudPlatform!
   versions(limit: Int, nextCursor: String): ModuleVersions!
   modulePropagations(limit: Int, nextCursor: String): ModulePropagations!
 }
@@ -2736,6 +2832,7 @@ type ModuleGroups {
 
 input NewModuleGroup {
   name: String!
+  cloudPlatform: CloudPlatform!
 }
 
 extend type Query {
@@ -2841,7 +2938,8 @@ extend type Mutation {
   name: String!
   description: String!
   arguments: [Argument!]!
-  awsProviderConfigurations: [AwsProviderConfiguration!]!
+  awsProviderConfigurations: [AwsProviderConfiguration!]
+  gcpProviderConfigurations: [GcpProviderConfiguration!]
   moduleAccountAssociations(
     limit: Int
     nextCursor: String
@@ -2857,6 +2955,11 @@ extend type Mutation {
 }
 
 type AwsProviderConfiguration {
+  region: String!
+  alias: String!
+}
+
+type GcpProviderConfiguration {
   region: String!
   alias: String!
 }
@@ -2879,10 +2982,16 @@ input NewModulePropagation {
   name: String!
   description: String!
   arguments: [ArgumentInput!]!
-  awsProviderConfigurations: [AwsProviderConfigurationInput!]!
+  awsProviderConfigurations: [AwsProviderConfigurationInput!]
+  gcpProviderConfigurations: [GcpProviderConfigurationInput!]
 }
 
 input AwsProviderConfigurationInput {
+  region: String!
+  alias: String!
+}
+
+input GcpProviderConfigurationInput {
   region: String!
   alias: String!
 }
@@ -2894,6 +3003,7 @@ input ModulePropagationUpdate {
   description: String
   arguments: [ArgumentInput!]
   awsProviderConfigurations: [AwsProviderConfigurationInput!]
+  gcpProviderConfigurations: [GcpProviderConfigurationInput!]
 }
 
 input ArgumentInput {
@@ -2964,8 +3074,9 @@ extend type Mutation {
 	{Name: "../organizational_accounts.graphqls", Input: `type OrganizationalAccount {
   orgAccountId: ID!
   name: String!
-  cloudPlatform: String!
+  cloudPlatform: CloudPlatform!
   cloudIdentifier: String!
+  metadata: [Metadata!]!
   orgUnitMemberships(
     limit: Int
     nextCursor: String
@@ -2983,8 +3094,13 @@ type OrganizationalAccounts {
 
 input NewOrganizationalAccount {
   name: String!
-  cloudPlatform: String!
+  cloudPlatform: CloudPlatform!
   cloudIdentifier: String!
+  metadata: [MetadataInput!]!
+}
+
+input OrganizationalAccountUpdate {
+  metadata: [MetadataInput!]
 }
 
 extend type Query {
@@ -3000,6 +3116,10 @@ extend type Mutation {
     orgAccount: NewOrganizationalAccount!
   ): OrganizationalAccount!
   deleteOrganizationalAccount(orgAccountId: ID!): Boolean!
+  updateOrganizationalAccount(
+    orgAccountId: ID!
+    update: OrganizationalAccountUpdate!
+  ): OrganizationalAccount!
 }
 `, BuiltIn: false},
 	{Name: "../organizational_dimensions.graphqls", Input: `type OrganizationalDimension {
@@ -3864,6 +3984,30 @@ func (ec *executionContext) field_Mutation_updateModulePropagation_args(ctx cont
 	if tmp, ok := rawArgs["update"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("update"))
 		arg1, err = ec.unmarshalNModulePropagationUpdate2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModulePropagationUpdate(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["update"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateOrganizationalAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["orgAccountId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orgAccountId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orgAccountId"] = arg0
+	var arg1 models.OrganizationalAccountUpdate
+	if tmp, ok := rawArgs["update"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("update"))
+		arg1, err = ec.unmarshalNOrganizationalAccountUpdate2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐOrganizationalAccountUpdate(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5290,6 +5434,8 @@ func (ec *executionContext) fieldContext_ApplyExecutionRequest_modulePropagation
 				return ec.fieldContext_ModulePropagation_arguments(ctx, field)
 			case "awsProviderConfigurations":
 				return ec.fieldContext_ModulePropagation_awsProviderConfigurations(ctx, field)
+			case "gcpProviderConfigurations":
+				return ec.fieldContext_ModulePropagation_gcpProviderConfigurations(ctx, field)
 			case "moduleAccountAssociations":
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
@@ -5394,6 +5540,8 @@ func (ec *executionContext) fieldContext_ApplyExecutionRequest_orgAccount(ctx co
 				return ec.fieldContext_OrganizationalAccount_cloudPlatform(ctx, field)
 			case "cloudIdentifier":
 				return ec.fieldContext_OrganizationalAccount_cloudIdentifier(ctx, field)
+			case "metadata":
+				return ec.fieldContext_OrganizationalAccount_metadata(ctx, field)
 			case "orgUnitMemberships":
 				return ec.fieldContext_OrganizationalAccount_orgUnitMemberships(ctx, field)
 			case "moduleAccountAssociations":
@@ -5972,6 +6120,182 @@ func (ec *executionContext) fieldContext_AwsProviderConfiguration_alias(ctx cont
 	return fc, nil
 }
 
+func (ec *executionContext) _GcpProviderConfiguration_region(ctx context.Context, field graphql.CollectedField, obj *models.GcpProviderConfiguration) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GcpProviderConfiguration_region(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Region, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GcpProviderConfiguration_region(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GcpProviderConfiguration",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GcpProviderConfiguration_alias(ctx context.Context, field graphql.CollectedField, obj *models.GcpProviderConfiguration) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GcpProviderConfiguration_alias(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Alias, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GcpProviderConfiguration_alias(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GcpProviderConfiguration",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Metadata_name(ctx context.Context, field graphql.CollectedField, obj *models.Metadata) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Metadata_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Metadata_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Metadata",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Metadata_value(ctx context.Context, field graphql.CollectedField, obj *models.Metadata) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Metadata_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Metadata_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Metadata",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ModuleAccountAssociation_modulePropagationId(ctx context.Context, field graphql.CollectedField, obj *models.ModuleAccountAssociation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ModuleAccountAssociation_modulePropagationId(ctx, field)
 	if err != nil {
@@ -6081,6 +6405,8 @@ func (ec *executionContext) fieldContext_ModuleAccountAssociation_modulePropagat
 				return ec.fieldContext_ModulePropagation_arguments(ctx, field)
 			case "awsProviderConfigurations":
 				return ec.fieldContext_ModulePropagation_awsProviderConfigurations(ctx, field)
+			case "gcpProviderConfigurations":
+				return ec.fieldContext_ModulePropagation_gcpProviderConfigurations(ctx, field)
 			case "moduleAccountAssociations":
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
@@ -6185,6 +6511,8 @@ func (ec *executionContext) fieldContext_ModuleAccountAssociation_orgAccount(ctx
 				return ec.fieldContext_OrganizationalAccount_cloudPlatform(ctx, field)
 			case "cloudIdentifier":
 				return ec.fieldContext_OrganizationalAccount_cloudIdentifier(ctx, field)
+			case "metadata":
+				return ec.fieldContext_OrganizationalAccount_metadata(ctx, field)
 			case "orgUnitMemberships":
 				return ec.fieldContext_OrganizationalAccount_orgUnitMemberships(ctx, field)
 			case "moduleAccountAssociations":
@@ -6686,6 +7014,50 @@ func (ec *executionContext) fieldContext_ModuleGroup_name(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _ModuleGroup_cloudPlatform(ctx context.Context, field graphql.CollectedField, obj *models.ModuleGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleGroup_cloudPlatform(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CloudPlatform, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.CloudPlatform)
+	fc.Result = res
+	return ec.marshalNCloudPlatform2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudPlatform(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleGroup_cloudPlatform(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CloudPlatform does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ModuleGroup_versions(ctx context.Context, field graphql.CollectedField, obj *models.ModuleGroup) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ModuleGroup_versions(ctx, field)
 	if err != nil {
@@ -6851,6 +7223,8 @@ func (ec *executionContext) fieldContext_ModuleGroups_items(ctx context.Context,
 				return ec.fieldContext_ModuleGroup_moduleGroupId(ctx, field)
 			case "name":
 				return ec.fieldContext_ModuleGroup_name(ctx, field)
+			case "cloudPlatform":
+				return ec.fieldContext_ModuleGroup_cloudPlatform(ctx, field)
 			case "versions":
 				return ec.fieldContext_ModuleGroup_versions(ctx, field)
 			case "modulePropagations":
@@ -7140,6 +7514,8 @@ func (ec *executionContext) fieldContext_ModulePropagation_moduleGroup(ctx conte
 				return ec.fieldContext_ModuleGroup_moduleGroupId(ctx, field)
 			case "name":
 				return ec.fieldContext_ModuleGroup_name(ctx, field)
+			case "cloudPlatform":
+				return ec.fieldContext_ModuleGroup_cloudPlatform(ctx, field)
 			case "versions":
 				return ec.fieldContext_ModuleGroup_versions(ctx, field)
 			case "modulePropagations":
@@ -7524,14 +7900,11 @@ func (ec *executionContext) _ModulePropagation_awsProviderConfigurations(ctx con
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.([]models.AwsProviderConfiguration)
 	fc.Result = res
-	return ec.marshalNAwsProviderConfiguration2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsProviderConfigurationᚄ(ctx, field.Selections, res)
+	return ec.marshalOAwsProviderConfiguration2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsProviderConfigurationᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ModulePropagation_awsProviderConfigurations(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7548,6 +7921,53 @@ func (ec *executionContext) fieldContext_ModulePropagation_awsProviderConfigurat
 				return ec.fieldContext_AwsProviderConfiguration_alias(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AwsProviderConfiguration", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModulePropagation_gcpProviderConfigurations(ctx context.Context, field graphql.CollectedField, obj *models.ModulePropagation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModulePropagation_gcpProviderConfigurations(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GcpProviderConfigurations, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]models.GcpProviderConfiguration)
+	fc.Result = res
+	return ec.marshalOGcpProviderConfiguration2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐGcpProviderConfigurationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModulePropagation_gcpProviderConfigurations(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModulePropagation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "region":
+				return ec.fieldContext_GcpProviderConfiguration_region(ctx, field)
+			case "alias":
+				return ec.fieldContext_GcpProviderConfiguration_alias(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GcpProviderConfiguration", field.Name)
 		},
 	}
 	return fc, nil
@@ -8658,6 +9078,8 @@ func (ec *executionContext) fieldContext_ModulePropagations_items(ctx context.Co
 				return ec.fieldContext_ModulePropagation_arguments(ctx, field)
 			case "awsProviderConfigurations":
 				return ec.fieldContext_ModulePropagation_awsProviderConfigurations(ctx, field)
+			case "gcpProviderConfigurations":
+				return ec.fieldContext_ModulePropagation_gcpProviderConfigurations(ctx, field)
 			case "moduleAccountAssociations":
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
@@ -9016,6 +9438,8 @@ func (ec *executionContext) fieldContext_ModuleVersion_moduleGroup(ctx context.C
 				return ec.fieldContext_ModuleGroup_moduleGroupId(ctx, field)
 			case "name":
 				return ec.fieldContext_ModuleGroup_name(ctx, field)
+			case "cloudPlatform":
+				return ec.fieldContext_ModuleGroup_cloudPlatform(ctx, field)
 			case "versions":
 				return ec.fieldContext_ModuleGroup_versions(ctx, field)
 			case "modulePropagations":
@@ -9420,6 +9844,8 @@ func (ec *executionContext) fieldContext_Mutation_createModuleGroup(ctx context.
 				return ec.fieldContext_ModuleGroup_moduleGroupId(ctx, field)
 			case "name":
 				return ec.fieldContext_ModuleGroup_name(ctx, field)
+			case "cloudPlatform":
+				return ec.fieldContext_ModuleGroup_cloudPlatform(ctx, field)
 			case "versions":
 				return ec.fieldContext_ModuleGroup_versions(ctx, field)
 			case "modulePropagations":
@@ -9702,6 +10128,8 @@ func (ec *executionContext) fieldContext_Mutation_createModulePropagation(ctx co
 				return ec.fieldContext_ModulePropagation_arguments(ctx, field)
 			case "awsProviderConfigurations":
 				return ec.fieldContext_ModulePropagation_awsProviderConfigurations(ctx, field)
+			case "gcpProviderConfigurations":
+				return ec.fieldContext_ModulePropagation_gcpProviderConfigurations(ctx, field)
 			case "moduleAccountAssociations":
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
@@ -9846,6 +10274,8 @@ func (ec *executionContext) fieldContext_Mutation_updateModulePropagation(ctx co
 				return ec.fieldContext_ModulePropagation_arguments(ctx, field)
 			case "awsProviderConfigurations":
 				return ec.fieldContext_ModulePropagation_awsProviderConfigurations(ctx, field)
+			case "gcpProviderConfigurations":
+				return ec.fieldContext_ModulePropagation_gcpProviderConfigurations(ctx, field)
 			case "moduleAccountAssociations":
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
@@ -10045,6 +10475,8 @@ func (ec *executionContext) fieldContext_Mutation_createOrganizationalAccount(ct
 				return ec.fieldContext_OrganizationalAccount_cloudPlatform(ctx, field)
 			case "cloudIdentifier":
 				return ec.fieldContext_OrganizationalAccount_cloudIdentifier(ctx, field)
+			case "metadata":
+				return ec.fieldContext_OrganizationalAccount_metadata(ctx, field)
 			case "orgUnitMemberships":
 				return ec.fieldContext_OrganizationalAccount_orgUnitMemberships(ctx, field)
 			case "moduleAccountAssociations":
@@ -10116,6 +10548,77 @@ func (ec *executionContext) fieldContext_Mutation_deleteOrganizationalAccount(ct
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteOrganizationalAccount_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateOrganizationalAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateOrganizationalAccount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateOrganizationalAccount(rctx, fc.Args["orgAccountId"].(string), fc.Args["update"].(models.OrganizationalAccountUpdate))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.OrganizationalAccount)
+	fc.Result = res
+	return ec.marshalNOrganizationalAccount2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐOrganizationalAccount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateOrganizationalAccount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "orgAccountId":
+				return ec.fieldContext_OrganizationalAccount_orgAccountId(ctx, field)
+			case "name":
+				return ec.fieldContext_OrganizationalAccount_name(ctx, field)
+			case "cloudPlatform":
+				return ec.fieldContext_OrganizationalAccount_cloudPlatform(ctx, field)
+			case "cloudIdentifier":
+				return ec.fieldContext_OrganizationalAccount_cloudIdentifier(ctx, field)
+			case "metadata":
+				return ec.fieldContext_OrganizationalAccount_metadata(ctx, field)
+			case "orgUnitMemberships":
+				return ec.fieldContext_OrganizationalAccount_orgUnitMemberships(ctx, field)
+			case "moduleAccountAssociations":
+				return ec.fieldContext_OrganizationalAccount_moduleAccountAssociations(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OrganizationalAccount", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateOrganizationalAccount_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -10695,9 +11198,9 @@ func (ec *executionContext) _OrganizationalAccount_cloudPlatform(ctx context.Con
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(models.CloudPlatform)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNCloudPlatform2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudPlatform(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_OrganizationalAccount_cloudPlatform(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -10707,7 +11210,7 @@ func (ec *executionContext) fieldContext_OrganizationalAccount_cloudPlatform(ctx
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type CloudPlatform does not have child fields")
 		},
 	}
 	return fc, nil
@@ -10752,6 +11255,56 @@ func (ec *executionContext) fieldContext_OrganizationalAccount_cloudIdentifier(c
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OrganizationalAccount_metadata(ctx context.Context, field graphql.CollectedField, obj *models.OrganizationalAccount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OrganizationalAccount_metadata(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Metadata, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]models.Metadata)
+	fc.Result = res
+	return ec.marshalNMetadata2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐMetadataᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OrganizationalAccount_metadata(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OrganizationalAccount",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_Metadata_name(ctx, field)
+			case "value":
+				return ec.fieldContext_Metadata_value(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Metadata", field.Name)
 		},
 	}
 	return fc, nil
@@ -10926,6 +11479,8 @@ func (ec *executionContext) fieldContext_OrganizationalAccounts_items(ctx contex
 				return ec.fieldContext_OrganizationalAccount_cloudPlatform(ctx, field)
 			case "cloudIdentifier":
 				return ec.fieldContext_OrganizationalAccount_cloudIdentifier(ctx, field)
+			case "metadata":
+				return ec.fieldContext_OrganizationalAccount_metadata(ctx, field)
 			case "orgUnitMemberships":
 				return ec.fieldContext_OrganizationalAccount_orgUnitMemberships(ctx, field)
 			case "moduleAccountAssociations":
@@ -12075,6 +12630,8 @@ func (ec *executionContext) fieldContext_OrganizationalUnitMembership_orgAccount
 				return ec.fieldContext_OrganizationalAccount_cloudPlatform(ctx, field)
 			case "cloudIdentifier":
 				return ec.fieldContext_OrganizationalAccount_cloudIdentifier(ctx, field)
+			case "metadata":
+				return ec.fieldContext_OrganizationalAccount_metadata(ctx, field)
 			case "orgUnitMemberships":
 				return ec.fieldContext_OrganizationalAccount_orgUnitMemberships(ctx, field)
 			case "moduleAccountAssociations":
@@ -12923,6 +13480,8 @@ func (ec *executionContext) fieldContext_PlanExecutionRequest_modulePropagation(
 				return ec.fieldContext_ModulePropagation_arguments(ctx, field)
 			case "awsProviderConfigurations":
 				return ec.fieldContext_ModulePropagation_awsProviderConfigurations(ctx, field)
+			case "gcpProviderConfigurations":
+				return ec.fieldContext_ModulePropagation_gcpProviderConfigurations(ctx, field)
 			case "moduleAccountAssociations":
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
@@ -13027,6 +13586,8 @@ func (ec *executionContext) fieldContext_PlanExecutionRequest_orgAccount(ctx con
 				return ec.fieldContext_OrganizationalAccount_cloudPlatform(ctx, field)
 			case "cloudIdentifier":
 				return ec.fieldContext_OrganizationalAccount_cloudIdentifier(ctx, field)
+			case "metadata":
+				return ec.fieldContext_OrganizationalAccount_metadata(ctx, field)
 			case "orgUnitMemberships":
 				return ec.fieldContext_OrganizationalAccount_orgUnitMemberships(ctx, field)
 			case "moduleAccountAssociations":
@@ -13766,6 +14327,8 @@ func (ec *executionContext) fieldContext_Query_moduleGroup(ctx context.Context, 
 				return ec.fieldContext_ModuleGroup_moduleGroupId(ctx, field)
 			case "name":
 				return ec.fieldContext_ModuleGroup_name(ctx, field)
+			case "cloudPlatform":
+				return ec.fieldContext_ModuleGroup_cloudPlatform(ctx, field)
 			case "versions":
 				return ec.fieldContext_ModuleGroup_versions(ctx, field)
 			case "modulePropagations":
@@ -14176,6 +14739,8 @@ func (ec *executionContext) fieldContext_Query_modulePropagation(ctx context.Con
 				return ec.fieldContext_ModulePropagation_arguments(ctx, field)
 			case "awsProviderConfigurations":
 				return ec.fieldContext_ModulePropagation_awsProviderConfigurations(ctx, field)
+			case "gcpProviderConfigurations":
+				return ec.fieldContext_ModulePropagation_gcpProviderConfigurations(ctx, field)
 			case "moduleAccountAssociations":
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
@@ -14442,6 +15007,8 @@ func (ec *executionContext) fieldContext_Query_organizationalAccount(ctx context
 				return ec.fieldContext_OrganizationalAccount_cloudPlatform(ctx, field)
 			case "cloudIdentifier":
 				return ec.fieldContext_OrganizationalAccount_cloudIdentifier(ctx, field)
+			case "metadata":
+				return ec.fieldContext_OrganizationalAccount_metadata(ctx, field)
 			case "orgUnitMemberships":
 				return ec.fieldContext_OrganizationalAccount_orgUnitMemberships(ctx, field)
 			case "moduleAccountAssociations":
@@ -15871,6 +16438,8 @@ func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_orgA
 				return ec.fieldContext_OrganizationalAccount_cloudPlatform(ctx, field)
 			case "cloudIdentifier":
 				return ec.fieldContext_OrganizationalAccount_cloudIdentifier(ctx, field)
+			case "metadata":
+				return ec.fieldContext_OrganizationalAccount_metadata(ctx, field)
 			case "orgUnitMemberships":
 				return ec.fieldContext_OrganizationalAccount_orgUnitMemberships(ctx, field)
 			case "moduleAccountAssociations":
@@ -15991,6 +16560,8 @@ func (ec *executionContext) fieldContext_TerraformDriftCheckWorkflowRequest_modu
 				return ec.fieldContext_ModulePropagation_arguments(ctx, field)
 			case "awsProviderConfigurations":
 				return ec.fieldContext_ModulePropagation_awsProviderConfigurations(ctx, field)
+			case "gcpProviderConfigurations":
+				return ec.fieldContext_ModulePropagation_gcpProviderConfigurations(ctx, field)
 			case "moduleAccountAssociations":
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
@@ -16764,6 +17335,8 @@ func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_orgAc
 				return ec.fieldContext_OrganizationalAccount_cloudPlatform(ctx, field)
 			case "cloudIdentifier":
 				return ec.fieldContext_OrganizationalAccount_cloudIdentifier(ctx, field)
+			case "metadata":
+				return ec.fieldContext_OrganizationalAccount_metadata(ctx, field)
 			case "orgUnitMemberships":
 				return ec.fieldContext_OrganizationalAccount_orgUnitMemberships(ctx, field)
 			case "moduleAccountAssociations":
@@ -16884,6 +17457,8 @@ func (ec *executionContext) fieldContext_TerraformExecutionWorkflowRequest_modul
 				return ec.fieldContext_ModulePropagation_arguments(ctx, field)
 			case "awsProviderConfigurations":
 				return ec.fieldContext_ModulePropagation_awsProviderConfigurations(ctx, field)
+			case "gcpProviderConfigurations":
+				return ec.fieldContext_ModulePropagation_gcpProviderConfigurations(ctx, field)
 			case "moduleAccountAssociations":
 				return ec.fieldContext_ModulePropagation_moduleAccountAssociations(ctx, field)
 			case "executionRequests":
@@ -19475,6 +20050,78 @@ func (ec *executionContext) unmarshalInputAwsProviderConfigurationInput(ctx cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputGcpProviderConfigurationInput(ctx context.Context, obj interface{}) (models.GcpProviderConfigurationInput, error) {
+	var it models.GcpProviderConfigurationInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"region", "alias"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "region":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("region"))
+			it.Region, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "alias":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
+			it.Alias, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputMetadataInput(ctx context.Context, obj interface{}) (models.MetadataInput, error) {
+	var it models.MetadataInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			it.Value, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputModulePropagationUpdate(ctx context.Context, obj interface{}) (models.ModulePropagationUpdate, error) {
 	var it models.ModulePropagationUpdate
 	asMap := map[string]interface{}{}
@@ -19482,7 +20129,7 @@ func (ec *executionContext) unmarshalInputModulePropagationUpdate(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"orgDimensionId", "orgUnitId", "name", "description", "arguments", "awsProviderConfigurations"}
+	fieldsInOrder := [...]string{"orgDimensionId", "orgUnitId", "name", "description", "arguments", "awsProviderConfigurations", "gcpProviderConfigurations"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -19537,6 +20184,14 @@ func (ec *executionContext) unmarshalInputModulePropagationUpdate(ctx context.Co
 			if err != nil {
 				return it, err
 			}
+		case "gcpProviderConfigurations":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gcpProviderConfigurations"))
+			it.GcpProviderConfigurations, err = ec.unmarshalOGcpProviderConfigurationInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐGcpProviderConfigurationInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -19550,7 +20205,7 @@ func (ec *executionContext) unmarshalInputNewModuleGroup(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name"}
+	fieldsInOrder := [...]string{"name", "cloudPlatform"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -19562,6 +20217,14 @@ func (ec *executionContext) unmarshalInputNewModuleGroup(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "cloudPlatform":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cloudPlatform"))
+			it.CloudPlatform, err = ec.unmarshalNCloudPlatform2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudPlatform(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19578,7 +20241,7 @@ func (ec *executionContext) unmarshalInputNewModulePropagation(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"moduleVersionId", "moduleGroupId", "orgUnitId", "orgDimensionId", "name", "description", "arguments", "awsProviderConfigurations"}
+	fieldsInOrder := [...]string{"moduleVersionId", "moduleGroupId", "orgUnitId", "orgDimensionId", "name", "description", "arguments", "awsProviderConfigurations", "gcpProviderConfigurations"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -19645,7 +20308,15 @@ func (ec *executionContext) unmarshalInputNewModulePropagation(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("awsProviderConfigurations"))
-			it.AwsProviderConfigurations, err = ec.unmarshalNAwsProviderConfigurationInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsProviderConfigurationInputᚄ(ctx, v)
+			it.AwsProviderConfigurations, err = ec.unmarshalOAwsProviderConfigurationInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsProviderConfigurationInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "gcpProviderConfigurations":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gcpProviderConfigurations"))
+			it.GcpProviderConfigurations, err = ec.unmarshalOGcpProviderConfigurationInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐGcpProviderConfigurationInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19770,7 +20441,7 @@ func (ec *executionContext) unmarshalInputNewOrganizationalAccount(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "cloudPlatform", "cloudIdentifier"}
+	fieldsInOrder := [...]string{"name", "cloudPlatform", "cloudIdentifier", "metadata"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -19789,7 +20460,7 @@ func (ec *executionContext) unmarshalInputNewOrganizationalAccount(ctx context.C
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cloudPlatform"))
-			it.CloudPlatform, err = ec.unmarshalNString2string(ctx, v)
+			it.CloudPlatform, err = ec.unmarshalNCloudPlatform2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudPlatform(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19798,6 +20469,14 @@ func (ec *executionContext) unmarshalInputNewOrganizationalAccount(ctx context.C
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cloudIdentifier"))
 			it.CloudIdentifier, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "metadata":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metadata"))
+			it.Metadata, err = ec.unmarshalNMetadataInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐMetadataInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19914,6 +20593,34 @@ func (ec *executionContext) unmarshalInputNewOrganizationalUnitMembership(ctx co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orgDimensionId"))
 			it.OrgDimensionId, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputOrganizationalAccountUpdate(ctx context.Context, obj interface{}) (models.OrganizationalAccountUpdate, error) {
+	var it models.OrganizationalAccountUpdate
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"metadata"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "metadata":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metadata"))
+			it.Metadata, err = ec.unmarshalOMetadataInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐMetadataInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20255,6 +20962,76 @@ func (ec *executionContext) _AwsProviderConfiguration(ctx context.Context, sel a
 	return out
 }
 
+var gcpProviderConfigurationImplementors = []string{"GcpProviderConfiguration"}
+
+func (ec *executionContext) _GcpProviderConfiguration(ctx context.Context, sel ast.SelectionSet, obj *models.GcpProviderConfiguration) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, gcpProviderConfigurationImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GcpProviderConfiguration")
+		case "region":
+
+			out.Values[i] = ec._GcpProviderConfiguration_region(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "alias":
+
+			out.Values[i] = ec._GcpProviderConfiguration_alias(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var metadataImplementors = []string{"Metadata"}
+
+func (ec *executionContext) _Metadata(ctx context.Context, sel ast.SelectionSet, obj *models.Metadata) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, metadataImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Metadata")
+		case "name":
+
+			out.Values[i] = ec._Metadata_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+
+			out.Values[i] = ec._Metadata_value(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var moduleAccountAssociationImplementors = []string{"ModuleAccountAssociation"}
 
 func (ec *executionContext) _ModuleAccountAssociation(ctx context.Context, sel ast.SelectionSet, obj *models.ModuleAccountAssociation) graphql.Marshaler {
@@ -20460,6 +21237,13 @@ func (ec *executionContext) _ModuleGroup(ctx context.Context, sel ast.SelectionS
 		case "name":
 
 			out.Values[i] = ec._ModuleGroup_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "cloudPlatform":
+
+			out.Values[i] = ec._ModuleGroup_cloudPlatform(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
@@ -20697,9 +21481,10 @@ func (ec *executionContext) _ModulePropagation(ctx context.Context, sel ast.Sele
 
 			out.Values[i] = ec._ModulePropagation_awsProviderConfigurations(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+		case "gcpProviderConfigurations":
+
+			out.Values[i] = ec._ModulePropagation_gcpProviderConfigurations(ctx, field, obj)
+
 		case "moduleAccountAssociations":
 			field := field
 
@@ -21364,6 +22149,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "updateOrganizationalAccount":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateOrganizationalAccount(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createOrganizationalDimension":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -21472,6 +22266,13 @@ func (ec *executionContext) _OrganizationalAccount(ctx context.Context, sel ast.
 		case "cloudIdentifier":
 
 			out.Values[i] = ec._OrganizationalAccount_cloudIdentifier(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "metadata":
+
+			out.Values[i] = ec._OrganizationalAccount_metadata(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
@@ -24090,7 +24891,71 @@ func (ec *executionContext) marshalNAwsProviderConfiguration2githubᚗcomᚋshea
 	return ec._AwsProviderConfiguration(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAwsProviderConfiguration2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsProviderConfigurationᚄ(ctx context.Context, sel ast.SelectionSet, v []models.AwsProviderConfiguration) graphql.Marshaler {
+func (ec *executionContext) unmarshalNAwsProviderConfigurationInput2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsProviderConfigurationInput(ctx context.Context, v interface{}) (models.AwsProviderConfigurationInput, error) {
+	res, err := ec.unmarshalInputAwsProviderConfigurationInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
+	res, err := graphql.UnmarshalBoolean(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
+	res := graphql.MarshalBoolean(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNCloudPlatform2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudPlatform(ctx context.Context, v interface{}) (models.CloudPlatform, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := models.CloudPlatform(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCloudPlatform2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudPlatform(ctx context.Context, sel ast.SelectionSet, v models.CloudPlatform) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) marshalNGcpProviderConfiguration2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐGcpProviderConfiguration(ctx context.Context, sel ast.SelectionSet, v models.GcpProviderConfiguration) graphql.Marshaler {
+	return ec._GcpProviderConfiguration(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalNGcpProviderConfigurationInput2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐGcpProviderConfigurationInput(ctx context.Context, v interface{}) (models.GcpProviderConfigurationInput, error) {
+	res, err := ec.unmarshalInputGcpProviderConfigurationInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
+	res, err := graphql.UnmarshalID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) marshalNMetadata2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐMetadata(ctx context.Context, sel ast.SelectionSet, v models.Metadata) graphql.Marshaler {
+	return ec._Metadata(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMetadata2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐMetadataᚄ(ctx context.Context, sel ast.SelectionSet, v []models.Metadata) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -24114,7 +24979,7 @@ func (ec *executionContext) marshalNAwsProviderConfiguration2ᚕgithubᚗcomᚋs
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAwsProviderConfiguration2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsProviderConfiguration(ctx, sel, v[i])
+			ret[i] = ec.marshalNMetadata2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐMetadata(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -24134,56 +24999,26 @@ func (ec *executionContext) marshalNAwsProviderConfiguration2ᚕgithubᚗcomᚋs
 	return ret
 }
 
-func (ec *executionContext) unmarshalNAwsProviderConfigurationInput2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsProviderConfigurationInput(ctx context.Context, v interface{}) (models.AwsProviderConfigurationInput, error) {
-	res, err := ec.unmarshalInputAwsProviderConfigurationInput(ctx, v)
+func (ec *executionContext) unmarshalNMetadataInput2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐMetadataInput(ctx context.Context, v interface{}) (models.MetadataInput, error) {
+	res, err := ec.unmarshalInputMetadataInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNAwsProviderConfigurationInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsProviderConfigurationInputᚄ(ctx context.Context, v interface{}) ([]models.AwsProviderConfigurationInput, error) {
+func (ec *executionContext) unmarshalNMetadataInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐMetadataInputᚄ(ctx context.Context, v interface{}) ([]models.MetadataInput, error) {
 	var vSlice []interface{}
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
 	var err error
-	res := make([]models.AwsProviderConfigurationInput, len(vSlice))
+	res := make([]models.MetadataInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNAwsProviderConfigurationInput2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsProviderConfigurationInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNMetadataInput2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐMetadataInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
 	}
 	return res, nil
-}
-
-func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
-	res, err := graphql.UnmarshalBoolean(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
-	res := graphql.MarshalBoolean(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
-func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
-	res, err := graphql.UnmarshalID(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalID(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
 }
 
 func (ec *executionContext) marshalNModuleAccountAssociation2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociation(ctx context.Context, sel ast.SelectionSet, v models.ModuleAccountAssociation) graphql.Marshaler {
@@ -24720,6 +25555,11 @@ func (ec *executionContext) marshalNOrganizationalAccount2ᚖgithubᚗcomᚋshea
 		return graphql.Null
 	}
 	return ec._OrganizationalAccount(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNOrganizationalAccountUpdate2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐOrganizationalAccountUpdate(ctx context.Context, v interface{}) (models.OrganizationalAccountUpdate, error) {
+	res, err := ec.unmarshalInputOrganizationalAccountUpdate(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNOrganizationalAccounts2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐOrganizationalAccounts(ctx context.Context, sel ast.SelectionSet, v models.OrganizationalAccounts) graphql.Marshaler {
@@ -25481,6 +26321,53 @@ func (ec *executionContext) unmarshalOArgumentInput2ᚕgithubᚗcomᚋsheacloud�
 	return res, nil
 }
 
+func (ec *executionContext) marshalOAwsProviderConfiguration2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsProviderConfigurationᚄ(ctx context.Context, sel ast.SelectionSet, v []models.AwsProviderConfiguration) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAwsProviderConfiguration2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsProviderConfiguration(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOAwsProviderConfigurationInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsProviderConfigurationInputᚄ(ctx context.Context, v interface{}) ([]models.AwsProviderConfigurationInput, error) {
 	if v == nil {
 		return nil, nil
@@ -25527,6 +26414,73 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) marshalOGcpProviderConfiguration2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐGcpProviderConfigurationᚄ(ctx context.Context, sel ast.SelectionSet, v []models.GcpProviderConfiguration) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNGcpProviderConfiguration2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐGcpProviderConfiguration(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOGcpProviderConfigurationInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐGcpProviderConfigurationInputᚄ(ctx context.Context, v interface{}) ([]models.GcpProviderConfigurationInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]models.GcpProviderConfigurationInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNGcpProviderConfigurationInput2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐGcpProviderConfigurationInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -25567,6 +26521,26 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	}
 	res := graphql.MarshalInt(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOMetadataInput2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐMetadataInputᚄ(ctx context.Context, v interface{}) ([]models.MetadataInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]models.MetadataInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNMetadataInput2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐMetadataInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalOModuleAccountAssociation2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAccountAssociation(ctx context.Context, sel ast.SelectionSet, v models.ModuleAccountAssociation) graphql.Marshaler {

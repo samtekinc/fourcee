@@ -29,6 +29,16 @@ func (c *OrganizationsAPIClient) PutModulePropagationExecutionRequest(ctx contex
 		return nil, err
 	}
 
+	modulePropagation, err := c.GetModulePropagation(ctx, input.ModulePropagationId)
+	if err != nil {
+		return nil, err
+	}
+
+	moduleGroup, err := c.GetModuleGroup(ctx, modulePropagation.ModuleGroupId)
+	if err != nil {
+		return nil, err
+	}
+
 	modulePropagationExecutionRequest := models.ModulePropagationExecutionRequest{
 		ModulePropagationExecutionRequestId: modulePropagationExecutionRequestId.String(),
 		ModulePropagationId:                 input.ModulePropagationId,
@@ -44,6 +54,7 @@ func (c *OrganizationsAPIClient) PutModulePropagationExecutionRequest(ctx contex
 	workflowExecutionInput, err := json.Marshal(map[string]string{
 		"ModulePropagationId":                 input.ModulePropagationId,
 		"ModulePropagationExecutionRequestId": modulePropagationExecutionRequestId.String(),
+		"CloudPlatform":                       string(moduleGroup.CloudPlatform),
 	})
 	if err != nil {
 		return nil, err

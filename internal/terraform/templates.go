@@ -19,22 +19,43 @@ type TerraformConfigurationInput struct {
 
 func GetTerraformConfigurationBase64(input *TerraformConfigurationInput) (string, error) {
 	providers := []ProviderTemplate{}
-	for _, awsProvider := range input.ModulePropagation.AwsProviderConfigurations {
-		providers = append(providers, &AWSProviderTemplate{
-			Config:         awsProvider,
-			AssumeRoleName: input.OrgAccount.AssumeRoleName,
-			AccountId:      input.OrgAccount.CloudIdentifier,
-			SessionName:    fmt.Sprintf("tfom-%s", input.ModulePropagation.ModulePropagationId),
+
+	switch input.OrgAccount.CloudPlatform {
+	case models.CloudPlatformAWS:
+		for _, awsProvider := range input.ModulePropagation.AwsProviderConfigurations {
+			providers = append(providers, &AWSProviderTemplate{
+				Config:         awsProvider,
+				AssumeRoleName: input.OrgAccount.AssumeRoleName,
+				AccountId:      input.OrgAccount.CloudIdentifier,
+				SessionName:    fmt.Sprintf("tfom-%s", input.ModulePropagation.ModulePropagationId),
+			})
+		}
+	case models.CloudPlatformAzure:
+		providers = append(providers, &AzureProviderTemplate{
+			SubscriptionId: input.OrgAccount.CloudIdentifier,
 		})
+	case models.CloudPlatformGCP:
+		for _, gcpProvider := range input.ModulePropagation.GcpProviderConfigurations {
+			providers = append(providers, &GCPProviderTemplate{
+				Config:    gcpProvider,
+				ProjectId: input.OrgAccount.CloudIdentifier,
+			})
+		}
+	default:
+		return "", fmt.Errorf("unknown cloud platform: %s", input.OrgAccount.CloudPlatform)
 	}
+
 	templateInput := TemplateInput{
-		BackendBucket:   input.ModuleAccountAssociation.RemoteStateBucket,
-		BackendKey:      input.ModuleAccountAssociation.RemoteStateKey,
-		BackendRegion:   input.ModuleAccountAssociation.RemoteStateRegion,
-		Providers:       providers,
-		ModuleName:      input.ModulePropagation.Name,
-		ModuleSource:    input.ModuleVersion.RemoteSource,
-		ModuleArguments: input.ModulePropagation.Arguments,
+		BackendBucket:             input.ModuleAccountAssociation.RemoteStateBucket,
+		BackendKey:                input.ModuleAccountAssociation.RemoteStateKey,
+		BackendRegion:             input.ModuleAccountAssociation.RemoteStateRegion,
+		Providers:                 providers,
+		AccountMetadata:           append(input.OrgAccount.Metadata, input.OrgAccount.GetInternalMetadata()...),
+		ModuleVersionMetadata:     input.ModuleVersion.GetInternalMetadata(),
+		ModulePropagationMetadata: input.ModulePropagation.GetInternalMetadata(),
+		ModuleName:                input.ModulePropagation.Name,
+		ModuleSource:              input.ModuleVersion.RemoteSource,
+		ModuleArguments:           input.ModulePropagation.Arguments,
 	}
 
 	buf := bytes.NewBuffer([]byte{})
@@ -48,13 +69,16 @@ func GetTerraformConfigurationBase64(input *TerraformConfigurationInput) (string
 }
 
 type TemplateInput struct {
-	BackendBucket   string
-	BackendKey      string
-	BackendRegion   string
-	Providers       []ProviderTemplate
-	ModuleName      string
-	ModuleSource    string
-	ModuleArguments []models.Argument
+	BackendBucket             string
+	BackendKey                string
+	BackendRegion             string
+	Providers                 []ProviderTemplate
+	AccountMetadata           []models.Metadata
+	ModuleVersionMetadata     []models.Metadata
+	ModulePropagationMetadata []models.Metadata
+	ModuleName                string
+	ModuleSource              string
+	ModuleArguments           []models.Argument
 }
 
 var moduleTemplateString = `
@@ -65,6 +89,12 @@ terraform {
     region = "{{.BackendRegion}}"
   }
 }
+
+locals {
+{{range $index, $element := .AccountMetadata}}  org_account_{{$element.Name}} = "{{$element.Value}}"
+{{end}}{{range $index, $element := .ModuleVersionMetadata}}  module_version_{{$element.Name}} = "{{$element.Value}}"
+{{end}}{{range $index, $element := .ModulePropagationMetadata}}  module_propagation_{{$element.Name}} = "{{$element.Value}}"
+{{end}}}
 
 {{range $index, $element := .Providers}}{{$element.GetProviderConfiguration}}
 {{end}}

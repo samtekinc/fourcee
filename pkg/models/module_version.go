@@ -6,7 +6,6 @@ type ModuleVersion struct {
 	Name             string
 	RemoteSource     string
 	TerraformVersion string
-	CloudPlatform    string
 	Variables        []*ModuleVariable
 }
 
@@ -28,4 +27,25 @@ type ModuleVariable struct {
 	Type        string
 	Description string
 	Default     *string
+}
+
+func (m *ModuleVersion) GetInternalMetadata() []Metadata {
+	return []Metadata{
+		{
+			Name:  "id",
+			Value: m.ModuleVersionId,
+		},
+		{
+			Name:  "name",
+			Value: m.Name,
+		},
+		{
+			Name:  "remote_source",
+			Value: m.RemoteSource,
+		},
+		{
+			Name:  "terraform_version",
+			Value: m.TerraformVersion,
+		},
+	}
 }

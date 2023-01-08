@@ -45,6 +45,7 @@ func (c *OrganizationsAPIClient) PutModulePropagation(ctx context.Context, input
 		OrgDimensionId:            input.OrgDimensionId,
 		Arguments:                 ArgumentInputsToArguments(input.Arguments),
 		AwsProviderConfigurations: AwsProviderConfigurationInputsToAwsProviderConfigurations(input.AwsProviderConfigurations),
+		GcpProviderConfigurations: GcpProviderConfigurationInputsToGcpProviderConfigurations(input.GcpProviderConfigurations),
 		Name:                      input.Name,
 		Description:               input.Description,
 	}

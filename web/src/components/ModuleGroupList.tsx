@@ -4,6 +4,7 @@ import { NavLink } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import { Table } from "react-bootstrap";
 import Container from "react-bootstrap/Container";
+import { renderCloudPlatform } from "../utils/table_rendering";
 
 const MODULE_GROUPS_QUERY = gql`
   query moduleGroups {
@@ -11,6 +12,7 @@ const MODULE_GROUPS_QUERY = gql`
       items {
         moduleGroupId
         name
+        cloudPlatform
       }
     }
   }
@@ -36,6 +38,7 @@ export const ModuleGroupsList = () => {
           <tr>
             <th>Module Group Name</th>
             <th>Module Group ID</th>
+            <th>Cloud Platform</th>
           </tr>
         </thead>
         <tbody>
@@ -48,6 +51,7 @@ export const ModuleGroupsList = () => {
                     {moduleGroup?.moduleGroupId}
                   </NavLink>
                 </td>
+                {renderCloudPlatform(moduleGroup?.cloudPlatform)}
               </tr>
             );
           })}

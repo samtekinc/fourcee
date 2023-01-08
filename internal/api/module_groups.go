@@ -24,6 +24,7 @@ func (c *OrganizationsAPIClient) PutModuleGroup(ctx context.Context, input *mode
 	moduleGroup := models.ModuleGroup{
 		ModuleGroupId: moduleGroupId.String(),
 		Name:          input.Name,
+		CloudPlatform: input.CloudPlatform,
 	}
 	err = c.dbClient.PutModuleGroup(ctx, &moduleGroup)
 	if err != nil {

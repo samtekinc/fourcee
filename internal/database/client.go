@@ -26,6 +26,7 @@ type OrganizationsDatabaseClientInterface interface {
 	GetOrganizationalAccounts(ctx context.Context, limit int32, cursor string) (*models.OrganizationalAccounts, error)
 	PutOrganizationalAccount(ctx context.Context, input *models.OrganizationalAccount) error
 	DeleteOrganizationalAccount(ctx context.Context, orgAccountId string) error
+	UpdateOrganizationalAccount(ctx context.Context, orgAccountId string, update *models.OrganizationalAccountUpdate) (*models.OrganizationalAccount, error)
 
 	GetOrganizationalUnitMembershipsByAccount(ctx context.Context, accountId string, limit int32, cursor string) (*models.OrganizationalUnitMemberships, error)
 	GetOrganizationalUnitMembershipsByOrgUnit(ctx context.Context, orgUnitId string, limit int32, cursor string) (*models.OrganizationalUnitMemberships, error)

@@ -10,6 +10,8 @@ import { renderTimeField } from "../utils/table_rendering";
 import { Container } from "react-bootstrap";
 import { NotificationManager } from "react-notifications";
 import { Button } from "react-bootstrap";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 const MODULE_ACCOUNT_ASSOCIATION_QUERY = gql`
   query moduleAccountAssociation(
@@ -37,6 +39,7 @@ const MODULE_ACCOUNT_ASSOCIATION_QUERY = gql`
         name
       }
       status
+      terraformConfiguration
       planExecutionRequests {
         items {
           planExecutionRequestId
@@ -86,6 +89,11 @@ export const ModuleAccountAssociationPage = () => {
   if (loading) return null;
   if (error) return <div>Error</div>;
 
+  let terraformConfiguration = data?.moduleAccountAssociation
+    .terraformConfiguration
+    ? atob(data?.moduleAccountAssociation.terraformConfiguration)
+    : "...";
+
   return (
     <Container>
       <h1>Module Account Association</h1>
@@ -118,6 +126,20 @@ export const ModuleAccountAssociationPage = () => {
           {data?.moduleAccountAssociation.modulePropagation.moduleVersion.name}
         </NavLink>
       </p>
+      <h2>Terraform Configuration</h2>
+      <Container
+        className="bg-vscDarkPlus"
+        style={{
+          overflow: "auto",
+          maxHeight: "60vh",
+          whiteSpace: "pre-wrap",
+          textAlign: "left",
+        }}
+      >
+        <SyntaxHighlighter language="hcl" style={vscDarkPlus}>
+          {terraformConfiguration}
+        </SyntaxHighlighter>
+      </Container>
       <h2>Plan Requests</h2>
       <Table striped bordered hover>
         <thead>

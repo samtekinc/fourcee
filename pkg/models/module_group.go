@@ -3,6 +3,7 @@ package models
 type ModuleGroup struct {
 	ModuleGroupId string
 	Name          string
+	CloudPlatform CloudPlatform
 }
 
 type ModuleGroups struct {
@@ -11,5 +12,6 @@ type ModuleGroups struct {
 }
 
 type NewModuleGroup struct {
-	Name string
+	Name          string
+	CloudPlatform CloudPlatform
 }

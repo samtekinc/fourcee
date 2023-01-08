@@ -16,6 +16,34 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   })
 }
 
+resource "aws_iam_policy" "ecs_task_execution_policy" {
+  name        = "${var.prefix}-ecs-task-execution-policy"
+  path        = "/"
+  description = "TFOM ECS task execution policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ssm:GetParameters",
+        ]
+        Effect = "Allow"
+        Resource = [
+          aws_ssm_parameter.arm_client_id.arn,
+          aws_ssm_parameter.arm_client_secret.arn,
+          aws_ssm_parameter.arm_tenant_id.arn,
+        ]
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_custom" {
+  role       = aws_iam_role.ecs_task_execution_role.id
+  policy_arn = aws_iam_policy.ecs_task_execution_policy.arn
+}
+
 resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
   role       = aws_iam_role.ecs_task_execution_role.id
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"

@@ -1,0 +1,9 @@
+type Metadata {
+  name: String!
+  value: String!
+}
+
+input MetadataInput {
+  name: String!
+  value: String!
+}

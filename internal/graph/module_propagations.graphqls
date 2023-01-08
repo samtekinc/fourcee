@@ -11,7 +11,8 @@ type ModulePropagation {
   name: String!
   description: String!
   arguments: [Argument!]!
-  awsProviderConfigurations: [AwsProviderConfiguration!]!
+  awsProviderConfigurations: [AwsProviderConfiguration!]
+  gcpProviderConfigurations: [GcpProviderConfiguration!]
   moduleAccountAssociations(
     limit: Int
     nextCursor: String
@@ -27,6 +28,11 @@ type ModulePropagation {
 }
 
 type AwsProviderConfiguration {
+  region: String!
+  alias: String!
+}
+
+type GcpProviderConfiguration {
   region: String!
   alias: String!
 }
@@ -49,10 +55,16 @@ input NewModulePropagation {
   name: String!
   description: String!
   arguments: [ArgumentInput!]!
-  awsProviderConfigurations: [AwsProviderConfigurationInput!]!
+  awsProviderConfigurations: [AwsProviderConfigurationInput!]
+  gcpProviderConfigurations: [GcpProviderConfigurationInput!]
 }
 
 input AwsProviderConfigurationInput {
+  region: String!
+  alias: String!
+}
+
+input GcpProviderConfigurationInput {
   region: String!
   alias: String!
 }
@@ -64,6 +76,7 @@ input ModulePropagationUpdate {
   description: String
   arguments: [ArgumentInput!]
   awsProviderConfigurations: [AwsProviderConfigurationInput!]
+  gcpProviderConfigurations: [GcpProviderConfigurationInput!]
 }
 
 input ArgumentInput {

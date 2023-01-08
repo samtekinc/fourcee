@@ -13,6 +13,32 @@ import {
   BsXCircle,
 } from "react-icons/bs";
 
+import { FaAws } from "react-icons/fa";
+import { SiMicrosoftazure } from "react-icons/si";
+import { FcGoogle } from "react-icons/fc";
+
+import { CloudPlatform } from "../__generated__/graphql";
+
+export function renderCloudPlatform(
+  cloudPlatform: CloudPlatform | undefined
+): JSX.Element {
+  return (
+    <>
+      <td>
+        {cloudPlatform === CloudPlatform.Aws ? (
+          <FaAws color="FF9900" />
+        ) : cloudPlatform === CloudPlatform.Azure ? (
+          <SiMicrosoftazure color="007FFF" />
+        ) : cloudPlatform === CloudPlatform.Gcp ? (
+          <FcGoogle />
+        ) : (
+          <BsQuestionCircle color="#FF0000" />
+        )}
+      </td>
+    </>
+  );
+}
+
 export function renderTimeField(time: string): JSX.Element {
   const timeDate = new Date(Date.parse(time));
   return (

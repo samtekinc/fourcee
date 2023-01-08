@@ -69,7 +69,8 @@ resource "aws_sfn_state_machine" "list_mp_accounts" {
                     "Parameters": {
                       "Payload": {
                         "Payload": {
-                          "OrgUnit.$": "$"
+                          "OrgUnit.$": "$",
+                          "CloudPlatform.$": "$$.Execution.Input.StatePayload.CloudPlatform"
                         },
                         "Task": "ListOrgUnitAccounts",
                         "Workflow": "ExecuteModulePropagation"

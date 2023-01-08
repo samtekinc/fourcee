@@ -36,3 +36,33 @@ func (t *AWSProviderTemplate) GetProviderConfiguration() (string, error) {
   }
 }`, t.Config.Alias, t.Config.Region, t.AccountId, t.AssumeRoleName, t.SessionName), nil
 }
+
+type AzureProviderTemplate struct {
+	SubscriptionId string
+}
+
+func (t *AzureProviderTemplate) GetProviderConfiguration() (string, error) {
+	return fmt.Sprintf(`provider "azurerm" {
+  subscription_id = "%s"
+  features {}
+}`, t.SubscriptionId), nil
+}
+
+type GCPProviderTemplate struct {
+	Config    models.GcpProviderConfiguration
+	ProjectId string
+}
+
+func (t *GCPProviderTemplate) GetProviderConfiguration() (string, error) {
+	if t.Config.Alias == "" {
+		return fmt.Sprintf(`provider "google" {
+			project = "%s"
+			region = "%s"
+		  }`, t.ProjectId, t.Config.Region), nil
+	}
+	return fmt.Sprintf(`provider "google" {
+  alias = "%s"
+  project = "%s"
+  region = "%s"
+}`, t.Config.Alias, t.ProjectId, t.Config.Region), nil
+}

@@ -27,6 +27,7 @@ func (c *OrganizationsAPIClient) PutOrganizationalAccount(ctx context.Context, i
 		CloudPlatform:   input.CloudPlatform,
 		CloudIdentifier: input.CloudIdentifier,
 		AssumeRoleName:  input.AssumeRoleName,
+		Metadata:        MetadataInputsToMetadata(input.Metadata),
 	}
 	err = c.dbClient.PutOrganizationalAccount(ctx, &orgAccount)
 	if err != nil {
@@ -38,4 +39,8 @@ func (c *OrganizationsAPIClient) PutOrganizationalAccount(ctx context.Context, i
 
 func (c *OrganizationsAPIClient) DeleteOrganizationalAccount(ctx context.Context, id string) error {
 	return c.dbClient.DeleteOrganizationalAccount(ctx, id)
+}
+
+func (c *OrganizationsAPIClient) UpdateOrganizationalAccount(ctx context.Context, orgAccountId string, update *models.OrganizationalAccountUpdate) (*models.OrganizationalAccount, error) {
+	return c.dbClient.UpdateOrganizationalAccount(ctx, orgAccountId, update)
 }

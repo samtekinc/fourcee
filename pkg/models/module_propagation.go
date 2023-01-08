@@ -8,6 +8,7 @@ type ModulePropagation struct {
 	OrgDimensionId            string
 	Arguments                 []Argument
 	AwsProviderConfigurations []AwsProviderConfiguration
+	GcpProviderConfigurations []GcpProviderConfiguration
 	Name                      string
 	Description               string
 }
@@ -22,7 +23,17 @@ type AwsProviderConfiguration struct {
 	Alias  string
 }
 
+type GcpProviderConfiguration struct {
+	Region string
+	Alias  string
+}
+
 type AwsProviderConfigurationInput struct {
+	Region string
+	Alias  string
+}
+
+type GcpProviderConfigurationInput struct {
 	Region string
 	Alias  string
 }
@@ -44,6 +55,7 @@ type NewModulePropagation struct {
 	OrgDimensionId            string
 	Arguments                 []ArgumentInput
 	AwsProviderConfigurations []AwsProviderConfigurationInput
+	GcpProviderConfigurations []GcpProviderConfigurationInput
 	Name                      string
 	Description               string
 }
@@ -55,4 +67,22 @@ type ModulePropagationUpdate struct {
 	Description               *string
 	Arguments                 []ArgumentInput
 	AwsProviderConfigurations []AwsProviderConfigurationInput
+	GcpProviderConfigurations []GcpProviderConfigurationInput
+}
+
+func (m *ModulePropagation) GetInternalMetadata() []Metadata {
+	return []Metadata{
+		{
+			Name:  "id",
+			Value: m.ModulePropagationId,
+		},
+		{
+			Name:  "name",
+			Value: m.Name,
+		},
+		{
+			Name:  "description",
+			Value: m.Description,
+		},
+	}
 }

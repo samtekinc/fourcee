@@ -48,6 +48,20 @@ resource "aws_ecs_task_definition" "executor" {
           value = "/efs/.terraform.d/plugin-cache"
         }
       ]
+      secrets = [
+        {
+          name      = "ARM_CLIENT_ID"
+          valueFrom = aws_ssm_parameter.arm_client_id.arn
+        },
+        {
+          name      = "ARM_CLIENT_SECRET"
+          valueFrom = aws_ssm_parameter.arm_client_secret.arn
+        },
+        {
+          name      = "ARM_TENANT_ID"
+          valueFrom = aws_ssm_parameter.arm_tenant_id.arn
+        }
+      ]
     },
   ])
 

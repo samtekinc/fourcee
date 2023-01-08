@@ -23,6 +23,11 @@ func (r *mutationResolver) DeleteOrganizationalAccount(ctx context.Context, orgA
 	return err == nil, err
 }
 
+// UpdateOrganizationalAccount is the resolver for the updateOrganizationalAccount field.
+func (r *mutationResolver) UpdateOrganizationalAccount(ctx context.Context, orgAccountID string, update models.OrganizationalAccountUpdate) (*models.OrganizationalAccount, error) {
+	return r.apiClient.UpdateOrganizationalAccount(ctx, orgAccountID, &update)
+}
+
 // OrgUnitMemberships is the resolver for the orgUnitMemberships field.
 func (r *organizationalAccountResolver) OrgUnitMemberships(ctx context.Context, obj *models.OrganizationalAccount, limit *int, nextCursor *string) (*models.OrganizationalUnitMemberships, error) {
 	if limit == nil {

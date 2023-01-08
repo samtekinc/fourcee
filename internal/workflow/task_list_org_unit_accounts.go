@@ -11,7 +11,8 @@ const (
 )
 
 type ListOrgUnitAccountsInput struct {
-	OrgUnit models.OrganizationalUnit
+	OrgUnit       models.OrganizationalUnit
+	CloudPlatform models.CloudPlatform
 }
 
 type ListOrgUnitAccountsOutput struct {
@@ -32,7 +33,9 @@ func (t *TaskHandler) ListOrgUnitAccounts(ctx context.Context, input ListOrgUnit
 			if err != nil {
 				return nil, err
 			}
-			accounts = append(accounts, *account)
+			if account.CloudPlatform == input.CloudPlatform {
+				accounts = append(accounts, *account)
+			}
 		}
 		if accountsPage.NextCursor == "" {
 			break

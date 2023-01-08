@@ -127,3 +127,53 @@ func (c *OrganizationsDatabaseClient) DeleteOrganizationalAccount(ctx context.Co
 		return err
 	}
 }
+
+func (c *OrganizationsDatabaseClient) UpdateOrganizationalAccount(ctx context.Context, orgAccountId string, update *models.OrganizationalAccountUpdate) (*models.OrganizationalAccount, error) {
+	condition := expression.AttributeExists(expression.Name("OrgAccountId"))
+
+	expr, err := expression.NewBuilder().WithCondition(condition).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	updateBuilder := expression.UpdateBuilder{}
+	if update.Metadata != nil {
+		updateBuilder = updateBuilder.Set(expression.Name("Metadata"), expression.Value(update.Metadata))
+	}
+
+	updateExpression, err := expression.NewBuilder().WithUpdate(updateBuilder).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	updateInput := &dynamodb.UpdateItemInput{
+		TableName: &c.accountsTableName,
+		Key: map[string]types.AttributeValue{
+			"OrgAccountId": &types.AttributeValueMemberS{Value: orgAccountId},
+		},
+		ExpressionAttributeNames:  updateExpression.Names(),
+		ExpressionAttributeValues: updateExpression.Values(),
+		UpdateExpression:          updateExpression.Update(),
+		ConditionExpression:       expr.Condition(),
+		ReturnValues:              types.ReturnValueAllNew,
+	}
+
+	result, err := c.dynamodb.UpdateItem(ctx, updateInput)
+	ccfe := &types.ConditionalCheckFailedException{}
+	switch {
+	case errors.As(err, &ccfe):
+		return nil, helpers.NotFoundError{Message: fmt.Sprintf("Org Account %q not found", orgAccountId)}
+	default:
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	orgAccount := models.OrganizationalAccount{}
+	err = attributevalue.UnmarshalMap(result.Attributes, &orgAccount)
+	if err != nil {
+		return nil, err
+	}
+
+	return &orgAccount, nil
+}

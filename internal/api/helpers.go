@@ -19,3 +19,19 @@ func AwsProviderConfigurationInputsToAwsProviderConfigurations(inputs []models.A
 	}
 	return providers
 }
+
+func GcpProviderConfigurationInputsToGcpProviderConfigurations(inputs []models.GcpProviderConfigurationInput) []models.GcpProviderConfiguration {
+	providers := make([]models.GcpProviderConfiguration, len(inputs))
+	for i, input := range inputs {
+		providers[i] = models.GcpProviderConfiguration(input)
+	}
+	return providers
+}
+
+func MetadataInputsToMetadata(inputs []models.MetadataInput) []models.Metadata {
+	metadata := make([]models.Metadata, len(inputs))
+	for i, input := range inputs {
+		metadata[i] = models.Metadata(input)
+	}
+	return metadata
+}
