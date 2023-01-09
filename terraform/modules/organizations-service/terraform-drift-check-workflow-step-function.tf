@@ -18,66 +18,38 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
 
   definition = <<EOF
 {
-  "StartAt": "CreateTerraformDriftCheckWorkflowRequest",
+  "StartAt": "UpdateWorkflowRunning",
   "States": {
-    "CreateTerraformDriftCheckWorkflowRequest": {
+    "UpdateWorkflowRunning": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke",
-      "OutputPath": "$.Payload",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "FunctionName": "${aws_lambda_function.workflow_handler.arn}",
-        "Payload": {
-          "Payload.$": "$.StatePayload",
-          "Task": "CreateTerraformDriftCheckWorkflowRequest",
-          "Workflow": "ExecuteTerraformApply"
+        "TableName": "${aws_dynamodb_table.terraform_drift_check_workflow_requests.name}",
+        "Key": {
+          "TerraformDriftCheckWorkflowRequestId": {
+            "S.$": "$.TerraformDriftCheckWorkflowRequestId"
+          }
+        },
+        "UpdateExpression": "SET #s = :status",
+        "ExpressionAttributeValues": {
+          ":status": {
+            "S": "RUNNING"
+          }
+        },
+        "ExpressionAttributeNames": {
+          "#s": "Status"
         }
       },
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException",
-            "Lambda.AWSLambdaException",
-            "Lambda.SdkClientException",
-            "Lambda.TooManyRequestsException"
-          ],
-          "IntervalSeconds": 2,
-          "MaxAttempts": 6,
-          "BackoffRate": 2
-        }
-      ],
-      "TimeoutSeconds": 3660,
-      "Next": "Parallel"
+      "Next": "Parallel",
+      "ResultPath": null
     },
     "Parallel": {
       "Type": "Parallel",
       "Next": "UpdateWorkflowSuccess",
       "Branches": [
         {
-          "StartAt": "UpdateWorkflowRunning",
+          "StartAt": "ScheduleTerraformPlan",
           "States": {
-            "UpdateWorkflowRunning": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:updateItem",
-              "Parameters": {
-                "TableName": "${aws_dynamodb_table.terraform_drift_check_workflow_requests.name}",
-                "Key": {
-                  "TerraformDriftCheckWorkflowRequestId": {
-                    "S.$": "$.TerraformDriftCheckWorkflowRequestId"
-                  }
-                },
-                "UpdateExpression": "SET #s = :status",
-                "ExpressionAttributeValues": {
-                  ":status": {
-                    "S": "RUNNING"
-                  }
-                },
-                "ExpressionAttributeNames": {
-                  "#s": "Status"
-                }
-              },
-              "Next": "ScheduleTerraformPlan",
-              "ResultPath": null
-            },
             "ScheduleTerraformPlan": {
               "Type": "Task",
               "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
@@ -172,7 +144,20 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
           "#s": "Status"
         }
       },
-      "Next": "Success"
+      "Next": "SendTaskSuccess"
+    },
+    "SendTaskSuccess": {
+      "Type": "Task",
+      "Next": "Success",
+      "Parameters": {
+        "Output": {
+          "Payload": {
+            "TerraformDriftCheckWorkflowRequestId.$": "$$.Execution.Input.TerraformDriftCheckWorkflowRequestId"
+          }
+        },
+        "TaskToken.$": "$$.Execution.Input.TaskToken"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:sfn:sendTaskSuccess"
     },
     "Success": {
       "Type": "Succeed"
@@ -197,7 +182,15 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
           "#s": "Status"
         }
       },
-      "Next": "Fail"
+      "Next": "SendTaskFailure"
+    },
+    "SendTaskFailure": {
+      "Type": "Task",
+      "Next": "Fail",
+      "Parameters": {
+        "TaskToken.$": "$$.Execution.Input.TaskToken"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:sfn:sendTaskFailure"
     },
     "Fail": {
       "Type": "Fail"

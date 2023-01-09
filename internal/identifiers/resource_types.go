@@ -9,6 +9,7 @@ const (
 	ResourceTypeModuleGroup                        ResourceType = "mg"
 	ResourceTypeModuleVersion                      ResourceType = "mv"
 	ResourceTypeModulePropagation                  ResourceType = "mp"
+	ResourceTypeModuleAssignment                   ResourceType = "ma"
 	ResourceTypeTerraformExecutionWorkflowRequest  ResourceType = "tfexec"
 	ResourceTypeTerraformDriftCheckWorkflowRequest ResourceType = "tfdrift"
 	ResourceTypePlanExecutionRequest               ResourceType = "plan"

@@ -4,13 +4,11 @@ import "time"
 
 type PlanExecutionRequest struct {
 	PlanExecutionRequestId       string
+	ModuleAssignmentId           string
 	TerraformVersion             string
 	CallbackTaskToken            string
-	StateKey                     string
-	ModuleAccountAssociationKey  string
 	TerraformConfigurationBase64 string
 	AdditionalArguments          []string
-	ModulePropagationRequestId   string // could be a mpexec or an mpsync request
 	TerraformWorkflowRequestId   string // could be a tfexec or a tfsync request
 	Status                       RequestStatus
 	InitOutputKey                string
@@ -26,12 +24,10 @@ type PlanExecutionRequests struct {
 }
 
 type NewPlanExecutionRequest struct {
+	ModuleAssignmentId           string
 	TerraformVersion             string
 	CallbackTaskToken            string
-	StateKey                     string
-	ModulePropagationRequestId   string
 	TerraformWorkflowRequestId   string
-	ModuleAccountAssociationKey  string
 	TerraformConfigurationBase64 string
 	AdditionalArguments          []string
 }

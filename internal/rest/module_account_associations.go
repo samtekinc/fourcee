@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (r *OrganizationsRouter) getModuleAccountAssociationsByModulePropagationId(c *gin.Context) {
+func (r *OrganizationsRouter) getModuleAssignmentsByModulePropagationId(c *gin.Context) {
 	modulePropagationId := c.Param("modulePropagationId")
 	limitString := c.DefaultQuery("limit", "10")
 	cursor := c.Query("cursor")
@@ -18,7 +18,7 @@ func (r *OrganizationsRouter) getModuleAccountAssociationsByModulePropagationId(
 		})
 		return
 	}
-	response, err := r.apiClient.GetModuleAccountAssociationsByModulePropagationId(c, modulePropagationId, int32(limit), cursor)
+	response, err := r.apiClient.GetModuleAssignmentsByModulePropagationId(c, modulePropagationId, int32(limit), cursor)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -28,10 +28,10 @@ func (r *OrganizationsRouter) getModuleAccountAssociationsByModulePropagationId(
 	c.JSON(http.StatusOK, response)
 }
 
-func (r *OrganizationsRouter) getModuleAccountAssociation(c *gin.Context) {
+func (r *OrganizationsRouter) getModuleAssignment(c *gin.Context) {
 	modulePropagationId := c.Param("modulePropagationId")
 	orgAccountId := c.Param("orgAccountId")
-	response, err := r.apiClient.GetModuleAccountAssociation(c, modulePropagationId, orgAccountId)
+	response, err := r.apiClient.GetModuleAssignment(c, modulePropagationId, orgAccountId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

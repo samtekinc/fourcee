@@ -241,8 +241,65 @@ resource "aws_dynamodb_table" "module_propagation_drift_check_requests" {
   }
 }
 
-resource "aws_dynamodb_table" "module_account_associations" {
-  name         = "${var.prefix}-module-account-associations"
+resource "aws_dynamodb_table" "module_assignments" {
+  name         = "${var.prefix}-module-assignments"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "ModuleAssignmentId"
+
+  attribute {
+    name = "ModuleAssignmentId"
+    type = "S"
+  }
+
+  attribute {
+    name = "ModulePropagationId"
+    type = "S"
+  }
+
+  attribute {
+    name = "OrgAccountId"
+    type = "S"
+  }
+
+  attribute {
+    name = "ModuleVersionId"
+    type = "S"
+  }
+
+  attribute {
+    name = "ModuleGroupId"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "ModulePropagationId-OrgAccountId-index"
+    hash_key        = "ModulePropagationId"
+    range_key       = "OrgAccountId"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "OrgAccountId-ModulePropagationId-index"
+    hash_key        = "OrgAccountId"
+    range_key       = "ModulePropagationId"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "ModuleVersionId-index"
+    hash_key        = "ModuleVersionId"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "ModuleGroupId-index"
+    hash_key        = "ModuleGroupId"
+    projection_type = "ALL"
+  }
+}
+
+resource "aws_dynamodb_table" "module_propagation_assignments" {
+  name         = "${var.prefix}-module-propagation-assignments"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "ModulePropagationId"
   range_key    = "OrgAccountId"
@@ -277,12 +334,7 @@ resource "aws_dynamodb_table" "plan_execution_requests" {
   }
 
   attribute {
-    name = "ModulePropagationRequestId"
-    type = "S"
-  }
-
-  attribute {
-    name = "ModuleAccountAssociationKey"
+    name = "ModuleAssignmentId"
     type = "S"
   }
 
@@ -292,15 +344,8 @@ resource "aws_dynamodb_table" "plan_execution_requests" {
   }
 
   global_secondary_index {
-    name            = "ModulePropagationRequestId-RequestTime-index"
-    hash_key        = "ModulePropagationRequestId"
-    range_key       = "RequestTime"
-    projection_type = "ALL"
-  }
-
-  global_secondary_index {
-    name            = "ModuleAccountAssociationKey-RequestTime-index"
-    hash_key        = "ModuleAccountAssociationKey"
+    name            = "ModuleAssignmentId-RequestTime-index"
+    hash_key        = "ModuleAssignmentId"
     range_key       = "RequestTime"
     projection_type = "ALL"
   }
@@ -318,12 +363,7 @@ resource "aws_dynamodb_table" "apply_execution_requests" {
   }
 
   attribute {
-    name = "ModulePropagationRequestId"
-    type = "S"
-  }
-
-  attribute {
-    name = "ModuleAccountAssociationKey"
+    name = "ModuleAssignmentId"
     type = "S"
   }
 
@@ -333,15 +373,8 @@ resource "aws_dynamodb_table" "apply_execution_requests" {
   }
 
   global_secondary_index {
-    name            = "ModulePropagationRequestId-RequestTime-index"
-    hash_key        = "ModulePropagationRequestId"
-    range_key       = "RequestTime"
-    projection_type = "ALL"
-  }
-
-  global_secondary_index {
-    name            = "ModuleAccountAssociationKey-RequestTime-index"
-    hash_key        = "ModuleAccountAssociationKey"
+    name            = "ModuleAssignmentId-RequestTime-index"
+    hash_key        = "ModuleAssignmentId"
     range_key       = "RequestTime"
     projection_type = "ALL"
   }
@@ -368,7 +401,7 @@ resource "aws_dynamodb_table" "terraform_execution_workflow_requests" {
   }
 
   attribute {
-    name = "ModuleAccountAssociationKey"
+    name = "ModuleAssignmentId"
     type = "S"
   }
 
@@ -380,8 +413,8 @@ resource "aws_dynamodb_table" "terraform_execution_workflow_requests" {
   }
 
   global_secondary_index {
-    name            = "ModuleAccountAssociationKey-RequestTime-index"
-    hash_key        = "ModuleAccountAssociationKey"
+    name            = "ModuleAssignmentId-RequestTime-index"
+    hash_key        = "ModuleAssignmentId"
     range_key       = "RequestTime"
     projection_type = "ALL"
   }
@@ -408,7 +441,7 @@ resource "aws_dynamodb_table" "terraform_drift_check_workflow_requests" {
   }
 
   attribute {
-    name = "ModuleAccountAssociationKey"
+    name = "ModuleAssignmentId"
     type = "S"
   }
 
@@ -420,8 +453,8 @@ resource "aws_dynamodb_table" "terraform_drift_check_workflow_requests" {
   }
 
   global_secondary_index {
-    name            = "ModuleAccountAssociationKey-RequestTime-index"
-    hash_key        = "ModuleAccountAssociationKey"
+    name            = "ModuleAssignmentId-RequestTime-index"
+    hash_key        = "ModuleAssignmentId"
     range_key       = "RequestTime"
     projection_type = "ALL"
   }

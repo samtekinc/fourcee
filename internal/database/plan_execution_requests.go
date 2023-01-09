@@ -76,13 +76,13 @@ func (c OrganizationsDatabaseClient) GetPlanExecutionRequests(ctx context.Contex
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetPlanExecutionRequestsByModulePropagationRequestId(ctx context.Context, modulePropagationRequestId string, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
+func (c OrganizationsDatabaseClient) GetPlanExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
 	}
 
-	keyCondition := expression.Key("ModulePropagationRequestId").Equal(expression.Value(modulePropagationRequestId))
+	keyCondition := expression.Key("ModuleAssignmentId").Equal(expression.Value(moduleAssignmentId))
 	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
 	expr, err := expressionBuilder.Build()
 	if err != nil {
@@ -91,7 +91,7 @@ func (c OrganizationsDatabaseClient) GetPlanExecutionRequestsByModulePropagation
 
 	queryInput := &dynamodb.QueryInput{
 		TableName:                 &c.planExecutionsTableName,
-		IndexName:                 aws.String("ModulePropagationRequestId-RequestTime-index"),
+		IndexName:                 aws.String("ModuleAssignmentId-RequestTime-index"),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		KeyConditionExpression:    expr.KeyCondition(),
@@ -101,58 +101,7 @@ func (c OrganizationsDatabaseClient) GetPlanExecutionRequestsByModulePropagation
 		ScanIndexForward:          aws.Bool(false),
 	}
 
-	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"PlanExecutionRequestId", "ModulePropagationRequestId", "RequestTime"})
-	if err != nil {
-		return nil, err
-	}
-
-	planExecutionRequests := []models.PlanExecutionRequest{}
-	var nextCursor string
-
-	err = attributevalue.UnmarshalListOfMaps(resultItems, &planExecutionRequests)
-	if err != nil {
-		return nil, err
-	}
-
-	if lastEvaluatedKey != nil {
-		nextCursor, err = helpers.GetCursorFromKey(lastEvaluatedKey)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &models.PlanExecutionRequests{
-		Items:      planExecutionRequests,
-		NextCursor: nextCursor,
-	}, nil
-}
-
-func (c OrganizationsDatabaseClient) GetPlanExecutionRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
-	startKey, err := helpers.GetKeyFromCursor(cursor)
-	if err != nil {
-		return nil, err
-	}
-
-	keyCondition := expression.Key("ModuleAccountAssociationKey").Equal(expression.Value(moduleAccountAssociationKey))
-	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
-	expr, err := expressionBuilder.Build()
-	if err != nil {
-		return nil, err
-	}
-
-	queryInput := &dynamodb.QueryInput{
-		TableName:                 &c.planExecutionsTableName,
-		IndexName:                 aws.String("ModuleAccountAssociationKey-RequestTime-index"),
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		KeyConditionExpression:    expr.KeyCondition(),
-		FilterExpression:          expr.Filter(),
-		Limit:                     &limit,
-		ExclusiveStartKey:         startKey,
-		ScanIndexForward:          aws.Bool(false),
-	}
-
-	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"PlanExecutionRequestId", "ModuleAccountAssociationKey", "RequestTime"})
+	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"PlanExecutionRequestId", "ModuleAssignmentId", "RequestTime"})
 	if err != nil {
 		return nil, err
 	}

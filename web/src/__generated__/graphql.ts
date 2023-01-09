@@ -20,18 +20,13 @@ export type ApplyExecutionRequest = {
   additionalArguments: Array<Maybe<Scalars['String']>>;
   applyExecutionRequestId: Scalars['ID'];
   applyOutput?: Maybe<TerraformApplyOutput>;
-  callbackTaskToken: Scalars['String'];
   initOutput?: Maybe<TerraformInitOutput>;
-  moduleAccountAssociationKey: Scalars['String'];
-  modulePropagation: ModulePropagation;
-  modulePropagationId: Scalars['ID'];
-  modulePropagationRequestId: Scalars['String'];
-  orgAccount: OrganizationalAccount;
-  orgAccountId: Scalars['ID'];
+  moduleAssignment: ModuleAssignment;
+  moduleAssignmentId: Scalars['ID'];
   requestTime: Scalars['Time'];
-  stateKey: Scalars['String'];
   status: RequestStatus;
   terraformConfigurationBase64: Scalars['String'];
+  terraformPlanBase64: Scalars['String'];
   terraformVersion: Scalars['String'];
   terraformWorkflowRequestId: Scalars['String'];
 };
@@ -70,40 +65,95 @@ export enum CloudPlatform {
   Gcp = 'gcp'
 }
 
-export type ModuleAccountAssociation = {
-  __typename?: 'ModuleAccountAssociation';
+export type GcpProviderConfiguration = {
+  __typename?: 'GcpProviderConfiguration';
+  alias: Scalars['String'];
+  region: Scalars['String'];
+};
+
+export type GcpProviderConfigurationInput = {
+  alias: Scalars['String'];
+  region: Scalars['String'];
+};
+
+export type Metadata = {
+  __typename?: 'Metadata';
+  name: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type MetadataInput = {
+  name: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type ModuleAssignment = {
+  __typename?: 'ModuleAssignment';
   applyExecutionRequests: ApplyExecutionRequests;
-  modulePropagation: ModulePropagation;
-  modulePropagationId: Scalars['ID'];
+  arguments: Array<Argument>;
+  awsProviderConfigurations?: Maybe<Array<AwsProviderConfiguration>>;
+  description: Scalars['String'];
+  gcpProviderConfigurations?: Maybe<Array<GcpProviderConfiguration>>;
+  moduleAssignmentId: Scalars['ID'];
+  moduleGroup: ModuleGroup;
+  moduleGroupId: Scalars['ID'];
+  modulePropagation?: Maybe<ModulePropagation>;
+  modulePropagationId?: Maybe<Scalars['ID']>;
+  moduleVersion: ModuleVersion;
+  moduleVersionId: Scalars['ID'];
+  name: Scalars['String'];
   orgAccount: OrganizationalAccount;
   orgAccountId: Scalars['ID'];
   planExecutionRequests: PlanExecutionRequests;
   remoteStateBucket: Scalars['String'];
   remoteStateKey: Scalars['String'];
-  status?: Maybe<ModuleAccountAssociationStatus>;
+  remoteStateRegion: Scalars['String'];
+  status: ModuleAssignmentStatus;
   terraformConfiguration: Scalars['String'];
+  terraformDriftCheckWorkflowRequests: TerraformDriftCheckWorkflowRequests;
+  terraformExecutionWorkflowRequests: TerraformExecutionWorkflowRequests;
 };
 
 
-export type ModuleAccountAssociationApplyExecutionRequestsArgs = {
+export type ModuleAssignmentApplyExecutionRequestsArgs = {
   limit?: InputMaybe<Scalars['Int']>;
   nextCursor?: InputMaybe<Scalars['String']>;
 };
 
 
-export type ModuleAccountAssociationPlanExecutionRequestsArgs = {
+export type ModuleAssignmentPlanExecutionRequestsArgs = {
   limit?: InputMaybe<Scalars['Int']>;
   nextCursor?: InputMaybe<Scalars['String']>;
 };
 
-export enum ModuleAccountAssociationStatus {
+
+export type ModuleAssignmentTerraformDriftCheckWorkflowRequestsArgs = {
+  limit?: InputMaybe<Scalars['Int']>;
+  nextCursor?: InputMaybe<Scalars['String']>;
+};
+
+
+export type ModuleAssignmentTerraformExecutionWorkflowRequestsArgs = {
+  limit?: InputMaybe<Scalars['Int']>;
+  nextCursor?: InputMaybe<Scalars['String']>;
+};
+
+export enum ModuleAssignmentStatus {
   Active = 'ACTIVE',
   Inactive = 'INACTIVE'
 }
 
-export type ModuleAccountAssociations = {
-  __typename?: 'ModuleAccountAssociations';
-  items: Array<Maybe<ModuleAccountAssociation>>;
+export type ModuleAssignmentUpdate = {
+  arguments?: InputMaybe<Array<ArgumentInput>>;
+  awsProviderConfigurations?: InputMaybe<Array<AwsProviderConfigurationInput>>;
+  description?: InputMaybe<Scalars['String']>;
+  gcpProviderConfigurations?: InputMaybe<Array<GcpProviderConfigurationInput>>;
+  name?: InputMaybe<Scalars['String']>;
+};
+
+export type ModuleAssignments = {
+  __typename?: 'ModuleAssignments';
+  items: Array<Maybe<ModuleAssignment>>;
   nextCursor?: Maybe<Scalars['String']>;
 };
 
@@ -137,11 +187,12 @@ export type ModuleGroups = {
 export type ModulePropagation = {
   __typename?: 'ModulePropagation';
   arguments: Array<Argument>;
-  awsProviderConfigurations: Array<AwsProviderConfiguration>;
+  awsProviderConfigurations?: Maybe<Array<AwsProviderConfiguration>>;
   description: Scalars['String'];
   driftCheckRequests: ModulePropagationDriftCheckRequests;
   executionRequests: ModulePropagationExecutionRequests;
-  moduleAccountAssociations: ModuleAccountAssociations;
+  gcpProviderConfigurations?: Maybe<Array<GcpProviderConfiguration>>;
+  moduleAssignments: ModuleAssignments;
   moduleGroup: ModuleGroup;
   moduleGroupId: Scalars['ID'];
   modulePropagationId: Scalars['ID'];
@@ -167,25 +218,34 @@ export type ModulePropagationExecutionRequestsArgs = {
 };
 
 
-export type ModulePropagationModuleAccountAssociationsArgs = {
+export type ModulePropagationModuleAssignmentsArgs = {
   limit?: InputMaybe<Scalars['Int']>;
   nextCursor?: InputMaybe<Scalars['String']>;
+};
+
+export type ModulePropagationAssignment = {
+  __typename?: 'ModulePropagationAssignment';
+  moduleAssignment: ModuleAssignment;
+  moduleAssignmentId: Scalars['ID'];
+  modulePropagation: ModulePropagation;
+  modulePropagationId: Scalars['ID'];
+  orgAccount: OrganizationalAccount;
+  orgAccountId: Scalars['ID'];
+};
+
+export type ModulePropagationAssignments = {
+  __typename?: 'ModulePropagationAssignments';
+  items: Array<Maybe<ModulePropagationAssignment>>;
+  nextCursor?: Maybe<Scalars['String']>;
 };
 
 export type ModulePropagationDriftCheckRequest = {
   __typename?: 'ModulePropagationDriftCheckRequest';
   modulePropagationDriftCheckRequestId: Scalars['ID'];
   modulePropagationId: Scalars['ID'];
-  planExecutionRequests: PlanExecutionRequests;
   requestTime: Scalars['Time'];
   status: RequestStatus;
   terraformDriftCheckWorkflowRequests: TerraformDriftCheckWorkflowRequests;
-};
-
-
-export type ModulePropagationDriftCheckRequestPlanExecutionRequestsArgs = {
-  limit?: InputMaybe<Scalars['Int']>;
-  nextCursor?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -202,25 +262,11 @@ export type ModulePropagationDriftCheckRequests = {
 
 export type ModulePropagationExecutionRequest = {
   __typename?: 'ModulePropagationExecutionRequest';
-  applyExecutionRequests: ApplyExecutionRequests;
   modulePropagationExecutionRequestId: Scalars['ID'];
   modulePropagationId: Scalars['ID'];
-  planExecutionRequests: PlanExecutionRequests;
   requestTime: Scalars['Time'];
   status: RequestStatus;
   terraformExecutionWorkflowRequests: TerraformExecutionWorkflowRequests;
-};
-
-
-export type ModulePropagationExecutionRequestApplyExecutionRequestsArgs = {
-  limit?: InputMaybe<Scalars['Int']>;
-  nextCursor?: InputMaybe<Scalars['String']>;
-};
-
-
-export type ModulePropagationExecutionRequestPlanExecutionRequestsArgs = {
-  limit?: InputMaybe<Scalars['Int']>;
-  nextCursor?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -239,6 +285,7 @@ export type ModulePropagationUpdate = {
   arguments?: InputMaybe<Array<ArgumentInput>>;
   awsProviderConfigurations?: InputMaybe<Array<AwsProviderConfigurationInput>>;
   description?: InputMaybe<Scalars['String']>;
+  gcpProviderConfigurations?: InputMaybe<Array<GcpProviderConfigurationInput>>;
   name?: InputMaybe<Scalars['String']>;
   orgDimensionId?: InputMaybe<Scalars['ID']>;
   orgUnitId?: InputMaybe<Scalars['ID']>;
@@ -301,6 +348,7 @@ export type Mutation = {
   deleteOrganizationalUnit: Scalars['Boolean'];
   deleteOrganizationalUnitMembership: Scalars['Boolean'];
   updateModulePropagation: ModulePropagation;
+  updateOrganizationalAccount: OrganizationalAccount;
   updateOrganizationalUnit: OrganizationalUnit;
 };
 
@@ -394,10 +442,27 @@ export type MutationUpdateModulePropagationArgs = {
 };
 
 
+export type MutationUpdateOrganizationalAccountArgs = {
+  orgAccountId: Scalars['ID'];
+  update: OrganizationalAccountUpdate;
+};
+
+
 export type MutationUpdateOrganizationalUnitArgs = {
   orgDimensionId: Scalars['ID'];
   orgUnitId: Scalars['ID'];
   update: OrganizationalUnitUpdate;
+};
+
+export type NewModuleAssignment = {
+  arguments: Array<ArgumentInput>;
+  awsProviderConfigurations?: InputMaybe<Array<AwsProviderConfigurationInput>>;
+  description: Scalars['String'];
+  gcpProviderConfigurations?: InputMaybe<Array<GcpProviderConfigurationInput>>;
+  moduleGroupId: Scalars['ID'];
+  moduleVersionId: Scalars['ID'];
+  name: Scalars['String'];
+  orgAccountId: Scalars['ID'];
 };
 
 export type NewModuleGroup = {
@@ -407,8 +472,9 @@ export type NewModuleGroup = {
 
 export type NewModulePropagation = {
   arguments: Array<ArgumentInput>;
-  awsProviderConfigurations: Array<AwsProviderConfigurationInput>;
+  awsProviderConfigurations?: InputMaybe<Array<AwsProviderConfigurationInput>>;
   description: Scalars['String'];
+  gcpProviderConfigurations?: InputMaybe<Array<GcpProviderConfigurationInput>>;
   moduleGroupId: Scalars['ID'];
   moduleVersionId: Scalars['ID'];
   name: Scalars['String'];
@@ -434,6 +500,7 @@ export type NewModuleVersion = {
 export type NewOrganizationalAccount = {
   cloudIdentifier: Scalars['String'];
   cloudPlatform: CloudPlatform;
+  metadata: Array<MetadataInput>;
   name: Scalars['String'];
 };
 
@@ -457,14 +524,15 @@ export type OrganizationalAccount = {
   __typename?: 'OrganizationalAccount';
   cloudIdentifier: Scalars['String'];
   cloudPlatform: CloudPlatform;
-  moduleAccountAssociations: ModuleAccountAssociations;
+  metadata: Array<Metadata>;
+  moduleAssignments: ModuleAssignments;
   name: Scalars['String'];
   orgAccountId: Scalars['ID'];
   orgUnitMemberships: OrganizationalUnitMemberships;
 };
 
 
-export type OrganizationalAccountModuleAccountAssociationsArgs = {
+export type OrganizationalAccountModuleAssignmentsArgs = {
   limit?: InputMaybe<Scalars['Int']>;
   nextCursor?: InputMaybe<Scalars['String']>;
 };
@@ -473,6 +541,10 @@ export type OrganizationalAccountModuleAccountAssociationsArgs = {
 export type OrganizationalAccountOrgUnitMembershipsArgs = {
   limit?: InputMaybe<Scalars['Int']>;
   nextCursor?: InputMaybe<Scalars['String']>;
+};
+
+export type OrganizationalAccountUpdate = {
+  metadata?: InputMaybe<Array<MetadataInput>>;
 };
 
 export type OrganizationalAccounts = {
@@ -584,18 +656,12 @@ export type OrganizationalUnits = {
 export type PlanExecutionRequest = {
   __typename?: 'PlanExecutionRequest';
   additionalArguments: Array<Maybe<Scalars['String']>>;
-  callbackTaskToken: Scalars['String'];
   initOutput?: Maybe<TerraformInitOutput>;
-  moduleAccountAssociationKey: Scalars['String'];
-  modulePropagation: ModulePropagation;
-  modulePropagationId: Scalars['ID'];
-  modulePropagationRequestId: Scalars['String'];
-  orgAccount: OrganizationalAccount;
-  orgAccountId: Scalars['ID'];
+  moduleAssignment: ModuleAssignment;
+  moduleAssignmentId: Scalars['ID'];
   planExecutionRequestId: Scalars['ID'];
   planOutput?: Maybe<TerraformPlanOutput>;
   requestTime: Scalars['Time'];
-  stateKey: Scalars['String'];
   status: RequestStatus;
   terraformConfigurationBase64: Scalars['String'];
   terraformVersion: Scalars['String'];
@@ -612,8 +678,8 @@ export type Query = {
   __typename?: 'Query';
   applyExecutionRequest: ApplyExecutionRequest;
   applyExecutionRequests: ApplyExecutionRequests;
-  moduleAccountAssociation: ModuleAccountAssociation;
-  moduleAccountAssociations: ModuleAccountAssociations;
+  moduleAssignment: ModuleAssignment;
+  moduleAssignments: ModuleAssignments;
   moduleGroup: ModuleGroup;
   moduleGroups: ModuleGroups;
   modulePropagation: ModulePropagation;
@@ -652,13 +718,12 @@ export type QueryApplyExecutionRequestsArgs = {
 };
 
 
-export type QueryModuleAccountAssociationArgs = {
-  modulePropagationId: Scalars['ID'];
-  orgAccountId: Scalars['ID'];
+export type QueryModuleAssignmentArgs = {
+  moduleAssignmentId: Scalars['ID'];
 };
 
 
-export type QueryModuleAccountAssociationsArgs = {
+export type QueryModuleAssignmentsArgs = {
   limit?: InputMaybe<Scalars['Int']>;
   nextCursor?: InputMaybe<Scalars['String']>;
 };
@@ -833,14 +898,12 @@ export enum TerraformDriftCheckStatus {
 export type TerraformDriftCheckWorkflowRequest = {
   __typename?: 'TerraformDriftCheckWorkflowRequest';
   destroy: Scalars['Boolean'];
-  moduleAccountAssociation: ModuleAccountAssociation;
-  moduleAccountAssociationKey: Scalars['String'];
-  modulePropagation: ModulePropagation;
-  modulePropagationDriftCheckRequest: ModulePropagationDriftCheckRequest;
-  modulePropagationDriftCheckRequestId: Scalars['ID'];
-  modulePropagationId: Scalars['ID'];
-  orgAccount: OrganizationalAccount;
-  orgAccountId: Scalars['ID'];
+  moduleAssignment: ModuleAssignment;
+  moduleAssignmentId: Scalars['ID'];
+  modulePropagation?: Maybe<ModulePropagation>;
+  modulePropagationDriftCheckRequest?: Maybe<ModulePropagationDriftCheckRequest>;
+  modulePropagationDriftCheckRequestId?: Maybe<Scalars['ID']>;
+  modulePropagationId?: Maybe<Scalars['ID']>;
   planExecutionRequest?: Maybe<PlanExecutionRequest>;
   planExecutionRequestId?: Maybe<Scalars['ID']>;
   requestTime: Scalars['Time'];
@@ -860,14 +923,12 @@ export type TerraformExecutionWorkflowRequest = {
   applyExecutionRequest?: Maybe<ApplyExecutionRequest>;
   applyExecutionRequestId?: Maybe<Scalars['ID']>;
   destroy: Scalars['Boolean'];
-  moduleAccountAssociation: ModuleAccountAssociation;
-  moduleAccountAssociationKey: Scalars['String'];
-  modulePropagation: ModulePropagation;
-  modulePropagationExecutionRequest: ModulePropagationExecutionRequest;
-  modulePropagationExecutionRequestId: Scalars['ID'];
-  modulePropagationId: Scalars['ID'];
-  orgAccount: OrganizationalAccount;
-  orgAccountId: Scalars['ID'];
+  moduleAssignment: ModuleAssignment;
+  moduleAssignmentId: Scalars['ID'];
+  modulePropagation?: Maybe<ModulePropagation>;
+  modulePropagationExecutionRequest?: Maybe<ModulePropagationExecutionRequest>;
+  modulePropagationExecutionRequestId?: Maybe<Scalars['ID']>;
+  modulePropagationId?: Maybe<Scalars['ID']>;
   planExecutionRequest?: Maybe<PlanExecutionRequest>;
   planExecutionRequestId?: Maybe<Scalars['ID']>;
   requestTime: Scalars['Time'];
@@ -902,18 +963,17 @@ export type ApplyExecutionRequestQueryVariables = Exact<{
 
 export type ApplyExecutionRequestQuery = { __typename?: 'Query', applyExecutionRequest: { __typename?: 'ApplyExecutionRequest', applyExecutionRequestId: string, status: RequestStatus, requestTime: any, terraformConfigurationBase64: string, initOutput?: { __typename?: 'TerraformInitOutput', Stdout?: string | null, Stderr?: string | null } | null, applyOutput?: { __typename?: 'TerraformApplyOutput', Stdout?: string | null, Stderr?: string | null } | null } };
 
-export type ModuleAccountAssociationQueryVariables = Exact<{
-  modulePropagationId: Scalars['ID'];
-  orgAccountId: Scalars['ID'];
+export type ModuleAssignmentQueryVariables = Exact<{
+  moduleAssignmentId: Scalars['ID'];
 }>;
 
 
-export type ModuleAccountAssociationQuery = { __typename?: 'Query', moduleAccountAssociation: { __typename?: 'ModuleAccountAssociation', modulePropagationId: string, status?: ModuleAccountAssociationStatus | null, modulePropagation: { __typename?: 'ModulePropagation', name: string, moduleGroup: { __typename?: 'ModuleGroup', moduleGroupId: string, name: string }, moduleVersion: { __typename?: 'ModuleVersion', moduleVersionId: string, name: string } }, orgAccount: { __typename?: 'OrganizationalAccount', orgAccountId: string, name: string }, planExecutionRequests: { __typename?: 'PlanExecutionRequests', items: Array<{ __typename?: 'PlanExecutionRequest', planExecutionRequestId: string, status: RequestStatus, requestTime: any, modulePropagationId: string, modulePropagationRequestId: string } | null> }, applyExecutionRequests: { __typename?: 'ApplyExecutionRequests', items: Array<{ __typename?: 'ApplyExecutionRequest', applyExecutionRequestId: string, status: RequestStatus, requestTime: any, modulePropagationId: string, modulePropagationRequestId: string } | null> } } };
+export type ModuleAssignmentQuery = { __typename?: 'Query', moduleAssignment: { __typename?: 'ModuleAssignment', modulePropagationId?: string | null, status: ModuleAssignmentStatus, terraformConfiguration: string, modulePropagation?: { __typename?: 'ModulePropagation', name: string, moduleGroup: { __typename?: 'ModuleGroup', moduleGroupId: string, name: string }, moduleVersion: { __typename?: 'ModuleVersion', moduleVersionId: string, name: string } } | null, orgAccount: { __typename?: 'OrganizationalAccount', orgAccountId: string, name: string }, planExecutionRequests: { __typename?: 'PlanExecutionRequests', items: Array<{ __typename?: 'PlanExecutionRequest', planExecutionRequestId: string, status: RequestStatus, requestTime: any } | null> }, applyExecutionRequests: { __typename?: 'ApplyExecutionRequests', items: Array<{ __typename?: 'ApplyExecutionRequest', applyExecutionRequestId: string, status: RequestStatus, requestTime: any } | null> } } };
 
 export type ModuleGroupsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ModuleGroupsQuery = { __typename?: 'Query', moduleGroups: { __typename?: 'ModuleGroups', items: Array<{ __typename?: 'ModuleGroup', moduleGroupId: string, name: string } | null> } };
+export type ModuleGroupsQuery = { __typename?: 'Query', moduleGroups: { __typename?: 'ModuleGroups', items: Array<{ __typename?: 'ModuleGroup', moduleGroupId: string, name: string, cloudPlatform: CloudPlatform } | null> } };
 
 export type ModuleGroupQueryVariables = Exact<{
   moduleGroupId: Scalars['ID'];
@@ -928,7 +988,7 @@ export type ModulePropagationDriftCheckRequestQueryVariables = Exact<{
 }>;
 
 
-export type ModulePropagationDriftCheckRequestQuery = { __typename?: 'Query', modulePropagationDriftCheckRequest: { __typename?: 'ModulePropagationDriftCheckRequest', modulePropagationId: string, modulePropagationDriftCheckRequestId: string, requestTime: any, status: RequestStatus, terraformDriftCheckWorkflowRequests: { __typename?: 'TerraformDriftCheckWorkflowRequests', items: Array<{ __typename?: 'TerraformDriftCheckWorkflowRequest', terraformDriftCheckWorkflowRequestId: string, status: RequestStatus, requestTime: any, destroy: boolean, syncStatus: TerraformDriftCheckStatus, orgAccount: { __typename?: 'OrganizationalAccount', orgAccountId: string, name: string }, planExecutionRequest?: { __typename?: 'PlanExecutionRequest', planExecutionRequestId: string, status: RequestStatus, requestTime: any } | null } | null> } } };
+export type ModulePropagationDriftCheckRequestQuery = { __typename?: 'Query', modulePropagationDriftCheckRequest: { __typename?: 'ModulePropagationDriftCheckRequest', modulePropagationId: string, modulePropagationDriftCheckRequestId: string, requestTime: any, status: RequestStatus, terraformDriftCheckWorkflowRequests: { __typename?: 'TerraformDriftCheckWorkflowRequests', items: Array<{ __typename?: 'TerraformDriftCheckWorkflowRequest', terraformDriftCheckWorkflowRequestId: string, status: RequestStatus, requestTime: any, destroy: boolean, syncStatus: TerraformDriftCheckStatus, moduleAssignment: { __typename?: 'ModuleAssignment', moduleAssignmentId: string, orgAccount: { __typename?: 'OrganizationalAccount', orgAccountId: string, name: string } }, planExecutionRequest?: { __typename?: 'PlanExecutionRequest', planExecutionRequestId: string, status: RequestStatus, requestTime: any } | null } | null> } } };
 
 export type ModulePropagationExecutionRequestQueryVariables = Exact<{
   modulePropagationId: Scalars['ID'];
@@ -936,14 +996,14 @@ export type ModulePropagationExecutionRequestQueryVariables = Exact<{
 }>;
 
 
-export type ModulePropagationExecutionRequestQuery = { __typename?: 'Query', modulePropagationExecutionRequest: { __typename?: 'ModulePropagationExecutionRequest', modulePropagationId: string, modulePropagationExecutionRequestId: string, requestTime: any, status: RequestStatus, terraformExecutionWorkflowRequests: { __typename?: 'TerraformExecutionWorkflowRequests', items: Array<{ __typename?: 'TerraformExecutionWorkflowRequest', terraformExecutionWorkflowRequestId: string, status: RequestStatus, requestTime: any, destroy: boolean, orgAccount: { __typename?: 'OrganizationalAccount', orgAccountId: string, name: string }, planExecutionRequest?: { __typename?: 'PlanExecutionRequest', planExecutionRequestId: string, status: RequestStatus, requestTime: any } | null, applyExecutionRequest?: { __typename?: 'ApplyExecutionRequest', applyExecutionRequestId: string, status: RequestStatus, requestTime: any } | null } | null> } } };
+export type ModulePropagationExecutionRequestQuery = { __typename?: 'Query', modulePropagationExecutionRequest: { __typename?: 'ModulePropagationExecutionRequest', modulePropagationId: string, modulePropagationExecutionRequestId: string, requestTime: any, status: RequestStatus, terraformExecutionWorkflowRequests: { __typename?: 'TerraformExecutionWorkflowRequests', items: Array<{ __typename?: 'TerraformExecutionWorkflowRequest', terraformExecutionWorkflowRequestId: string, status: RequestStatus, requestTime: any, destroy: boolean, moduleAssignment: { __typename?: 'ModuleAssignment', moduleAssignmentId: string, orgAccount: { __typename?: 'OrganizationalAccount', orgAccountId: string, name: string } }, planExecutionRequest?: { __typename?: 'PlanExecutionRequest', planExecutionRequestId: string, status: RequestStatus, requestTime: any } | null, applyExecutionRequest?: { __typename?: 'ApplyExecutionRequest', applyExecutionRequestId: string, status: RequestStatus, requestTime: any } | null } | null> } } };
 
 export type ModulePropagationQueryVariables = Exact<{
   modulePropagationId: Scalars['ID'];
 }>;
 
 
-export type ModulePropagationQuery = { __typename?: 'Query', modulePropagation: { __typename?: 'ModulePropagation', modulePropagationId: string, orgUnitId: string, name: string, description: string, moduleGroup: { __typename?: 'ModuleGroup', moduleGroupId: string, name: string }, moduleVersion: { __typename?: 'ModuleVersion', moduleVersionId: string, name: string }, orgUnit: { __typename?: 'OrganizationalUnit', orgUnitId: string, orgDimensionId: string, name: string, downstreamOrgUnits: { __typename?: 'OrganizationalUnits', items: Array<{ __typename?: 'OrganizationalUnit', orgUnitId: string, orgDimensionId: string, name: string } | null> } }, executionRequests: { __typename?: 'ModulePropagationExecutionRequests', items: Array<{ __typename?: 'ModulePropagationExecutionRequest', modulePropagationId: string, modulePropagationExecutionRequestId: string, requestTime: any, status: RequestStatus } | null> }, driftCheckRequests: { __typename?: 'ModulePropagationDriftCheckRequests', items: Array<{ __typename?: 'ModulePropagationDriftCheckRequest', modulePropagationId: string, modulePropagationDriftCheckRequestId: string, requestTime: any, status: RequestStatus } | null> }, moduleAccountAssociations: { __typename?: 'ModuleAccountAssociations', items: Array<{ __typename?: 'ModuleAccountAssociation', modulePropagationId: string, status?: ModuleAccountAssociationStatus | null, orgAccount: { __typename?: 'OrganizationalAccount', orgAccountId: string, name: string } } | null> } } };
+export type ModulePropagationQuery = { __typename?: 'Query', modulePropagation: { __typename?: 'ModulePropagation', modulePropagationId: string, orgUnitId: string, name: string, description: string, moduleGroup: { __typename?: 'ModuleGroup', moduleGroupId: string, name: string }, moduleVersion: { __typename?: 'ModuleVersion', moduleVersionId: string, name: string }, orgUnit: { __typename?: 'OrganizationalUnit', orgUnitId: string, orgDimensionId: string, name: string, downstreamOrgUnits: { __typename?: 'OrganizationalUnits', items: Array<{ __typename?: 'OrganizationalUnit', orgUnitId: string, orgDimensionId: string, name: string } | null> } }, executionRequests: { __typename?: 'ModulePropagationExecutionRequests', items: Array<{ __typename?: 'ModulePropagationExecutionRequest', modulePropagationId: string, modulePropagationExecutionRequestId: string, requestTime: any, status: RequestStatus } | null> }, driftCheckRequests: { __typename?: 'ModulePropagationDriftCheckRequests', items: Array<{ __typename?: 'ModulePropagationDriftCheckRequest', modulePropagationId: string, modulePropagationDriftCheckRequestId: string, requestTime: any, status: RequestStatus } | null> }, moduleAssignments: { __typename?: 'ModuleAssignments', items: Array<{ __typename?: 'ModuleAssignment', moduleAssignmentId: string, modulePropagationId?: string | null, status: ModuleAssignmentStatus, orgAccount: { __typename?: 'OrganizationalAccount', orgAccountId: string, name: string } } | null> } } };
 
 export type CreateModulePropagationExecutionRequestMutationVariables = Exact<{
   modulePropagationId: Scalars['ID'];
@@ -985,7 +1045,7 @@ export type OrganizationalAccountQueryVariables = Exact<{
 }>;
 
 
-export type OrganizationalAccountQuery = { __typename?: 'Query', organizationalAccount: { __typename?: 'OrganizationalAccount', orgAccountId: string, name: string, orgUnitMemberships: { __typename?: 'OrganizationalUnitMemberships', items: Array<{ __typename?: 'OrganizationalUnitMembership', orgUnit: { __typename?: 'OrganizationalUnit', orgUnitId: string, name: string }, orgDimension: { __typename?: 'OrganizationalDimension', orgDimensionId: string, name: string } } | null> }, moduleAccountAssociations: { __typename?: 'ModuleAccountAssociations', items: Array<{ __typename?: 'ModuleAccountAssociation', status?: ModuleAccountAssociationStatus | null, modulePropagationId: string, orgAccountId: string, modulePropagation: { __typename?: 'ModulePropagation', name: string, moduleGroup: { __typename?: 'ModuleGroup', moduleGroupId: string, name: string }, moduleVersion: { __typename?: 'ModuleVersion', moduleVersionId: string, name: string } } } | null> } } };
+export type OrganizationalAccountQuery = { __typename?: 'Query', organizationalAccount: { __typename?: 'OrganizationalAccount', orgAccountId: string, name: string, orgUnitMemberships: { __typename?: 'OrganizationalUnitMemberships', items: Array<{ __typename?: 'OrganizationalUnitMembership', orgUnit: { __typename?: 'OrganizationalUnit', orgUnitId: string, name: string }, orgDimension: { __typename?: 'OrganizationalDimension', orgDimensionId: string, name: string } } | null> }, moduleAssignments: { __typename?: 'ModuleAssignments', items: Array<{ __typename?: 'ModuleAssignment', status: ModuleAssignmentStatus, modulePropagationId?: string | null, orgAccountId: string, modulePropagation?: { __typename?: 'ModulePropagation', name: string, moduleGroup: { __typename?: 'ModuleGroup', moduleGroupId: string, name: string }, moduleVersion: { __typename?: 'ModuleVersion', moduleVersionId: string, name: string } } | null } | null> } } };
 
 export type OrganizationalAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1021,18 +1081,18 @@ export type PlanExecutionRequestQuery = { __typename?: 'Query', planExecutionReq
 
 
 export const ApplyExecutionRequestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"applyExecutionRequest"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"applyExecutionRequestId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"applyExecutionRequest"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"applyExecutionRequestId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"applyExecutionRequestId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"applyExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}},{"kind":"Field","name":{"kind":"Name","value":"terraformConfigurationBase64"}},{"kind":"Field","name":{"kind":"Name","value":"initOutput"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"Stdout"}},{"kind":"Field","name":{"kind":"Name","value":"Stderr"}}]}},{"kind":"Field","name":{"kind":"Name","value":"applyOutput"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"Stdout"}},{"kind":"Field","name":{"kind":"Name","value":"Stderr"}}]}}]}}]}}]} as unknown as DocumentNode<ApplyExecutionRequestQuery, ApplyExecutionRequestQueryVariables>;
-export const ModuleAccountAssociationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"moduleAccountAssociation"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orgAccountId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleAccountAssociation"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"modulePropagationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}}},{"kind":"Argument","name":{"kind":"Name","value":"orgAccountId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orgAccountId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagation"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"moduleGroup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleGroupId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"moduleVersion"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleVersionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"orgAccount"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgAccountId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"planExecutionRequests"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"planExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationRequestId"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"applyExecutionRequests"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"applyExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationRequestId"}}]}}]}}]}}]}}]} as unknown as DocumentNode<ModuleAccountAssociationQuery, ModuleAccountAssociationQueryVariables>;
-export const ModuleGroupsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"moduleGroups"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleGroups"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"IntValue","value":"100"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleGroupId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]} as unknown as DocumentNode<ModuleGroupsQuery, ModuleGroupsQueryVariables>;
+export const ModuleAssignmentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"moduleAssignment"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"moduleAssignmentId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleAssignment"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"moduleAssignmentId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"moduleAssignmentId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagation"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"moduleGroup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleGroupId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"moduleVersion"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleVersionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"orgAccount"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgAccountId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"terraformConfiguration"}},{"kind":"Field","name":{"kind":"Name","value":"planExecutionRequests"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"planExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"applyExecutionRequests"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"applyExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}}]}}]}}]}}]}}]} as unknown as DocumentNode<ModuleAssignmentQuery, ModuleAssignmentQueryVariables>;
+export const ModuleGroupsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"moduleGroups"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleGroups"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"IntValue","value":"100"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleGroupId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"cloudPlatform"}}]}}]}}]}}]} as unknown as DocumentNode<ModuleGroupsQuery, ModuleGroupsQueryVariables>;
 export const ModuleGroupDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"moduleGroup"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"moduleGroupId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleGroup"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"moduleGroupId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"moduleGroupId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleGroupId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"versions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleVersionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"remoteSource"}},{"kind":"Field","name":{"kind":"Name","value":"terraformVersion"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagations"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"moduleVersion"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleVersionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"orgUnit"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgUnitId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"orgDimension"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgDimensionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<ModuleGroupQuery, ModuleGroupQueryVariables>;
-export const ModulePropagationDriftCheckRequestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"modulePropagationDriftCheckRequest"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationDriftCheckRequestId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationDriftCheckRequest"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"modulePropagationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}}},{"kind":"Argument","name":{"kind":"Name","value":"modulePropagationDriftCheckRequestId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationDriftCheckRequestId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationDriftCheckRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"terraformDriftCheckWorkflowRequests"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"terraformDriftCheckWorkflowRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}},{"kind":"Field","name":{"kind":"Name","value":"destroy"}},{"kind":"Field","name":{"kind":"Name","value":"orgAccount"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgAccountId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"planExecutionRequest"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"planExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}}]}},{"kind":"Field","name":{"kind":"Name","value":"syncStatus"}}]}}]}}]}}]}}]} as unknown as DocumentNode<ModulePropagationDriftCheckRequestQuery, ModulePropagationDriftCheckRequestQueryVariables>;
-export const ModulePropagationExecutionRequestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"modulePropagationExecutionRequest"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationExecutionRequestId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationExecutionRequest"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"modulePropagationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}}},{"kind":"Argument","name":{"kind":"Name","value":"modulePropagationExecutionRequestId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationExecutionRequestId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"terraformExecutionWorkflowRequests"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"terraformExecutionWorkflowRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}},{"kind":"Field","name":{"kind":"Name","value":"destroy"}},{"kind":"Field","name":{"kind":"Name","value":"orgAccount"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgAccountId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"planExecutionRequest"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"planExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}}]}},{"kind":"Field","name":{"kind":"Name","value":"applyExecutionRequest"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"applyExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<ModulePropagationExecutionRequestQuery, ModulePropagationExecutionRequestQueryVariables>;
-export const ModulePropagationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"modulePropagation"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagation"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"modulePropagationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"moduleGroup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleGroupId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"moduleVersion"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleVersionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"orgUnitId"}},{"kind":"Field","name":{"kind":"Name","value":"orgUnit"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgUnitId"}},{"kind":"Field","name":{"kind":"Name","value":"orgDimensionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"downstreamOrgUnits"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgUnitId"}},{"kind":"Field","name":{"kind":"Name","value":"orgDimensionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"executionRequests"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"IntValue","value":"5"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"driftCheckRequests"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"IntValue","value":"5"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationDriftCheckRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"moduleAccountAssociations"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"orgAccount"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgAccountId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]}}]}}]} as unknown as DocumentNode<ModulePropagationQuery, ModulePropagationQueryVariables>;
+export const ModulePropagationDriftCheckRequestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"modulePropagationDriftCheckRequest"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationDriftCheckRequestId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationDriftCheckRequest"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"modulePropagationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}}},{"kind":"Argument","name":{"kind":"Name","value":"modulePropagationDriftCheckRequestId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationDriftCheckRequestId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationDriftCheckRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"terraformDriftCheckWorkflowRequests"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"terraformDriftCheckWorkflowRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}},{"kind":"Field","name":{"kind":"Name","value":"destroy"}},{"kind":"Field","name":{"kind":"Name","value":"moduleAssignment"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleAssignmentId"}},{"kind":"Field","name":{"kind":"Name","value":"orgAccount"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgAccountId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"planExecutionRequest"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"planExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}}]}},{"kind":"Field","name":{"kind":"Name","value":"syncStatus"}}]}}]}}]}}]}}]} as unknown as DocumentNode<ModulePropagationDriftCheckRequestQuery, ModulePropagationDriftCheckRequestQueryVariables>;
+export const ModulePropagationExecutionRequestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"modulePropagationExecutionRequest"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationExecutionRequestId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationExecutionRequest"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"modulePropagationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}}},{"kind":"Argument","name":{"kind":"Name","value":"modulePropagationExecutionRequestId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationExecutionRequestId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"terraformExecutionWorkflowRequests"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"terraformExecutionWorkflowRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}},{"kind":"Field","name":{"kind":"Name","value":"destroy"}},{"kind":"Field","name":{"kind":"Name","value":"moduleAssignment"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleAssignmentId"}},{"kind":"Field","name":{"kind":"Name","value":"orgAccount"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgAccountId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"planExecutionRequest"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"planExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}}]}},{"kind":"Field","name":{"kind":"Name","value":"applyExecutionRequest"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"applyExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<ModulePropagationExecutionRequestQuery, ModulePropagationExecutionRequestQueryVariables>;
+export const ModulePropagationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"modulePropagation"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagation"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"modulePropagationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"moduleGroup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleGroupId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"moduleVersion"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleVersionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"orgUnitId"}},{"kind":"Field","name":{"kind":"Name","value":"orgUnit"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgUnitId"}},{"kind":"Field","name":{"kind":"Name","value":"orgDimensionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"downstreamOrgUnits"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgUnitId"}},{"kind":"Field","name":{"kind":"Name","value":"orgDimensionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"executionRequests"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"IntValue","value":"5"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"driftCheckRequests"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"IntValue","value":"5"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationDriftCheckRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"requestTime"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"moduleAssignments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleAssignmentId"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"orgAccount"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgAccountId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]}}]}}]} as unknown as DocumentNode<ModulePropagationQuery, ModulePropagationQueryVariables>;
 export const CreateModulePropagationExecutionRequestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createModulePropagationExecutionRequest"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createModulePropagationExecutionRequest"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"modulePropagationExecutionRequest"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"modulePropagationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationExecutionRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]} as unknown as DocumentNode<CreateModulePropagationExecutionRequestMutation, CreateModulePropagationExecutionRequestMutationVariables>;
 export const CreateModulePropagationDriftCheckRequestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createModulePropagationDriftCheckRequest"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createModulePropagationDriftCheckRequest"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"modulePropagationDriftCheckRequest"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"modulePropagationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationDriftCheckRequestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]} as unknown as DocumentNode<CreateModulePropagationDriftCheckRequestMutation, CreateModulePropagationDriftCheckRequestMutationVariables>;
 export const OrgDimensionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"orgDimensions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"organizationalDimensions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"IntValue","value":"10000"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgDimensionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"orgUnits"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"IntValue","value":"10000"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgUnitId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<OrgDimensionsQuery, OrgDimensionsQueryVariables>;
 export const UpdateModulePropagationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"updateModulePropagation"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"update"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ModulePropagationUpdate"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateModulePropagation"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"modulePropagationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"modulePropagationId"}}},{"kind":"Argument","name":{"kind":"Name","value":"update"},"value":{"kind":"Variable","name":{"kind":"Name","value":"update"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}}]}}]}}]} as unknown as DocumentNode<UpdateModulePropagationMutation, UpdateModulePropagationMutationVariables>;
 export const ModuleVersionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"moduleVersion"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"moduleGroupId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"moduleVersionId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleVersion"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"moduleGroupId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"moduleGroupId"}}},{"kind":"Argument","name":{"kind":"Name","value":"moduleVersionId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"moduleVersionId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleVersionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"moduleGroup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleGroupId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"remoteSource"}},{"kind":"Field","name":{"kind":"Name","value":"terraformVersion"}},{"kind":"Field","name":{"kind":"Name","value":"variables"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"default"}}]}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagations"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"orgUnit"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgUnitId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"orgDimension"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgDimensionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<ModuleVersionQuery, ModuleVersionQueryVariables>;
-export const OrganizationalAccountDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"organizationalAccount"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orgAccountId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"organizationalAccount"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orgAccountId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orgAccountId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgAccountId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"orgUnitMemberships"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgUnit"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgUnitId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"orgDimension"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgDimensionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"moduleAccountAssociations"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"orgAccountId"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagation"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"moduleGroup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleGroupId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"moduleVersion"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleVersionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<OrganizationalAccountQuery, OrganizationalAccountQueryVariables>;
+export const OrganizationalAccountDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"organizationalAccount"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orgAccountId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"organizationalAccount"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orgAccountId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orgAccountId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgAccountId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"orgUnitMemberships"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgUnit"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgUnitId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"orgDimension"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgDimensionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"moduleAssignments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"orgAccountId"}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagation"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"moduleGroup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleGroupId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"moduleVersion"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moduleVersionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<OrganizationalAccountQuery, OrganizationalAccountQueryVariables>;
 export const OrganizationalAccountsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"organizationalAccounts"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"organizationalAccounts"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"IntValue","value":"100"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgAccountId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"cloudPlatform"}},{"kind":"Field","name":{"kind":"Name","value":"cloudIdentifier"}}]}}]}}]}}]} as unknown as DocumentNode<OrganizationalAccountsQuery, OrganizationalAccountsQueryVariables>;
 export const OrganizationalDimensionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"organizationalDimension"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orgDimensionId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"organizationalDimension"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orgDimensionId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orgDimensionId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgDimensionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"orgUnits"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgUnitId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"parentOrgUnitId"}},{"kind":"Field","name":{"kind":"Name","value":"hierarchy"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"modulePropagations"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"modulePropagationId"}},{"kind":"Field","name":{"kind":"Name","value":"moduleGroupId"}},{"kind":"Field","name":{"kind":"Name","value":"moduleVersionId"}},{"kind":"Field","name":{"kind":"Name","value":"orgUnitId"}},{"kind":"Field","name":{"kind":"Name","value":"orgDimensionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"orgUnitMemberships"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgAccount"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgAccountId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"cloudPlatform"}},{"kind":"Field","name":{"kind":"Name","value":"cloudIdentifier"}}]}},{"kind":"Field","name":{"kind":"Name","value":"orgUnit"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgUnitId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<OrganizationalDimensionQuery, OrganizationalDimensionQueryVariables>;
 export const OrganizationalDimensionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"organizationalDimensions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"organizationalDimensions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"IntValue","value":"100"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgDimensionId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]} as unknown as DocumentNode<OrganizationalDimensionsQuery, OrganizationalDimensionsQueryVariables>;

@@ -4,14 +4,12 @@ import "time"
 
 type ApplyExecutionRequest struct {
 	ApplyExecutionRequestId      string
+	ModuleAssignmentId           string
 	TerraformVersion             string
 	CallbackTaskToken            string
-	StateKey                     string
-	ModuleAccountAssociationKey  string
 	TerraformConfigurationBase64 string
 	TerraformPlanBase64          string
 	AdditionalArguments          []string
-	ModulePropagationRequestId   string // could be a mpexec or an mpsync request
 	TerraformWorkflowRequestId   string // could be a tfexec or a tfsync request
 	Status                       RequestStatus
 	InitOutputKey                string
@@ -27,12 +25,10 @@ type ApplyExecutionRequests struct {
 }
 
 type NewApplyExecutionRequest struct {
+	ModuleAssignmentId           string
 	TerraformVersion             string
 	CallbackTaskToken            string
-	StateKey                     string
-	ModulePropagationRequestId   string // could be a mpexec or an mpsync request
 	TerraformWorkflowRequestId   string // could be a tfexec or a tfsync request
-	ModuleAccountAssociationKey  string
 	TerraformConfigurationBase64 string
 	TerraformPlanBase64          string
 	AdditionalArguments          []string

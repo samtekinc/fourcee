@@ -66,40 +66,46 @@ type OrganizationsDatabaseClientInterface interface {
 	PutModulePropagationDriftCheckRequest(ctx context.Context, input *models.ModulePropagationDriftCheckRequest) error
 	UpdateModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationId string, modulePropagationDriftCheckRequestId string, update *models.ModulePropagationDriftCheckRequestUpdate) (*models.ModulePropagationDriftCheckRequest, error)
 
-	GetModuleAccountAssociation(ctx context.Context, modulePropagationId string, orgAccountId string) (*models.ModuleAccountAssociation, error)
-	GetModuleAccountAssociations(ctx context.Context, limit int32, cursor string) (*models.ModuleAccountAssociations, error)
-	GetModuleAccountAssociationsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModuleAccountAssociations, error)
-	GetModuleAccountAssociationsByOrgAccountId(ctx context.Context, orgAccountId string, limit int32, cursor string) (*models.ModuleAccountAssociations, error)
-	PutModuleAccountAssociation(ctx context.Context, input *models.ModuleAccountAssociation) error
-	UpdateModuleAccountAssociation(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string, update *models.ModuleAccountAssociationUpdate) (*models.ModuleAccountAssociation, error)
+	GetModuleAssignment(ctx context.Context, moduleAssignmentId string) (*models.ModuleAssignment, error)
+	GetModuleAssignments(ctx context.Context, limit int32, cursor string) (*models.ModuleAssignments, error)
+	GetModuleAssignmentsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModuleAssignments, error)
+	GetModuleAssignmentsByOrgAccountId(ctx context.Context, orgAccountId string, limit int32, cursor string) (*models.ModuleAssignments, error)
+	GetModuleAssignmentsByModuleVersionId(ctx context.Context, moduleVersionId string, limit int32, cursor string) (*models.ModuleAssignments, error)
+	GetModuleAssignmentsByModuleGroupId(ctx context.Context, moduleGroupId string, limit int32, cursor string) (*models.ModuleAssignments, error)
+	PutModuleAssignment(ctx context.Context, input *models.ModuleAssignment) error
+	UpdateModuleAssignment(ctx context.Context, moduleAssignmentId string, update *models.ModuleAssignmentUpdate) (*models.ModuleAssignment, error)
+
+	GetModulePropagationAssignment(ctx context.Context, modulePropagationId string, orgAccountId string) (*models.ModulePropagationAssignment, error)
+	GetModulePropagationAssignments(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationAssignments, error)
+	GetModulePropagationAssignmentsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationAssignments, error)
+	GetModulePropagationAssignmentsByOrgAccountId(ctx context.Context, orgAccountId string, limit int32, cursor string) (*models.ModulePropagationAssignments, error)
+	PutModulePropagationAssignment(ctx context.Context, input *models.ModuleAssignment) (*models.ModulePropagationAssignment, *models.ModuleAssignment, error) // yes, this should be a ModuleAssignment - we perform a db transaction to create both a module assignment and a module propagation assignment
 
 	// Execution Related Methods
 
 	GetTerraformExecutionWorkflowRequest(ctx context.Context, terraformExecutionRequestId string) (*models.TerraformExecutionWorkflowRequest, error)
 	GetTerraformExecutionWorkflowRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error)
 	GetTerraformExecutionWorkflowRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error)
-	GetTerraformExecutionWorkflowRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error)
+	GetTerraformExecutionWorkflowRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error)
 	PutTerraformExecutionWorkflowRequest(ctx context.Context, input *models.TerraformExecutionWorkflowRequest) error
 	UpdateTerraformExecutionWorkflowRequest(ctx context.Context, terraformExecutionRequestId string, update *models.TerraformExecutionWorkflowRequestUpdate) (*models.TerraformExecutionWorkflowRequest, error)
 
 	GetTerraformDriftCheckWorkflowRequest(ctx context.Context, terraformDriftCheckRequestId string) (*models.TerraformDriftCheckWorkflowRequest, error)
 	GetTerraformDriftCheckWorkflowRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformDriftCheckWorkflowRequests, error)
 	GetTerraformDriftCheckWorkflowRequestsByModulePropagationDriftCheckRequestId(ctx context.Context, modulePropagationDriftCheckRequestId string, limit int32, cursor string) (*models.TerraformDriftCheckWorkflowRequests, error)
-	GetTerraformDriftCheckWorkflowRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.TerraformDriftCheckWorkflowRequests, error)
+	GetTerraformDriftCheckWorkflowRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.TerraformDriftCheckWorkflowRequests, error)
 	PutTerraformDriftCheckWorkflowRequest(ctx context.Context, input *models.TerraformDriftCheckWorkflowRequest) error
 	UpdateTerraformDriftCheckWorkflowRequest(ctx context.Context, terraformDriftCheckRequestId string, update *models.TerraformDriftCheckWorkflowRequestUpdate) (*models.TerraformDriftCheckWorkflowRequest, error)
 
 	GetPlanExecutionRequest(ctx context.Context, planExecutionRequestId string) (*models.PlanExecutionRequest, error)
 	GetPlanExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.PlanExecutionRequests, error)
-	GetPlanExecutionRequestsByModulePropagationRequestId(ctx context.Context, modulePropagationRequestId string, limit int32, cursor string) (*models.PlanExecutionRequests, error)
-	GetPlanExecutionRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.PlanExecutionRequests, error)
+	GetPlanExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.PlanExecutionRequests, error)
 	PutPlanExecutionRequest(ctx context.Context, input *models.PlanExecutionRequest) error
 	UpdatePlanExecutionRequest(ctx context.Context, planExecutionRequestId string, input *models.PlanExecutionRequestUpdate) (*models.PlanExecutionRequest, error)
 
 	GetApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string) (*models.ApplyExecutionRequest, error)
 	GetApplyExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
-	GetApplyExecutionRequestsByModulePropagationRequestId(ctx context.Context, modulePropagationRequestId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
-	GetApplyExecutionRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
+	GetApplyExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
 	PutApplyExecutionRequest(ctx context.Context, input *models.ApplyExecutionRequest) error
 	UpdateApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string, input *models.ApplyExecutionRequestUpdate) (*models.ApplyExecutionRequest, error)
 
@@ -127,7 +133,8 @@ type OrganizationsDatabaseClient struct {
 	propagationsTableName                        string
 	modulePropagationExecutionRequestsTableName  string
 	modulePropagationDriftCheckRequestsTableName string
-	moduleAccountAssociationsTableName           string
+	moduleAssignmentsTableName                   string
+	modulePropagationAssignmentsTableName        string
 
 	terraformExecutionWorkflowRequestsTableName  string
 	terraformDriftCheckWorkflowRequestsTableName string
@@ -149,7 +156,8 @@ type OrganizationsDatabaseClientInput struct {
 	PropagationsTableName                        string
 	ModulePropagationExecutionRequestsTableName  string
 	ModulePropagationDriftCheckRequestsTableName string
-	ModuleAccountAssociationsTableName           string
+	ModuleAssignmentsTableName                   string
+	ModulePropagationAssignmentsTableName        string
 
 	TerraformExecutionWorkflowRequestsTableName  string
 	TerraformDriftCheckWorkflowRequestsTableName string
@@ -171,7 +179,8 @@ func NewOrganizationsDatabaseClient(input *OrganizationsDatabaseClientInput) *Or
 		propagationsTableName: input.PropagationsTableName,
 		modulePropagationExecutionRequestsTableName:  input.ModulePropagationExecutionRequestsTableName,
 		modulePropagationDriftCheckRequestsTableName: input.ModulePropagationDriftCheckRequestsTableName,
-		moduleAccountAssociationsTableName:           input.ModuleAccountAssociationsTableName,
+		moduleAssignmentsTableName:                   input.ModuleAssignmentsTableName,
+		modulePropagationAssignmentsTableName:        input.ModulePropagationAssignmentsTableName,
 		terraformExecutionWorkflowRequestsTableName:  input.TerraformExecutionWorkflowRequestsTableName,
 		terraformDriftCheckWorkflowRequestsTableName: input.TerraformDriftCheckWorkflowRequestsTableName,
 		planExecutionsTableName:                      input.PlanExecutionsTableName,

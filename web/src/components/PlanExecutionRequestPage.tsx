@@ -10,7 +10,7 @@ import { renderStatus, renderTimeField } from "../utils/table_rendering";
 import { Container } from "react-bootstrap";
 import Accordion from "react-bootstrap/Accordion";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { dark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import Ansi from "ansi-to-react";
 
 const PLAN_EXECUTION_REQUEST_QUERY = gql`
@@ -93,7 +93,7 @@ export const PlanExecutionRequestPage = () => {
           textAlign: "left",
         }}
       >
-        <SyntaxHighlighter language="hcl" style={dark}>
+        <SyntaxHighlighter language="hcl" style={vscDarkPlus}>
           {terraformConfiguration}
         </SyntaxHighlighter>
       </Container>

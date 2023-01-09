@@ -6,46 +6,16 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-// ModulePropagationID is the resolver for the modulePropagationId field.
-func (r *applyExecutionRequestResolver) ModulePropagationID(ctx context.Context, obj *models.ApplyExecutionRequest) (string, error) {
-	key, err := models.ParseModuleAccountAssociationKey(obj.ModuleAccountAssociationKey)
-	if err != nil {
-		return "", err
-	}
-	return key.ModulePropagationId, nil
-}
-
-// ModulePropagation is the resolver for the modulePropagation field.
-func (r *applyExecutionRequestResolver) ModulePropagation(ctx context.Context, obj *models.ApplyExecutionRequest) (*models.ModulePropagation, error) {
-	modulePropagationId, err := r.ModulePropagationID(ctx, obj)
-	if err != nil {
-		return nil, err
-	}
-	return r.apiClient.GetModulePropagation(ctx, modulePropagationId)
-}
-
-// OrgAccountID is the resolver for the orgAccountId field.
-func (r *applyExecutionRequestResolver) OrgAccountID(ctx context.Context, obj *models.ApplyExecutionRequest) (string, error) {
-	key, err := models.ParseModuleAccountAssociationKey(obj.ModuleAccountAssociationKey)
-	if err != nil {
-		return "", err
-	}
-	return key.OrgAccountId, nil
-}
-
-// OrgAccount is the resolver for the orgAccount field.
-func (r *applyExecutionRequestResolver) OrgAccount(ctx context.Context, obj *models.ApplyExecutionRequest) (*models.OrganizationalAccount, error) {
-	orgAccountId, err := r.OrgAccountID(ctx, obj)
-	if err != nil {
-		return nil, err
-	}
-	return r.apiClient.GetOrganizationalAccount(ctx, orgAccountId)
+// ModuleAssignment is the resolver for the moduleAssignment field.
+func (r *applyExecutionRequestResolver) ModuleAssignment(ctx context.Context, obj *models.ApplyExecutionRequest) (*models.ModuleAssignment, error) {
+	panic(fmt.Errorf("not implemented: ModuleAssignment - moduleAssignment"))
 }
 
 // ApplyExecutionRequest is the resolver for the applyExecutionRequest field.

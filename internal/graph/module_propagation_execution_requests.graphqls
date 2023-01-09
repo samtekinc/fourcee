@@ -3,11 +3,6 @@ type ModulePropagationExecutionRequest {
   modulePropagationId: ID!
   requestTime: Time!
   status: RequestStatus!
-  planExecutionRequests(limit: Int, nextCursor: String): PlanExecutionRequests!
-  applyExecutionRequests(
-    limit: Int
-    nextCursor: String
-  ): ApplyExecutionRequests!
   terraformExecutionWorkflowRequests(
     limit: Int
     nextCursor: String

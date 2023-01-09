@@ -27,24 +27,14 @@ func (t *TaskHandler) ScheduleTerraformApply(ctx context.Context, input Schedule
 		return nil, err
 	}
 
-	// get module account association
-	moduleAccountAssociationKey, err := models.ParseModuleAccountAssociationKey(tfWorkflow.ModuleAccountAssociationKey)
-	if err != nil {
-		return nil, err
-	}
-	moduleAccountAssociation, err := t.apiClient.GetModuleAccountAssociation(ctx, moduleAccountAssociationKey.ModulePropagationId, moduleAccountAssociationKey.OrgAccountId)
-	if err != nil {
-		return nil, err
-	}
-
-	// get module propagation details
-	modulePropagation, err := t.apiClient.GetModulePropagation(ctx, moduleAccountAssociation.ModulePropagationId)
+	// get module assignment
+	moduleAssignment, err := t.apiClient.GetModuleAssignment(ctx, tfWorkflow.ModuleAssignmentId)
 	if err != nil {
 		return nil, err
 	}
 
 	// get module version details
-	moduleVersion, err := t.apiClient.GetModuleVersion(ctx, modulePropagation.ModuleGroupId, modulePropagation.ModuleVersionId)
+	moduleVersion, err := t.apiClient.GetModuleVersion(ctx, moduleAssignment.ModuleGroupId, moduleAssignment.ModuleVersionId)
 	if err != nil {
 		return nil, err
 	}
@@ -63,12 +53,10 @@ func (t *TaskHandler) ScheduleTerraformApply(ctx context.Context, input Schedule
 	}
 
 	applyRequest, err := t.apiClient.PutApplyExecutionRequest(ctx, &models.NewApplyExecutionRequest{
+		ModuleAssignmentId:           moduleAssignment.ModuleAssignmentId,
 		TerraformVersion:             moduleVersion.TerraformVersion,
 		CallbackTaskToken:            input.TaskToken,
-		StateKey:                     moduleAccountAssociation.RemoteStateKey,
-		ModulePropagationRequestId:   tfWorkflow.ModulePropagationExecutionRequestId,
 		TerraformWorkflowRequestId:   input.TerraformWorkflowRequestId,
-		ModuleAccountAssociationKey:  tfWorkflow.ModuleAccountAssociationKey,
 		TerraformConfigurationBase64: planRequest.TerraformConfigurationBase64,
 		TerraformPlanBase64:          planBase64,
 		AdditionalArguments:          additionalArguments,

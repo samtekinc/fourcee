@@ -25,21 +25,22 @@ const ORGANIZATIONAL_ACCOUNT_QUERY = gql`
           }
         }
       }
-      moduleAccountAssociations {
+      moduleAssignments {
         items {
+          moduleAssignmentId
           status
           modulePropagationId
           orgAccountId
+          moduleGroup {
+            moduleGroupId
+            name
+          }
+          moduleVersion {
+            moduleVersionId
+            name
+          }
           modulePropagation {
             name
-            moduleGroup {
-              moduleGroupId
-              name
-            }
-            moduleVersion {
-              moduleVersionId
-              name
-            }
           }
         }
       }
@@ -126,55 +127,39 @@ export const OrganizationalAccountPage = () => {
           </tr>
         </thead>
         <tbody>
-          {data?.organizationalAccount.moduleAccountAssociations.items.map(
-            (moduleAccountAssociation) => {
+          {data?.organizationalAccount.moduleAssignments.items.map(
+            (moduleAssignment) => {
               return (
                 <tr>
                   <td>
                     <NavLink
-                      to={`/module-propagations/${moduleAccountAssociation?.modulePropagationId}`}
+                      to={`/module-propagations/${moduleAssignment?.modulePropagationId}`}
                     >
-                      {moduleAccountAssociation?.modulePropagation.name} (
-                      {moduleAccountAssociation?.modulePropagationId})
+                      {moduleAssignment?.modulePropagation?.name} (
+                      {moduleAssignment?.modulePropagationId})
                     </NavLink>
                   </td>
                   <td>
                     <NavLink
-                      to={`/module-groups/${moduleAccountAssociation?.modulePropagation.moduleGroup.moduleGroupId}`}
+                      to={`/module-groups/${moduleAssignment?.moduleGroup.moduleGroupId}`}
                     >
-                      {
-                        moduleAccountAssociation?.modulePropagation.moduleGroup
-                          .name
-                      }{" "}
-                      (
-                      {
-                        moduleAccountAssociation?.modulePropagation.moduleGroup
-                          .moduleGroupId
-                      }
-                      )
+                      {moduleAssignment?.moduleGroup.name} (
+                      {moduleAssignment?.moduleGroup.moduleGroupId})
                     </NavLink>
                   </td>
                   <td>
                     <NavLink
-                      to={`/module-groups/${moduleAccountAssociation?.modulePropagation.moduleGroup.moduleGroupId}/module-versions/${moduleAccountAssociation?.modulePropagation.moduleVersion.moduleVersionId}`}
+                      to={`/module-groups/${moduleAssignment?.moduleGroup.moduleGroupId}/module-versions/${moduleAssignment?.moduleVersion.moduleVersionId}`}
                     >
-                      {
-                        moduleAccountAssociation?.modulePropagation
-                          .moduleVersion.name
-                      }{" "}
-                      (
-                      {
-                        moduleAccountAssociation?.modulePropagation
-                          .moduleVersion.moduleVersionId
-                      }
-                      )
+                      {moduleAssignment?.moduleVersion.name} (
+                      {moduleAssignment?.moduleVersion.moduleVersionId})
                     </NavLink>
                   </td>
                   <td>
                     <NavLink
-                      to={`/module-propagations/${moduleAccountAssociation?.modulePropagationId}/account-associations/${moduleAccountAssociation?.orgAccountId}`}
+                      to={`/module-assignments/${moduleAssignment?.moduleAssignmentId}`}
                     >
-                      {moduleAccountAssociation?.status}
+                      {moduleAssignment?.status}
                     </NavLink>
                   </td>
                 </tr>

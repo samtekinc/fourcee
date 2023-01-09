@@ -28,9 +28,12 @@ const MODULE_PROPAGATION_DRIFT_CHECK_QUERY = gql`
           status
           requestTime
           destroy
-          orgAccount {
-            orgAccountId
-            name
+          moduleAssignment {
+            moduleAssignmentId
+            orgAccount {
+              orgAccountId
+              name
+            }
           }
           planExecutionRequest {
             planExecutionRequestId
@@ -115,12 +118,16 @@ export const ModulePropagationDriftCheckRequestPage = () => {
                   </td>
                   <td>
                     <NavLink
-                      to={`/org-accounts/${terraformDriftCheckWorkflowRequest?.orgAccount.orgAccountId}`}
+                      to={`/org-accounts/${terraformDriftCheckWorkflowRequest?.moduleAssignment.orgAccount.orgAccountId}`}
                     >
-                      {terraformDriftCheckWorkflowRequest?.orgAccount.name} (
                       {
-                        terraformDriftCheckWorkflowRequest?.orgAccount
-                          .orgAccountId
+                        terraformDriftCheckWorkflowRequest?.moduleAssignment
+                          .orgAccount.name
+                      }{" "}
+                      (
+                      {
+                        terraformDriftCheckWorkflowRequest?.moduleAssignment
+                          .orgAccount.orgAccountId
                       }
                       )
                     </NavLink>

@@ -4,13 +4,15 @@ import "time"
 
 type TerraformExecutionWorkflowRequest struct {
 	TerraformExecutionWorkflowRequestId string
-	ModulePropagationExecutionRequestId string
-	ModuleAccountAssociationKey         string
+	ModuleAssignmentId                  string
 	PlanExecutionRequestId              *string
 	ApplyExecutionRequestId             *string
 	RequestTime                         time.Time
 	Status                              RequestStatus
 	Destroy                             bool
+	CallbackTaskToken                   string
+	ModulePropagationId                 *string `dynamodbav:",omitempty"`
+	ModulePropagationExecutionRequestId *string `dynamodbav:",omitempty"`
 }
 
 type TerraformExecutionWorkflowRequests struct {
@@ -19,9 +21,11 @@ type TerraformExecutionWorkflowRequests struct {
 }
 
 type NewTerraformExecutionWorkflowRequest struct {
-	ModulePropagationExecutionRequestId string
-	ModuleAccountAssociationKey         string
+	ModuleAssignmentId                  string
 	Destroy                             bool
+	CallbackTaskToken                   string
+	ModulePropagationId                 *string
+	ModulePropagationExecutionRequestId *string
 }
 
 type TerraformExecutionWorkflowRequestUpdate struct {

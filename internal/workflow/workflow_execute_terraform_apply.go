@@ -7,7 +7,7 @@ const (
 )
 
 type ExecuteTerraformApplyWorkflowPayload struct {
-	ModuleAccountAssociation            models.ModuleAccountAssociation
+	ModuleAssignment                    models.ModuleAssignment
 	ModulePropagationExecutionRequestId string
 	ModulePropagationId                 string
 	Destroy                             bool

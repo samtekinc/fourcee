@@ -32,13 +32,13 @@ func (r *modulePropagationResolver) OrgDimension(ctx context.Context, obj *model
 	return r.apiClient.GetOrganizationalDimension(ctx, obj.OrgDimensionId)
 }
 
-// ModuleAccountAssociations is the resolver for the moduleAccountAssociations field.
-func (r *modulePropagationResolver) ModuleAccountAssociations(ctx context.Context, obj *models.ModulePropagation, limit *int, nextCursor *string) (*models.ModuleAccountAssociations, error) {
+// ModuleAssignments is the resolver for the moduleAssignments field.
+func (r *modulePropagationResolver) ModuleAssignments(ctx context.Context, obj *models.ModulePropagation, limit *int, nextCursor *string) (*models.ModuleAssignments, error) {
 	if limit == nil {
 		limit = aws.Int(100)
 	}
 
-	return r.apiClient.GetModuleAccountAssociationsByModulePropagationId(ctx, obj.ModulePropagationId, int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetModuleAssignmentsByModulePropagationId(ctx, obj.ModulePropagationId, int32(*limit), aws.ToString(nextCursor))
 }
 
 // ExecutionRequests is the resolver for the executionRequests field.

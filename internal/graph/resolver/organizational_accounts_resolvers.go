@@ -36,12 +36,12 @@ func (r *organizationalAccountResolver) OrgUnitMemberships(ctx context.Context, 
 	return r.apiClient.GetOrganizationalUnitMembershipsByAccount(ctx, obj.OrgAccountId, int32(*limit), aws.ToString(nextCursor))
 }
 
-// ModuleAccountAssociations is the resolver for the moduleAccountAssociations field.
-func (r *organizationalAccountResolver) ModuleAccountAssociations(ctx context.Context, obj *models.OrganizationalAccount, limit *int, nextCursor *string) (*models.ModuleAccountAssociations, error) {
+// ModuleAssignments is the resolver for the moduleAssignments field.
+func (r *organizationalAccountResolver) ModuleAssignments(ctx context.Context, obj *models.OrganizationalAccount, limit *int, nextCursor *string) (*models.ModuleAssignments, error) {
 	if limit == nil {
 		limit = aws.Int(100)
 	}
-	return r.apiClient.GetModuleAccountAssociationsByOrgAccountId(ctx, obj.OrgAccountId, int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetModuleAssignmentsByOrgAccountId(ctx, obj.OrgAccountId, int32(*limit), aws.ToString(nextCursor))
 }
 
 // OrganizationalAccount is the resolver for the organizationalAccount field.

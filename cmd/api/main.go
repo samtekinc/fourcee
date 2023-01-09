@@ -60,7 +60,8 @@ func main() {
 		PropagationsTableName: "tfom-module-propagations",
 		ModulePropagationExecutionRequestsTableName:  "tfom-module-propagation-execution-requests",
 		ModulePropagationDriftCheckRequestsTableName: "tfom-module-propagation-drift-check-requests",
-		ModuleAccountAssociationsTableName:           "tfom-module-account-associations",
+		ModuleAssignmentsTableName:                   "tfom-module-assignments",
+		ModulePropagationAssignmentsTableName:        "tfom-module-propagation-assignments",
 		TerraformExecutionWorkflowRequestsTableName:  "tfom-terraform-execution-workflow-requests",
 		TerraformDriftCheckWorkflowRequestsTableName: "tfom-terraform-drift-check-workflow-requests",
 		PlanExecutionsTableName:                      "tfom-plan-execution-requests",
@@ -68,7 +69,17 @@ func main() {
 		ResultsBucketName:                            "tfom-execution-results",
 	}
 	dbClient := database.NewOrganizationsDatabaseClient(&dbInput)
-	apiClient := api.NewOrganizationsAPIClient(dbClient, "./tmp/", sfnClient, "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-execution", "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-drift-check", "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-execution")
+	apiInput := api.OrganizationsAPIClientInput{
+		DBClient:                               dbClient,
+		WorkingDirectory:                       "./tmp",
+		SfnClient:                              sfnClient,
+		ModulePropagationExecutionWorkflowArn:  "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-execution",
+		ModulePropagationDriftCheckWorkflowArn: "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-drift-check",
+		TerraformExecutionWorkflowArn:          "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-execution",
+		RemoteStateBucket:                      "tfom-backend-states",
+		RemoteStateRegion:                      "us-east-1",
+	}
+	apiClient := api.NewOrganizationsAPIClient(&apiInput)
 
 	// orgRouter := rest.NewOrganizationsRouter(apiClient)
 

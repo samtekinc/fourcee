@@ -28,9 +28,12 @@ const MODULE_PROPAGATION_EXECUTION_QUERY = gql`
           status
           requestTime
           destroy
-          orgAccount {
-            orgAccountId
-            name
+          moduleAssignment {
+            moduleAssignmentId
+            orgAccount {
+              orgAccountId
+              name
+            }
           }
           planExecutionRequest {
             planExecutionRequestId
@@ -119,12 +122,16 @@ export const ModulePropagationExecutionRequestPage = () => {
                   </td>
                   <td>
                     <NavLink
-                      to={`/org-accounts/${terraformExecutionWorkflowRequest?.orgAccount.orgAccountId}`}
+                      to={`/org-accounts/${terraformExecutionWorkflowRequest?.moduleAssignment.orgAccount.orgAccountId}`}
                     >
-                      {terraformExecutionWorkflowRequest?.orgAccount.name} (
                       {
-                        terraformExecutionWorkflowRequest?.orgAccount
-                          .orgAccountId
+                        terraformExecutionWorkflowRequest?.moduleAssignment
+                          .orgAccount.name
+                      }{" "}
+                      (
+                      {
+                        terraformExecutionWorkflowRequest?.moduleAssignment
+                          .orgAccount.orgAccountId
                       }
                       )
                     </NavLink>

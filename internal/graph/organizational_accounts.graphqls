@@ -8,10 +8,7 @@ type OrganizationalAccount {
     limit: Int
     nextCursor: String
   ): OrganizationalUnitMemberships!
-  moduleAccountAssociations(
-    limit: Int
-    nextCursor: String
-  ): ModuleAccountAssociations!
+  moduleAssignments(limit: Int, nextCursor: String): ModuleAssignments!
 }
 
 type OrganizationalAccounts {

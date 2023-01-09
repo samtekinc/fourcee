@@ -11,7 +11,7 @@ import { OrganizationalAccountsList } from "./components/OrganizationalAccountsL
 import { OrganizationalAccountPage } from "./components/OrganizationalAccountPage";
 import { OrganizationalDimensionPage } from "./components/OrganizationalDimensionPage";
 import { OrganizationalUnitPage } from "./components/OrganizationalUnitPage";
-import { ModuleAccountAssociationPage } from "./components/ModuleAccountAssociationPage";
+import { ModuleAssignmentPage } from "./components/ModuleAssignmentPage";
 import { ModuleGroupsList } from "./components/ModuleGroupList";
 import { ModuleGroupPage } from "./components/ModuleGroupPage";
 import { ModuleVersionPage } from "./components/ModuleVersionPage";
@@ -35,8 +35,8 @@ function App() {
           element={<ModulePropagationDriftCheckRequestPage />}
         />
         <Route
-          path="/module-propagations/:modulePropagationId/account-associations/:orgAccountId"
-          element={<ModuleAccountAssociationPage />}
+          path="/module-assignments/:moduleAssignmentId"
+          element={<ModuleAssignmentPage />}
         />
         <Route
           path="/plan-execution-requests/:planExecutionRequestId"

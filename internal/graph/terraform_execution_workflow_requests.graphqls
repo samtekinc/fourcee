@@ -1,20 +1,18 @@
 type TerraformExecutionWorkflowRequest {
   terraformExecutionWorkflowRequestId: ID!
-  modulePropagationExecutionRequestId: ID!
-  modulePropagationExecutionRequest: ModulePropagationExecutionRequest!
-  moduleAccountAssociationKey: String!
-  moduleAccountAssociation: ModuleAccountAssociation!
-  orgAccountId: ID!
-  orgAccount: OrganizationalAccount!
-  modulePropagationId: ID!
-  modulePropagation: ModulePropagation!
+  moduleAssignmentId: ID!
+  moduleAssignment: ModuleAssignment!
   planExecutionRequestId: ID
   planExecutionRequest: PlanExecutionRequest
   applyExecutionRequestId: ID
   applyExecutionRequest: ApplyExecutionRequest
-  status: RequestStatus!
   requestTime: Time!
+  status: RequestStatus!
   destroy: Boolean!
+  modulePropagationId: ID
+  modulePropagation: ModulePropagation
+  modulePropagationExecutionRequestId: ID
+  modulePropagationExecutionRequest: ModulePropagationExecutionRequest
 }
 
 type TerraformExecutionWorkflowRequests {

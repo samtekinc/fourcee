@@ -11,18 +11,31 @@ import (
 )
 
 type TerraformConfigurationInput struct {
-	ModuleAccountAssociation *models.ModuleAccountAssociation
-	ModulePropagation        *models.ModulePropagation
-	ModuleVersion            *models.ModuleVersion
-	OrgAccount               *models.OrganizationalAccount
+	ModuleAssignment  *models.ModuleAssignment
+	ModulePropagation *models.ModulePropagation
+	ModuleVersion     *models.ModuleVersion
+	OrgAccount        *models.OrganizationalAccount
 }
 
 func GetTerraformConfigurationBase64(input *TerraformConfigurationInput) (string, error) {
 	providers := []ProviderTemplate{}
 
+	var arguments []models.Argument
+	var awsProviderConfigurations []models.AwsProviderConfiguration
+	var gcpProviderConfigurations []models.GcpProviderConfiguration
+	if input.ModulePropagation == nil {
+		arguments = input.ModuleAssignment.Arguments
+		awsProviderConfigurations = input.ModuleAssignment.AwsProviderConfigurations
+		gcpProviderConfigurations = input.ModuleAssignment.GcpProviderConfigurations
+	} else {
+		arguments = input.ModulePropagation.Arguments
+		awsProviderConfigurations = input.ModulePropagation.AwsProviderConfigurations
+		gcpProviderConfigurations = input.ModulePropagation.GcpProviderConfigurations
+	}
+
 	switch input.OrgAccount.CloudPlatform {
 	case models.CloudPlatformAWS:
-		for _, awsProvider := range input.ModulePropagation.AwsProviderConfigurations {
+		for _, awsProvider := range awsProviderConfigurations {
 			providers = append(providers, &AWSProviderTemplate{
 				Config:         awsProvider,
 				AssumeRoleName: input.OrgAccount.AssumeRoleName,
@@ -35,7 +48,7 @@ func GetTerraformConfigurationBase64(input *TerraformConfigurationInput) (string
 			SubscriptionId: input.OrgAccount.CloudIdentifier,
 		})
 	case models.CloudPlatformGCP:
-		for _, gcpProvider := range input.ModulePropagation.GcpProviderConfigurations {
+		for _, gcpProvider := range gcpProviderConfigurations {
 			providers = append(providers, &GCPProviderTemplate{
 				Config:    gcpProvider,
 				ProjectId: input.OrgAccount.CloudIdentifier,
@@ -46,16 +59,19 @@ func GetTerraformConfigurationBase64(input *TerraformConfigurationInput) (string
 	}
 
 	templateInput := TemplateInput{
-		BackendBucket:             input.ModuleAccountAssociation.RemoteStateBucket,
-		BackendKey:                input.ModuleAccountAssociation.RemoteStateKey,
-		BackendRegion:             input.ModuleAccountAssociation.RemoteStateRegion,
-		Providers:                 providers,
-		AccountMetadata:           append(input.OrgAccount.Metadata, input.OrgAccount.GetInternalMetadata()...),
-		ModuleVersionMetadata:     input.ModuleVersion.GetInternalMetadata(),
-		ModulePropagationMetadata: input.ModulePropagation.GetInternalMetadata(),
-		ModuleName:                input.ModulePropagation.Name,
-		ModuleSource:              input.ModuleVersion.RemoteSource,
-		ModuleArguments:           input.ModulePropagation.Arguments,
+		BackendBucket:         input.ModuleAssignment.RemoteStateBucket,
+		BackendKey:            input.ModuleAssignment.RemoteStateKey,
+		BackendRegion:         input.ModuleAssignment.RemoteStateRegion,
+		Providers:             providers,
+		AccountMetadata:       append(input.OrgAccount.Metadata, input.OrgAccount.GetInternalMetadata()...),
+		ModuleVersionMetadata: input.ModuleVersion.GetInternalMetadata(),
+		ModuleName:            input.ModulePropagation.Name,
+		ModuleSource:          input.ModuleVersion.RemoteSource,
+		ModuleArguments:       arguments,
+	}
+
+	if input.ModulePropagation != nil {
+		templateInput.ModulePropagationMetadata = input.ModulePropagation.GetInternalMetadata()
 	}
 
 	buf := bytes.NewBuffer([]byte{})

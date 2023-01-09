@@ -14,6 +14,7 @@ type DynamoDBInterface interface {
 	UpdateItemInterface
 	QueryInterface
 	ScanInterface
+	TransactWriteItemsInterface
 }
 
 type GetItemInterface interface {
@@ -42,4 +43,8 @@ type QueryInterface interface {
 
 type ScanInterface interface {
 	Scan(ctx context.Context, params *dynamodb.ScanInput, options ...func(*dynamodb.Options)) (*dynamodb.ScanOutput, error)
+}
+
+type TransactWriteItemsInterface interface {
+	TransactWriteItems(ctx context.Context, params *dynamodb.TransactWriteItemsInput, options ...func(*dynamodb.Options)) (*dynamodb.TransactWriteItemsOutput, error)
 }

@@ -4,13 +4,15 @@ import "time"
 
 type TerraformDriftCheckWorkflowRequest struct {
 	TerraformDriftCheckWorkflowRequestId string
-	ModulePropagationDriftCheckRequestId string
-	ModuleAccountAssociationKey          string
+	ModuleAssignmentId                   string
 	PlanExecutionRequestId               *string
 	RequestTime                          time.Time
 	Status                               RequestStatus
 	SyncStatus                           TerraformDriftCheckStatus
 	Destroy                              bool
+	CallbackTaskToken                    string
+	ModulePropagationId                  *string `dynamodbav:",omitempty"`
+	ModulePropagationDriftCheckRequestId *string `dynamodbav:",omitempty"`
 }
 
 type TerraformDriftCheckWorkflowRequests struct {
@@ -19,9 +21,11 @@ type TerraformDriftCheckWorkflowRequests struct {
 }
 
 type NewTerraformDriftCheckWorkflowRequest struct {
-	ModulePropagationDriftCheckRequestId string
-	ModuleAccountAssociationKey          string
+	ModuleAssignmentId                   string
 	Destroy                              bool
+	CallbackTaskToken                    string
+	ModulePropagationId                  *string
+	ModulePropagationDriftCheckRequestId *string
 }
 
 type TerraformDriftCheckWorkflowRequestUpdate struct {

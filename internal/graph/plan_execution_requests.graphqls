@@ -1,21 +1,15 @@
 type PlanExecutionRequest {
   planExecutionRequestId: ID!
+  moduleAssignmentId: ID!
+  moduleAssignment: ModuleAssignment!
   terraformVersion: String!
-  callbackTaskToken: String!
-  stateKey: String!
-  modulePropagationRequestId: String!
-  terraformWorkflowRequestId: String!
-  moduleAccountAssociationKey: String!
-  modulePropagationId: ID!
-  modulePropagation: ModulePropagation!
-  orgAccountId: ID!
-  orgAccount: OrganizationalAccount!
   terraformConfigurationBase64: String!
   additionalArguments: [String]!
+  terraformWorkflowRequestId: String!
   status: RequestStatus!
-  requestTime: Time!
   initOutput: TerraformInitOutput
   planOutput: TerraformPlanOutput
+  requestTime: Time!
 }
 
 type PlanExecutionRequests {

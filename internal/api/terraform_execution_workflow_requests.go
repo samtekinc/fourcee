@@ -2,8 +2,11 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/sheacloud/tfom/internal/identifiers"
 	"github.com/sheacloud/tfom/pkg/models"
 )
@@ -20,31 +23,49 @@ func (c *OrganizationsAPIClient) GetTerraformExecutionWorkflowRequestsByModulePr
 	return c.dbClient.GetTerraformExecutionWorkflowRequestsByModulePropagationExecutionRequestId(ctx, modulePropagationExecutionRequestId, limit, cursor)
 }
 
-func (c *OrganizationsAPIClient) GetTerraformExecutionWorkflowRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error) {
-	return c.dbClient.GetTerraformExecutionWorkflowRequestsByModuleAccountAssociationKey(ctx, moduleAccountAssociationKey, limit, cursor)
+func (c *OrganizationsAPIClient) GetTerraformExecutionWorkflowRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error) {
+	return c.dbClient.GetTerraformExecutionWorkflowRequestsByModuleAssignmentId(ctx, moduleAssignmentId, limit, cursor)
 }
 
 func (c *OrganizationsAPIClient) PutTerraformExecutionWorkflowRequest(ctx context.Context, input *models.NewTerraformExecutionWorkflowRequest) (*models.TerraformExecutionWorkflowRequest, error) {
-	modulePropagationExecutionRequestId, err := identifiers.NewIdentifier(identifiers.ResourceTypeTerraformExecutionWorkflowRequest)
+	id, err := identifiers.NewIdentifier(identifiers.ResourceTypeTerraformExecutionWorkflowRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	modulePropagationExecutionRequest := models.TerraformExecutionWorkflowRequest{
-		TerraformExecutionWorkflowRequestId: modulePropagationExecutionRequestId.String(),
-		ModulePropagationExecutionRequestId: input.ModulePropagationExecutionRequestId,
-		ModuleAccountAssociationKey:         input.ModuleAccountAssociationKey,
+	terraformExecutionRequest := models.TerraformExecutionWorkflowRequest{
+		TerraformExecutionWorkflowRequestId: id.String(),
+		ModuleAssignmentId:                  input.ModuleAssignmentId,
 		RequestTime:                         time.Now().UTC(),
 		Status:                              models.RequestStatusPending,
 		Destroy:                             input.Destroy,
+		CallbackTaskToken:                   input.CallbackTaskToken,
+		ModulePropagationId:                 input.ModulePropagationId,
+		ModulePropagationExecutionRequestId: input.ModulePropagationExecutionRequestId,
 	}
 
-	err = c.dbClient.PutTerraformExecutionWorkflowRequest(ctx, &modulePropagationExecutionRequest)
+	err = c.dbClient.PutTerraformExecutionWorkflowRequest(ctx, &terraformExecutionRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	return &modulePropagationExecutionRequest, nil
+	workflowExecutionInput, err := json.Marshal(map[string]string{
+		"TerraformExecutionWorkflowRequestId": id.String(),
+		"TaskToken":                           input.CallbackTaskToken,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = c.sfnClient.StartExecution(ctx, &sfn.StartExecutionInput{
+		StateMachineArn: aws.String(c.terraformExecutionWorkflowArn),
+		Input:           aws.String(string(workflowExecutionInput)),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &terraformExecutionRequest, nil
 }
 
 func (c *OrganizationsAPIClient) UpdateTerraformExecutionWorkflowRequest(ctx context.Context, modulePropagationExecutionRequestId string, update *models.TerraformExecutionWorkflowRequestUpdate) (*models.TerraformExecutionWorkflowRequest, error) {

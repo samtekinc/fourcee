@@ -1,19 +1,17 @@
 type TerraformDriftCheckWorkflowRequest {
   terraformDriftCheckWorkflowRequestId: ID!
-  modulePropagationDriftCheckRequestId: ID!
-  modulePropagationDriftCheckRequest: ModulePropagationDriftCheckRequest!
-  moduleAccountAssociationKey: String!
-  moduleAccountAssociation: ModuleAccountAssociation!
-  orgAccountId: ID!
-  orgAccount: OrganizationalAccount!
-  modulePropagationId: ID!
-  modulePropagation: ModulePropagation!
+  moduleAssignmentId: ID!
+  moduleAssignment: ModuleAssignment!
   planExecutionRequestId: ID
   planExecutionRequest: PlanExecutionRequest
-  status: RequestStatus!
   requestTime: Time!
-  destroy: Boolean!
+  status: RequestStatus!
   syncStatus: TerraformDriftCheckStatus!
+  destroy: Boolean!
+  modulePropagationId: ID
+  modulePropagation: ModulePropagation
+  modulePropagationDriftCheckRequestId: ID
+  modulePropagationDriftCheckRequest: ModulePropagationDriftCheckRequest
 }
 
 type TerraformDriftCheckWorkflowRequests {

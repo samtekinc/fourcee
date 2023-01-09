@@ -23,8 +23,7 @@ type ScheduleTerraformPlanOutput struct{}
 
 func (t *TaskHandler) ScheduleTerraformPlan(ctx context.Context, input ScheduleTerraformPlanInput) (*ScheduleTerraformPlanOutput, error) {
 	// get workflow details
-	var inputModuleAccountAssociationKey string
-	var modulePropagationRequestId string
+	var inputModuleAssignmentId string
 	var destroy bool
 	switch strings.Split(input.TerraformWorkflowRequestId, "-")[0] {
 	case string(identifiers.ResourceTypeTerraformExecutionWorkflowRequest):
@@ -32,54 +31,51 @@ func (t *TaskHandler) ScheduleTerraformPlan(ctx context.Context, input ScheduleT
 		if err != nil {
 			return nil, err
 		}
-		inputModuleAccountAssociationKey = tfWorkflow.ModuleAccountAssociationKey
-		modulePropagationRequestId = tfWorkflow.ModulePropagationExecutionRequestId
+		inputModuleAssignmentId = tfWorkflow.ModuleAssignmentId
 		destroy = tfWorkflow.Destroy
 	case string(identifiers.ResourceTypeTerraformDriftCheckWorkflowRequest):
 		tfWorkflow, err := t.apiClient.GetTerraformDriftCheckWorkflowRequest(ctx, input.TerraformWorkflowRequestId)
 		if err != nil {
 			return nil, err
 		}
-		inputModuleAccountAssociationKey = tfWorkflow.ModuleAccountAssociationKey
-		modulePropagationRequestId = tfWorkflow.ModulePropagationDriftCheckRequestId
+		inputModuleAssignmentId = tfWorkflow.ModuleAssignmentId
 		destroy = tfWorkflow.Destroy
 	default:
 		return nil, fmt.Errorf("invalid workflow request id: %s", input.TerraformWorkflowRequestId)
 	}
 
-	// get module account association details
-	moduleAccountAssociationKey, err := models.ParseModuleAccountAssociationKey(inputModuleAccountAssociationKey)
-	if err != nil {
-		return nil, err
-	}
-	moduleAccountAssociation, err := t.apiClient.GetModuleAccountAssociation(ctx, moduleAccountAssociationKey.ModulePropagationId, moduleAccountAssociationKey.OrgAccountId)
+	// get module assignment details
+	moduleAssignment, err := t.apiClient.GetModuleAssignment(ctx, inputModuleAssignmentId)
 	if err != nil {
 		return nil, err
 	}
 
 	// get module propagation details
-	modulePropagation, err := t.apiClient.GetModulePropagation(ctx, moduleAccountAssociation.ModulePropagationId)
-	if err != nil {
-		return nil, err
+	var modulePropagation *models.ModulePropagation
+	if moduleAssignment.ModulePropagationId != nil {
+		modulePropagation, err = t.apiClient.GetModulePropagation(ctx, *moduleAssignment.ModulePropagationId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// get module version details
-	moduleVersion, err := t.apiClient.GetModuleVersion(ctx, modulePropagation.ModuleGroupId, modulePropagation.ModuleVersionId)
+	moduleVersion, err := t.apiClient.GetModuleVersion(ctx, moduleAssignment.ModuleGroupId, moduleAssignment.ModuleVersionId)
 	if err != nil {
 		return nil, err
 	}
 
 	// get org account details
-	orgAccount, err := t.apiClient.GetOrganizationalAccount(ctx, moduleAccountAssociationKey.OrgAccountId)
+	orgAccount, err := t.apiClient.GetOrganizationalAccount(ctx, moduleAssignment.OrgAccountId)
 	if err != nil {
 		return nil, err
 	}
 
 	terraformConfig, err := terraform.GetTerraformConfigurationBase64(&terraform.TerraformConfigurationInput{
-		ModuleAccountAssociation: moduleAccountAssociation,
-		ModulePropagation:        modulePropagation,
-		ModuleVersion:            moduleVersion,
-		OrgAccount:               orgAccount,
+		ModuleAssignment:  moduleAssignment,
+		ModulePropagation: modulePropagation,
+		ModuleVersion:     moduleVersion,
+		OrgAccount:        orgAccount,
 	})
 	if err != nil {
 		return nil, err
@@ -91,12 +87,10 @@ func (t *TaskHandler) ScheduleTerraformPlan(ctx context.Context, input ScheduleT
 	}
 
 	planRequest, err := t.apiClient.PutPlanExecutionRequest(ctx, &models.NewPlanExecutionRequest{
+		ModuleAssignmentId:           moduleAssignment.ModuleAssignmentId,
 		TerraformVersion:             moduleVersion.TerraformVersion,
 		CallbackTaskToken:            input.TaskToken,
-		StateKey:                     moduleAccountAssociation.RemoteStateKey,
-		ModulePropagationRequestId:   modulePropagationRequestId,
 		TerraformWorkflowRequestId:   input.TerraformWorkflowRequestId,
-		ModuleAccountAssociationKey:  inputModuleAccountAssociationKey,
 		TerraformConfigurationBase64: terraformConfig,
 		AdditionalArguments:          additionalArguments,
 	})

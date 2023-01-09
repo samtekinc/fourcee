@@ -385,11 +385,11 @@ func (c *OrganizationsDatabaseClient) UpdateModulePropagation(ctx context.Contex
 		}
 	}
 
-	moduleAccountAssociation := models.ModulePropagation{}
-	err = attributevalue.UnmarshalMap(result.Attributes, &moduleAccountAssociation)
+	modulePropagation := models.ModulePropagation{}
+	err = attributevalue.UnmarshalMap(result.Attributes, &modulePropagation)
 	if err != nil {
 		return nil, err
 	}
 
-	return &moduleAccountAssociation, nil
+	return &modulePropagation, nil
 }

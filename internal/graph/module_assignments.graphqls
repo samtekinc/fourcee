@@ -1,0 +1,68 @@
+type ModuleAssignment {
+  moduleAssignmentId: ID!
+  moduleVersionId: ID!
+  moduleVersion: ModuleVersion!
+  moduleGroupId: ID!
+  moduleGroup: ModuleGroup!
+  orgAccountId: ID!
+  orgAccount: OrganizationalAccount!
+  name: String!
+  description: String!
+  remoteStateRegion: String!
+  remoteStateBucket: String!
+  remoteStateKey: String!
+  arguments: [Argument!]!
+  awsProviderConfigurations: [AwsProviderConfiguration!]
+  gcpProviderConfigurations: [GcpProviderConfiguration!]
+  status: ModuleAssignmentStatus!
+  modulePropagationId: ID
+  modulePropagation: ModulePropagation
+  terraformDriftCheckWorkflowRequests(
+    limit: Int
+    nextCursor: String
+  ): TerraformDriftCheckWorkflowRequests!
+  terraformExecutionWorkflowRequests(
+    limit: Int
+    nextCursor: String
+  ): TerraformExecutionWorkflowRequests!
+  planExecutionRequests(limit: Int, nextCursor: String): PlanExecutionRequests!
+  applyExecutionRequests(
+    limit: Int
+    nextCursor: String
+  ): ApplyExecutionRequests!
+  terraformConfiguration: String!
+}
+
+type ModuleAssignments {
+  items: [ModuleAssignment]!
+  nextCursor: String
+}
+
+input NewModuleAssignment {
+  moduleVersionId: ID!
+  moduleGroupId: ID!
+  orgAccountId: ID!
+  name: String!
+  description: String!
+  arguments: [ArgumentInput!]!
+  awsProviderConfigurations: [AwsProviderConfigurationInput!]
+  gcpProviderConfigurations: [GcpProviderConfigurationInput!]
+}
+
+input ModuleAssignmentUpdate {
+  name: String
+  description: String
+  arguments: [ArgumentInput!]
+  awsProviderConfigurations: [AwsProviderConfigurationInput!]
+  gcpProviderConfigurations: [GcpProviderConfigurationInput!]
+}
+
+enum ModuleAssignmentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+extend type Query {
+  moduleAssignment(moduleAssignmentId: ID!): ModuleAssignment!
+  moduleAssignments(limit: Int, nextCursor: String): ModuleAssignments!
+}

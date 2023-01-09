@@ -124,13 +124,13 @@ func (c OrganizationsDatabaseClient) GetTerraformExecutionWorkflowRequestsByModu
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetTerraformExecutionWorkflowRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error) {
+func (c OrganizationsDatabaseClient) GetTerraformExecutionWorkflowRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
 	}
 
-	keyCondition := expression.Key("ModuleAccountAssociationKey").Equal(expression.Value(moduleAccountAssociationKey))
+	keyCondition := expression.Key("ModuleAssignmentId").Equal(expression.Value(moduleAssignmentId))
 	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
 	expr, err := expressionBuilder.Build()
 	if err != nil {
@@ -139,7 +139,7 @@ func (c OrganizationsDatabaseClient) GetTerraformExecutionWorkflowRequestsByModu
 
 	queryInput := &dynamodb.QueryInput{
 		TableName:                 &c.terraformExecutionWorkflowRequestsTableName,
-		IndexName:                 aws.String("ModuleAccountAssociationKey-RequestTime-index"),
+		IndexName:                 aws.String("ModuleAssignmentId-RequestTime-index"),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		KeyConditionExpression:    expr.KeyCondition(),
@@ -149,7 +149,7 @@ func (c OrganizationsDatabaseClient) GetTerraformExecutionWorkflowRequestsByModu
 		ScanIndexForward:          aws.Bool(false),
 	}
 
-	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"TerraformExecutionWorkflowRequestId", "ModuleAccountAssociationKey", "RequestTime"})
+	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"TerraformExecutionWorkflowRequestId", "ModuleAssignmentId", "RequestTime"})
 	if err != nil {
 		return nil, err
 	}

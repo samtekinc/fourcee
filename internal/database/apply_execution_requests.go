@@ -76,13 +76,13 @@ func (c OrganizationsDatabaseClient) GetApplyExecutionRequests(ctx context.Conte
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetApplyExecutionRequestsByStateKey(ctx context.Context, stateKey string, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
+func (c OrganizationsDatabaseClient) GetApplyExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
 	}
 
-	keyCondition := expression.Key("StateKey").Equal(expression.Value(stateKey))
+	keyCondition := expression.Key("ModuleAssignmentId").Equal(expression.Value(moduleAssignmentId))
 	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
 	expr, err := expressionBuilder.Build()
 	if err != nil {
@@ -91,7 +91,7 @@ func (c OrganizationsDatabaseClient) GetApplyExecutionRequestsByStateKey(ctx con
 
 	queryInput := &dynamodb.QueryInput{
 		TableName:                 &c.applyExecutionsTableName,
-		IndexName:                 aws.String("StateKey-RequestTime-index"),
+		IndexName:                 aws.String("ModuleAssignmentId-RequestTime-index"),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		KeyConditionExpression:    expr.KeyCondition(),
@@ -101,109 +101,7 @@ func (c OrganizationsDatabaseClient) GetApplyExecutionRequestsByStateKey(ctx con
 		ScanIndexForward:          aws.Bool(false),
 	}
 
-	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"StateKey", "RequestTime"})
-	if err != nil {
-		return nil, err
-	}
-
-	applyExecutionRequests := []models.ApplyExecutionRequest{}
-	var nextCursor string
-
-	err = attributevalue.UnmarshalListOfMaps(resultItems, &applyExecutionRequests)
-	if err != nil {
-		return nil, err
-	}
-
-	if lastEvaluatedKey != nil {
-		nextCursor, err = helpers.GetCursorFromKey(lastEvaluatedKey)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &models.ApplyExecutionRequests{
-		Items:      applyExecutionRequests,
-		NextCursor: nextCursor,
-	}, nil
-}
-
-func (c OrganizationsDatabaseClient) GetApplyExecutionRequestsByModulePropagationRequestId(ctx context.Context, modulePropagationRequestId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
-	startKey, err := helpers.GetKeyFromCursor(cursor)
-	if err != nil {
-		return nil, err
-	}
-
-	keyCondition := expression.Key("ModulePropagationRequestId").Equal(expression.Value(modulePropagationRequestId))
-	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
-	expr, err := expressionBuilder.Build()
-	if err != nil {
-		return nil, err
-	}
-
-	queryInput := &dynamodb.QueryInput{
-		TableName:                 &c.applyExecutionsTableName,
-		IndexName:                 aws.String("ModulePropagationRequestId-RequestTime-index"),
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		KeyConditionExpression:    expr.KeyCondition(),
-		FilterExpression:          expr.Filter(),
-		Limit:                     &limit,
-		ExclusiveStartKey:         startKey,
-		ScanIndexForward:          aws.Bool(false),
-	}
-
-	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"ApplyExecutionRequestId", "ModulePropagationRequestId", "RequestTime"})
-	if err != nil {
-		return nil, err
-	}
-
-	applyExecutionRequests := []models.ApplyExecutionRequest{}
-	var nextCursor string
-
-	err = attributevalue.UnmarshalListOfMaps(resultItems, &applyExecutionRequests)
-	if err != nil {
-		return nil, err
-	}
-
-	if lastEvaluatedKey != nil {
-		nextCursor, err = helpers.GetCursorFromKey(lastEvaluatedKey)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &models.ApplyExecutionRequests{
-		Items:      applyExecutionRequests,
-		NextCursor: nextCursor,
-	}, nil
-}
-
-func (c OrganizationsDatabaseClient) GetApplyExecutionRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
-	startKey, err := helpers.GetKeyFromCursor(cursor)
-	if err != nil {
-		return nil, err
-	}
-
-	keyCondition := expression.Key("ModuleAccountAssociationKey").Equal(expression.Value(moduleAccountAssociationKey))
-	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
-	expr, err := expressionBuilder.Build()
-	if err != nil {
-		return nil, err
-	}
-
-	queryInput := &dynamodb.QueryInput{
-		TableName:                 &c.applyExecutionsTableName,
-		IndexName:                 aws.String("ModuleAccountAssociationKey-RequestTime-index"),
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		KeyConditionExpression:    expr.KeyCondition(),
-		FilterExpression:          expr.Filter(),
-		Limit:                     &limit,
-		ExclusiveStartKey:         startKey,
-		ScanIndexForward:          aws.Bool(false),
-	}
-
-	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"PlanExecutionRequestId", "ModuleAccountAssociationKey", "RequestTime"})
+	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"PlanExecutionRequestId", "ModuleAssignmentId", "RequestTime"})
 	if err != nil {
 		return nil, err
 	}

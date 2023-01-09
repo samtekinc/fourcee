@@ -11,58 +11,9 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-// ModulePropagationExecutionRequest is the resolver for the modulePropagationExecutionRequest field.
-func (r *terraformExecutionWorkflowRequestResolver) ModulePropagationExecutionRequest(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.ModulePropagationExecutionRequest, error) {
-	modulePropagationId, err := r.ModulePropagationID(ctx, obj)
-	if err != nil {
-		return nil, err
-	}
-	return r.apiClient.GetModulePropagationExecutionRequest(ctx, modulePropagationId, obj.ModulePropagationExecutionRequestId)
-}
-
-// ModuleAccountAssociation is the resolver for the moduleAccountAssociation field.
-func (r *terraformExecutionWorkflowRequestResolver) ModuleAccountAssociation(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.ModuleAccountAssociation, error) {
-	key, err := models.ParseModuleAccountAssociationKey(obj.ModuleAccountAssociationKey)
-	if err != nil {
-		return nil, err
-	}
-	return r.apiClient.GetModuleAccountAssociation(ctx, key.ModulePropagationId, key.OrgAccountId)
-}
-
-// OrgAccountID is the resolver for the orgAccountId field.
-func (r *terraformExecutionWorkflowRequestResolver) OrgAccountID(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (string, error) {
-	key, err := models.ParseModuleAccountAssociationKey(obj.ModuleAccountAssociationKey)
-	if err != nil {
-		return "", err
-	}
-	return key.OrgAccountId, nil
-}
-
-// OrgAccount is the resolver for the orgAccount field.
-func (r *terraformExecutionWorkflowRequestResolver) OrgAccount(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.OrganizationalAccount, error) {
-	orgAccountId, err := r.OrgAccountID(ctx, obj)
-	if err != nil {
-		return nil, err
-	}
-	return r.apiClient.GetOrganizationalAccount(ctx, orgAccountId)
-}
-
-// ModulePropagationID is the resolver for the modulePropagationId field.
-func (r *terraformExecutionWorkflowRequestResolver) ModulePropagationID(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (string, error) {
-	key, err := models.ParseModuleAccountAssociationKey(obj.ModuleAccountAssociationKey)
-	if err != nil {
-		return "", err
-	}
-	return key.ModulePropagationId, nil
-}
-
-// ModulePropagation is the resolver for the modulePropagation field.
-func (r *terraformExecutionWorkflowRequestResolver) ModulePropagation(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.ModulePropagation, error) {
-	modulePropagationId, err := r.ModulePropagationID(ctx, obj)
-	if err != nil {
-		return nil, err
-	}
-	return r.apiClient.GetModulePropagation(ctx, modulePropagationId)
+// ModuleAssignment is the resolver for the moduleAssignment field.
+func (r *terraformExecutionWorkflowRequestResolver) ModuleAssignment(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.ModuleAssignment, error) {
+	return r.apiClient.GetModuleAssignment(ctx, obj.ModuleAssignmentId)
 }
 
 // PlanExecutionRequest is the resolver for the planExecutionRequest field.
@@ -79,6 +30,22 @@ func (r *terraformExecutionWorkflowRequestResolver) ApplyExecutionRequest(ctx co
 		return nil, nil
 	}
 	return r.apiClient.GetApplyExecutionRequest(ctx, *obj.ApplyExecutionRequestId)
+}
+
+// ModulePropagation is the resolver for the modulePropagation field.
+func (r *terraformExecutionWorkflowRequestResolver) ModulePropagation(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.ModulePropagation, error) {
+	if obj.ModulePropagationId == nil {
+		return nil, nil
+	}
+	return r.apiClient.GetModulePropagation(ctx, *obj.ModulePropagationId)
+}
+
+// ModulePropagationExecutionRequest is the resolver for the modulePropagationExecutionRequest field.
+func (r *terraformExecutionWorkflowRequestResolver) ModulePropagationExecutionRequest(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.ModulePropagationExecutionRequest, error) {
+	if obj.ModulePropagationId == nil || obj.ModulePropagationExecutionRequestId == nil {
+		return nil, nil
+	}
+	return r.apiClient.GetModulePropagationExecutionRequest(ctx, *obj.ModulePropagationId, *obj.ModulePropagationExecutionRequestId)
 }
 
 // TerraformExecutionWorkflowRequest returns generated.TerraformExecutionWorkflowRequestResolver implementation.

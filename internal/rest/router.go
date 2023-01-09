@@ -77,6 +77,6 @@ func (r *OrganizationsRouter) RegisterRoutes(router *gin.RouterGroup) {
 	modulesRouter.GET("/propagations/:modulePropagationId/executions/:modulePropagationExecutionRequestId", r.getModulePropagationExecutionRequest)
 	modulesRouter.POST("/propagations/:modulePropagationId/executions", r.putModulePropagationExecutionRequest)
 
-	modulesRouter.GET("/propagations/:modulePropagationId/associations", r.getModuleAccountAssociationsByModulePropagationId)
-	modulesRouter.GET("/propagations/:modulePropagationId/associations/:orgAccountId", r.getModuleAccountAssociation)
+	modulesRouter.GET("/propagations/:modulePropagationId/associations", r.getModuleAssignmentsByModulePropagationId)
+	modulesRouter.GET("/propagations/:modulePropagationId/associations/:orgAccountId", r.getModuleAssignment)
 }

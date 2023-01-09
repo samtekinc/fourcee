@@ -12,15 +12,6 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-// PlanExecutionRequests is the resolver for the planExecutionRequests field.
-func (r *modulePropagationDriftCheckRequestResolver) PlanExecutionRequests(ctx context.Context, obj *models.ModulePropagationDriftCheckRequest, limit *int, nextCursor *string) (*models.PlanExecutionRequests, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-
-	return r.apiClient.GetPlanExecutionRequestsByModulePropagationRequestId(ctx, obj.ModulePropagationDriftCheckRequestId, int32(*limit), aws.ToString(nextCursor))
-}
-
 // TerraformDriftCheckWorkflowRequests is the resolver for the terraformDriftCheckWorkflowRequests field.
 func (r *modulePropagationDriftCheckRequestResolver) TerraformDriftCheckWorkflowRequests(ctx context.Context, obj *models.ModulePropagationDriftCheckRequest, limit *int, nextCursor *string) (*models.TerraformDriftCheckWorkflowRequests, error) {
 	if limit == nil {

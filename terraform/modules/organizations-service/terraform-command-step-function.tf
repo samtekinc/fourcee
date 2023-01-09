@@ -1,20 +1,20 @@
 
-resource "aws_cloudwatch_log_group" "terraform_execution" {
+resource "aws_cloudwatch_log_group" "terraform_command" {
   # The /aws/vendedlogs/* path is special -- it gets policy length limit mitigation strategies.
-  name              = "/aws/vendedlogs/AsyncWorkflow/${var.prefix}-terraform-execution"
+  name              = "/aws/vendedlogs/AsyncWorkflow/${var.prefix}-terraform-command"
   retention_in_days = 731
 }
 
 
-resource "aws_sfn_state_machine" "terraform_execution" {
-  name     = "${var.prefix}-terraform-execution"
+resource "aws_sfn_state_machine" "terraform_command" {
+  name     = "${var.prefix}-terraform-command"
   type     = "STANDARD"
   role_arn = aws_iam_role.step_functions_role.arn
 
   logging_configuration {
     include_execution_data = true
     level                  = "ALL"
-    log_destination        = "${aws_cloudwatch_log_group.terraform_execution.arn}:*"
+    log_destination        = "${aws_cloudwatch_log_group.terraform_command.arn}:*"
   }
 
   definition = <<EOF

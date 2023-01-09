@@ -13,10 +13,7 @@ type ModulePropagation {
   arguments: [Argument!]!
   awsProviderConfigurations: [AwsProviderConfiguration!]
   gcpProviderConfigurations: [GcpProviderConfiguration!]
-  moduleAccountAssociations(
-    limit: Int
-    nextCursor: String
-  ): ModuleAccountAssociations!
+  moduleAssignments(limit: Int, nextCursor: String): ModuleAssignments!
   executionRequests(
     limit: Int
     nextCursor: String

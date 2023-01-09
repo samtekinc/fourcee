@@ -59,8 +59,9 @@ const MODULE_PROPAGATION_QUERY = gql`
           status
         }
       }
-      moduleAccountAssociations {
+      moduleAssignments {
         items {
+          moduleAssignmentId
           modulePropagationId
           orgAccount {
             orgAccountId
@@ -232,23 +233,23 @@ export const ModulePropagationPage = () => {
           </tr>
         </thead>
         <tbody>
-          {data?.modulePropagation.moduleAccountAssociations.items.map(
-            (moduleAccountAssociation) => {
+          {data?.modulePropagation.moduleAssignments.items.map(
+            (moduleAssignment) => {
               return (
                 <tr>
                   <td>
                     <NavLink
-                      to={`/org-accounts/${moduleAccountAssociation?.orgAccount.orgAccountId}`}
+                      to={`/org-accounts/${moduleAssignment?.orgAccount.orgAccountId}`}
                     >
-                      {moduleAccountAssociation?.orgAccount.name} (
-                      {moduleAccountAssociation?.orgAccount.orgAccountId})
+                      {moduleAssignment?.orgAccount.name} (
+                      {moduleAssignment?.orgAccount.orgAccountId})
                     </NavLink>
                   </td>
                   <td>
                     <NavLink
-                      to={`/module-propagations/${moduleAccountAssociation?.modulePropagationId}/account-associations/${moduleAccountAssociation?.orgAccount.orgAccountId}`}
+                      to={`/module-assignments/${moduleAssignment?.moduleAssignmentId}`}
                     >
-                      {moduleAccountAssociation?.status}
+                      {moduleAssignment?.status}
                     </NavLink>
                   </td>
                 </tr>

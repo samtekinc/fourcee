@@ -124,13 +124,13 @@ func (c OrganizationsDatabaseClient) GetTerraformDriftCheckWorkflowRequestsByMod
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetTerraformDriftCheckWorkflowRequestsByModuleAccountAssociationKey(ctx context.Context, moduleAccountAssociationKey string, limit int32, cursor string) (*models.TerraformDriftCheckWorkflowRequests, error) {
+func (c OrganizationsDatabaseClient) GetTerraformDriftCheckWorkflowRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.TerraformDriftCheckWorkflowRequests, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
 	}
 
-	keyCondition := expression.Key("ModuleAccountAssociationKey").Equal(expression.Value(moduleAccountAssociationKey))
+	keyCondition := expression.Key("ModuleAssignmentId").Equal(expression.Value(moduleAssignmentId))
 	expressionBuilder := expression.NewBuilder().WithKeyCondition(keyCondition)
 	expr, err := expressionBuilder.Build()
 	if err != nil {
@@ -139,7 +139,7 @@ func (c OrganizationsDatabaseClient) GetTerraformDriftCheckWorkflowRequestsByMod
 
 	queryInput := &dynamodb.QueryInput{
 		TableName:                 &c.terraformDriftCheckWorkflowRequestsTableName,
-		IndexName:                 aws.String("ModuleAccountAssociationKey-RequestTime-index"),
+		IndexName:                 aws.String("ModuleAssignmentId-RequestTime-index"),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		KeyConditionExpression:    expr.KeyCondition(),
@@ -149,7 +149,7 @@ func (c OrganizationsDatabaseClient) GetTerraformDriftCheckWorkflowRequestsByMod
 		ScanIndexForward:          aws.Bool(false),
 	}
 
-	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"TerraformDriftCheckWorkflowRequestId", "ModuleAccountAssociationKey", "RequestTime"})
+	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"TerraformDriftCheckWorkflowRequestId", "ModuleAssignmentId", "RequestTime"})
 	if err != nil {
 		return nil, err
 	}

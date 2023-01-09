@@ -67,17 +67,17 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id"
                 }
               },
-              "Next": "ClassifyModuleAccountAssociations",
+              "Next": "ClassifyModuleAssignments",
               "OutputPath": "$.Output"
             },
-            "ClassifyModuleAccountAssociations": {
+            "ClassifyModuleAssignments": {
               "Type": "Task",
               "Resource": "arn:aws:states:::lambda:invoke",
               "OutputPath": "$.Payload",
               "Parameters": {
                 "Payload": {
                   "Payload.$": "$",
-                  "Task": "ClassifyModuleAccountAssociations",
+                  "Task": "ClassifyModuleAssignments",
                   "Workflow": "ExecuteModulePropagation"
                 },
                 "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
@@ -101,9 +101,9 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
               "Type": "Parallel",
               "Branches": [
                 {
-                  "StartAt": "CreateMissingModuleAccountAssociations",
+                  "StartAt": "CreateMissingModuleAssignments",
                   "States": {
-                    "CreateMissingModuleAccountAssociations": {
+                    "CreateMissingModuleAssignments": {
                       "Type": "Task",
                       "Resource": "arn:aws:states:::lambda:invoke",
                       "OutputPath": "$.Payload",
@@ -111,10 +111,10 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
                         "Payload": {
                           "Payload": {
                             "ModulePropagationId.$": "$$.Execution.Input.ModulePropagationId",
-                            "AccountsNeedingModuleAccountAssociations.$": "$.AccountsNeedingModuleAccountAssociations",
-                            "ActiveModuleAccountAssociations.$": "$.ActiveModuleAccountAssociations"
+                            "AccountsNeedingModuleAssignments.$": "$.AccountsNeedingModuleAssignments",
+                            "ActiveModuleAssignments.$": "$.ActiveModuleAssignments"
                           },
-                          "Task": "CreateMissingModuleAccountAssociations",
+                          "Task": "CreateMissingModuleAssignments",
                           "Workflow": "ExecuteModulePropagation"
                         },
                         "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
@@ -132,90 +132,117 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
                           "BackoffRate": 2
                         }
                       ],
-                      "Next": "MapActiveModuleAccountAssociations"
+                      "Next": "MapActiveModuleAssignments"
                     },
-                    "MapActiveModuleAccountAssociations": {
+                    "MapActiveModuleAssignments": {
                       "Type": "Map",
                       "ItemProcessor": {
                         "ProcessorConfig": {
                           "Mode": "INLINE"
                         },
-                        "StartAt": "RunTerraformExecution",
+                        "StartAt": "ScheduleTerraformExecutionWorkflow",
                         "States": {
-                          "RunTerraformExecution": {
+                          "ScheduleTerraformExecutionWorkflow": {
                             "Type": "Task",
-                            "Resource": "arn:aws:states:::states:startExecution.sync:2",
+                            "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+                            "OutputPath": "$.Payload",
                             "Parameters": {
-                              "StateMachineArn": "${aws_sfn_state_machine.terraform_execution_workflow.arn}",
-                              "Input": {
-                                "StatePayload": {
-                                  "ModuleAccountAssociation.$": "$",
+                              "Payload": {
+                                "Payload": {
+                                  "ModuleAssignment.$": "$",
                                   "ModulePropagationId.$": "$$.Execution.Input.ModulePropagationId",
                                   "ModulePropagationExecutionRequestId.$": "$$.Execution.Input.ModulePropagationExecutionRequestId",
-                                  "Destroy": false
+                                  "Destroy": false,
+                                  "TaskToken.$": "$$.Task.Token"
                                 },
-                                "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id"
-                              }
+                                "Task": "ScheduleTerraformExecutionWorkflow",
+                                "Workflow": "ExecuteModulePropagation"
+                              },
+                              "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
                             },
-                            "End": true,
                             "Retry": [
                               {
                                 "ErrorEquals": [
-                                  "States.TaskFailed"
+                                  "Lambda.ServiceException",
+                                  "Lambda.AWSLambdaException",
+                                  "Lambda.SdkClientException",
+                                  "Lambda.TooManyRequestsException"
                                 ],
-                                "BackoffRate": 2,
-                                "IntervalSeconds": 10,
-                                "MaxAttempts": 3
-                              }
-                            ]
-                          }
-                        }
-                      },
-                      "End": true,
-                      "ItemsPath": "$.ActiveModuleAccountAssociations"
-                    }
-                  }
-                },
-                {
-                  "StartAt": "MapInactiveModuleAccountAssociations",
-                  "States": {
-                    "MapInactiveModuleAccountAssociations": {
-                      "Type": "Map",
-                      "ItemProcessor": {
-                        "ProcessorConfig": {
-                          "Mode": "INLINE"
-                        },
-                        "StartAt": "RunTerraformExecutionDestroy",
-                        "States": {
-                          "RunTerraformExecutionDestroy": {
-                            "Type": "Task",
-                            "Resource": "arn:aws:states:::states:startExecution.sync:2",
-                            "Parameters": {
-                              "StateMachineArn": "${aws_sfn_state_machine.terraform_execution_workflow.arn}",
-                              "Input": {
-                                "StatePayload": {
-                                  "ModuleAccountAssociation.$": "$",
-                                  "ModulePropagationId.$": "$$.Execution.Input.ModulePropagationId",
-                                  "ModulePropagationExecutionRequestId.$": "$$.Execution.Input.ModulePropagationExecutionRequestId",
-                                  "Destroy": true
-                                },
-                                "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id"
-                              }
-                            },
-                            "Retry": [
+                                "IntervalSeconds": 2,
+                                "MaxAttempts": 6,
+                                "BackoffRate": 2
+                              },
                               {
                                 "ErrorEquals": [
-                                  "States.TaskFailed"
+                                  "States.ALL"
                                 ],
                                 "BackoffRate": 2,
                                 "IntervalSeconds": 10,
                                 "MaxAttempts": 3
                               }
                             ],
-                            "Next": "DeactivateModuleAccountAssociation",
+                            "End": true
+                          }
+                        }
+                      },
+                      "End": true,
+                      "ItemsPath": "$.ActiveModuleAssignments"
+                    }
+                  }
+                },
+                {
+                  "StartAt": "MapInactiveModuleAssignments",
+                  "States": {
+                    "MapInactiveModuleAssignments": {
+                      "Type": "Map",
+                      "ItemProcessor": {
+                        "ProcessorConfig": {
+                          "Mode": "INLINE"
+                        },
+                        "StartAt": "ScheduleTerraformExecutionWorkflowDestroy",
+                        "States": {
+                          "ScheduleTerraformExecutionWorkflowDestroy": {
+                            "Type": "Task",
+                            "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+                            "Parameters": {
+                              "Payload": {
+                                "Payload": {
+                                  "ModuleAssignment.$": "$",
+                                  "ModulePropagationId.$": "$$.Execution.Input.ModulePropagationId",
+                                  "ModulePropagationExecutionRequestId.$": "$$.Execution.Input.ModulePropagationExecutionRequestId",
+                                  "Destroy": true,
+                                  "TaskToken.$": "$$.Task.Token"
+                                },
+                                "Task": "ScheduleTerraformExecutionWorkflow",
+                                "Workflow": "ExecuteModulePropagation"
+                              },
+                              "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
+                            },
+                            "Retry": [
+                              {
+                                "ErrorEquals": [
+                                  "Lambda.ServiceException",
+                                  "Lambda.AWSLambdaException",
+                                  "Lambda.SdkClientException",
+                                  "Lambda.TooManyRequestsException"
+                                ],
+                                "IntervalSeconds": 2,
+                                "MaxAttempts": 6,
+                                "BackoffRate": 2
+                              },
+                              {
+                                "ErrorEquals": [
+                                  "States.ALL"
+                                ],
+                                "BackoffRate": 2,
+                                "IntervalSeconds": 10,
+                                "MaxAttempts": 3
+                              }
+                            ],
+                            "Next": "DeactivateModulePropagationAccountAssociation",
                             "ResultPath": null
                           },
-                          "DeactivateModuleAccountAssociation": {
+                          "DeactivateModulePropagationAccountAssociation": {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::lambda:invoke",
                             "OutputPath": "$.Payload",
@@ -223,9 +250,9 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
                               "FunctionName": "${aws_lambda_function.workflow_handler.arn}",
                               "Payload": {
                                 "Payload": {
-                                  "ModuleAccountAssociation.$": "$"
+                                  "ModulePropagationAccountAssociation.$": "$"
                                 },
-                                "Task": "DeactivateModuleAccountAssociation",
+                                "Task": "DeactivateModulePropagationAccountAssociation",
                                 "Workflow": "ExecuteModulePropagation"
                               }
                             },
@@ -247,7 +274,7 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
                         }
                       },
                       "End": true,
-                      "ItemsPath": "$.InactiveModuleAccountAssociations"
+                      "ItemsPath": "$.InactiveModuleAssignments"
                     }
                   }
                 }

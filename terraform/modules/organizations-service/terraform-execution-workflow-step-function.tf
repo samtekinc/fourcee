@@ -18,66 +18,38 @@ resource "aws_sfn_state_machine" "terraform_execution_workflow" {
 
   definition = <<EOF
 {
-  "StartAt": "CreateTerraformExecutionWorkflowRequest",
+  "StartAt": "UpdateWorkflowRunning",
   "States": {
-    "CreateTerraformExecutionWorkflowRequest": {
+    "UpdateWorkflowRunning": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke",
-      "OutputPath": "$.Payload",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "FunctionName": "${aws_lambda_function.workflow_handler.arn}",
-        "Payload": {
-          "Payload.$": "$.StatePayload",
-          "Task": "CreateTerraformExecutionWorkflowRequest",
-          "Workflow": "ExecuteTerraformApply"
+        "TableName": "${aws_dynamodb_table.terraform_execution_workflow_requests.name}",
+        "Key": {
+          "TerraformExecutionWorkflowRequestId": {
+            "S.$": "$.TerraformExecutionWorkflowRequestId"
+          }
+        },
+        "UpdateExpression": "SET #s = :status",
+        "ExpressionAttributeValues": {
+          ":status": {
+            "S": "RUNNING"
+          }
+        },
+        "ExpressionAttributeNames": {
+          "#s": "Status"
         }
       },
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException",
-            "Lambda.AWSLambdaException",
-            "Lambda.SdkClientException",
-            "Lambda.TooManyRequestsException"
-          ],
-          "IntervalSeconds": 2,
-          "MaxAttempts": 6,
-          "BackoffRate": 2
-        }
-      ],
-      "TimeoutSeconds": 3660,
-      "Next": "Parallel"
+      "Next": "Parallel",
+      "ResultPath": null
     },
     "Parallel": {
       "Type": "Parallel",
       "Next": "UpdateWorkflowSuccess",
       "Branches": [
         {
-          "StartAt": "UpdateWorkflowRunning",
+          "StartAt": "ScheduleTerraformPlan",
           "States": {
-            "UpdateWorkflowRunning": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:updateItem",
-              "Parameters": {
-                "TableName": "${aws_dynamodb_table.terraform_execution_workflow_requests.name}",
-                "Key": {
-                  "TerraformExecutionWorkflowRequestId": {
-                    "S.$": "$.TerraformExecutionWorkflowRequestId"
-                  }
-                },
-                "UpdateExpression": "SET #s = :status",
-                "ExpressionAttributeValues": {
-                  ":status": {
-                    "S": "RUNNING"
-                  }
-                },
-                "ExpressionAttributeNames": {
-                  "#s": "Status"
-                }
-              },
-              "Next": "ScheduleTerraformPlan",
-              "ResultPath": null
-            },
             "ScheduleTerraformPlan": {
               "Type": "Task",
               "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
@@ -174,7 +146,20 @@ resource "aws_sfn_state_machine" "terraform_execution_workflow" {
           "#s": "Status"
         }
       },
-      "Next": "Success"
+      "Next": "SendTaskSuccess"
+    },
+    "SendTaskSuccess": {
+      "Type": "Task",
+      "Next": "Success",
+      "Parameters": {
+        "Output": {
+          "Payload": {
+            "TerraformExecutionWorkflowRequestId.$": "$$.Execution.Input.TerraformExecutionWorkflowRequestId"
+          }
+        },
+        "TaskToken.$": "$$.Execution.Input.TaskToken"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:sfn:sendTaskSuccess"
     },
     "Success": {
       "Type": "Succeed"
@@ -199,7 +184,15 @@ resource "aws_sfn_state_machine" "terraform_execution_workflow" {
           "#s": "Status"
         }
       },
-      "Next": "Fail"
+      "Next": "SendTaskFailure"
+    },
+    "SendTaskFailure": {
+      "Type": "Task",
+      "Next": "Fail",
+      "Parameters": {
+        "TaskToken.$": "$$.Execution.Input.TaskToken"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:sfn:sendTaskFailure"
     },
     "Fail": {
       "Type": "Fail"

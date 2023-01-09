@@ -12,24 +12,6 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-// PlanExecutionRequests is the resolver for the planExecutionRequests field.
-func (r *modulePropagationExecutionRequestResolver) PlanExecutionRequests(ctx context.Context, obj *models.ModulePropagationExecutionRequest, limit *int, nextCursor *string) (*models.PlanExecutionRequests, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-
-	return r.apiClient.GetPlanExecutionRequestsByModulePropagationRequestId(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
-}
-
-// ApplyExecutionRequests is the resolver for the applyExecutionRequests field.
-func (r *modulePropagationExecutionRequestResolver) ApplyExecutionRequests(ctx context.Context, obj *models.ModulePropagationExecutionRequest, limit *int, nextCursor *string) (*models.ApplyExecutionRequests, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-
-	return r.apiClient.GetApplyExecutionRequestsByModulePropagationRequestId(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
-}
-
 // TerraformExecutionWorkflowRequests is the resolver for the terraformExecutionWorkflowRequests field.
 func (r *modulePropagationExecutionRequestResolver) TerraformExecutionWorkflowRequests(ctx context.Context, obj *models.ModulePropagationExecutionRequest, limit *int, nextCursor *string) (*models.TerraformExecutionWorkflowRequests, error) {
 	if limit == nil {

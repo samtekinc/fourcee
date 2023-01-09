@@ -11,58 +11,9 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-// ModulePropagationDriftCheckRequest is the resolver for the modulePropagationDriftCheckRequest field.
-func (r *terraformDriftCheckWorkflowRequestResolver) ModulePropagationDriftCheckRequest(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (*models.ModulePropagationDriftCheckRequest, error) {
-	modulePropagationId, err := r.ModulePropagationID(ctx, obj)
-	if err != nil {
-		return nil, err
-	}
-	return r.apiClient.GetModulePropagationDriftCheckRequest(ctx, modulePropagationId, obj.ModulePropagationDriftCheckRequestId)
-}
-
-// ModuleAccountAssociation is the resolver for the moduleAccountAssociation field.
-func (r *terraformDriftCheckWorkflowRequestResolver) ModuleAccountAssociation(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (*models.ModuleAccountAssociation, error) {
-	key, err := models.ParseModuleAccountAssociationKey(obj.ModuleAccountAssociationKey)
-	if err != nil {
-		return nil, err
-	}
-	return r.apiClient.GetModuleAccountAssociation(ctx, key.ModulePropagationId, key.OrgAccountId)
-}
-
-// OrgAccountID is the resolver for the orgAccountId field.
-func (r *terraformDriftCheckWorkflowRequestResolver) OrgAccountID(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (string, error) {
-	key, err := models.ParseModuleAccountAssociationKey(obj.ModuleAccountAssociationKey)
-	if err != nil {
-		return "", err
-	}
-	return key.OrgAccountId, nil
-}
-
-// OrgAccount is the resolver for the orgAccount field.
-func (r *terraformDriftCheckWorkflowRequestResolver) OrgAccount(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (*models.OrganizationalAccount, error) {
-	orgAccountId, err := r.OrgAccountID(ctx, obj)
-	if err != nil {
-		return nil, err
-	}
-	return r.apiClient.GetOrganizationalAccount(ctx, orgAccountId)
-}
-
-// ModulePropagationID is the resolver for the modulePropagationId field.
-func (r *terraformDriftCheckWorkflowRequestResolver) ModulePropagationID(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (string, error) {
-	key, err := models.ParseModuleAccountAssociationKey(obj.ModuleAccountAssociationKey)
-	if err != nil {
-		return "", err
-	}
-	return key.ModulePropagationId, nil
-}
-
-// ModulePropagation is the resolver for the modulePropagation field.
-func (r *terraformDriftCheckWorkflowRequestResolver) ModulePropagation(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (*models.ModulePropagation, error) {
-	modulePropagationId, err := r.ModulePropagationID(ctx, obj)
-	if err != nil {
-		return nil, err
-	}
-	return r.apiClient.GetModulePropagation(ctx, modulePropagationId)
+// ModuleAssignment is the resolver for the moduleAssignment field.
+func (r *terraformDriftCheckWorkflowRequestResolver) ModuleAssignment(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (*models.ModuleAssignment, error) {
+	return r.apiClient.GetModuleAssignment(ctx, obj.ModuleAssignmentId)
 }
 
 // PlanExecutionRequest is the resolver for the planExecutionRequest field.
@@ -71,6 +22,22 @@ func (r *terraformDriftCheckWorkflowRequestResolver) PlanExecutionRequest(ctx co
 		return nil, nil
 	}
 	return r.apiClient.GetPlanExecutionRequest(ctx, *obj.PlanExecutionRequestId)
+}
+
+// ModulePropagation is the resolver for the modulePropagation field.
+func (r *terraformDriftCheckWorkflowRequestResolver) ModulePropagation(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (*models.ModulePropagation, error) {
+	if obj.ModulePropagationId == nil {
+		return nil, nil
+	}
+	return r.apiClient.GetModulePropagation(ctx, *obj.ModulePropagationId)
+}
+
+// ModulePropagationDriftCheckRequest is the resolver for the modulePropagationDriftCheckRequest field.
+func (r *terraformDriftCheckWorkflowRequestResolver) ModulePropagationDriftCheckRequest(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (*models.ModulePropagationDriftCheckRequest, error) {
+	if obj.ModulePropagationId == nil || obj.ModulePropagationDriftCheckRequestId == nil {
+		return nil, nil
+	}
+	return r.apiClient.GetModulePropagationDriftCheckRequest(ctx, *obj.ModulePropagationId, *obj.ModulePropagationDriftCheckRequestId)
 }
 
 // TerraformDriftCheckWorkflowRequest returns generated.TerraformDriftCheckWorkflowRequestResolver implementation.

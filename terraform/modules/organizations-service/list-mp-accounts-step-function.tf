@@ -100,16 +100,16 @@ resource "aws_sfn_state_machine" "list_mp_accounts" {
           }
         },
         {
-          "StartAt": "ListActiveModuleAccountAssociations",
+          "StartAt": "ListActiveModulePropagationAssignments",
           "States": {
-            "ListActiveModuleAccountAssociations": {
+            "ListActiveModulePropagationAssignments": {
               "Type": "Task",
               "Resource": "arn:aws:states:::lambda:invoke",
               "OutputPath": "$.Payload",
               "Parameters": {
                 "Payload": {
                   "Payload.$": "$.StatePayload",
-                  "Task": "ListActiveModuleAccountAssociations",
+                  "Task": "ListActiveModulePropagationAssignments",
                   "Workflow": "ExecuteModulePropagation"
                 },
                 "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
@@ -135,7 +135,7 @@ resource "aws_sfn_state_machine" "list_mp_accounts" {
       "End": true,
       "ResultSelector": {
         "OrgAccountsPerOrgUnit.$": "$[0]",
-        "ActiveModuleAccountAssociations.$": "$[1].ModuleAccountAssociations"
+        "ActiveModuleAssignments.$": "$[1].ModuleAssignments"
       }
     }
   }
