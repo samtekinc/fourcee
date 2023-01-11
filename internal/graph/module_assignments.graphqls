@@ -66,3 +66,13 @@ extend type Query {
   moduleAssignment(moduleAssignmentId: ID!): ModuleAssignment!
   moduleAssignments(limit: Int, nextCursor: String): ModuleAssignments!
 }
+
+extend type Mutation {
+  createModuleAssignment(
+    newModuleAssignment: NewModuleAssignment!
+  ): ModuleAssignment!
+  updateModuleAssignment(
+    moduleAssignmentId: ID!
+    moduleAssignmentUpdate: ModuleAssignmentUpdate!
+  ): ModuleAssignment!
+}

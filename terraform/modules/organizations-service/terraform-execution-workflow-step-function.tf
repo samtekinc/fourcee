@@ -24,7 +24,7 @@ resource "aws_sfn_state_machine" "terraform_execution_workflow" {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "TableName": "${aws_dynamodb_table.terraform_execution_workflow_requests.name}",
+        "TableName": "tfom-terraform-execution-workflow-requests",
         "Key": {
           "TerraformExecutionWorkflowRequestId": {
             "S.$": "$.TerraformExecutionWorkflowRequestId"
@@ -54,14 +54,14 @@ resource "aws_sfn_state_machine" "terraform_execution_workflow" {
               "Type": "Task",
               "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
               "Parameters": {
-                "FunctionName": "${aws_lambda_function.workflow_handler.arn}",
+                "FunctionName": "arn:aws:lambda:us-east-1:306526781466:function:tfom-workflow-handler",
                 "Payload": {
                   "Payload": {
                     "TerraformWorkflowRequestId.$": "$.TerraformExecutionWorkflowRequestId",
                     "TaskToken.$": "$$.Task.Token"
                   },
                   "Task": "ScheduleTerraformPlan",
-                  "Workflow": "ExecuteTerraformApply"
+                  "Workflow.$": "$$.StateMachine.Name"
                 }
               },
               "Retry": [
@@ -85,14 +85,14 @@ resource "aws_sfn_state_machine" "terraform_execution_workflow" {
               "Type": "Task",
               "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
               "Parameters": {
-                "FunctionName": "${aws_lambda_function.workflow_handler.arn}",
+                "FunctionName": "arn:aws:lambda:us-east-1:306526781466:function:tfom-workflow-handler",
                 "Payload": {
                   "Payload": {
                     "TerraformWorkflowRequestId.$": "$.TerraformExecutionWorkflowRequestId",
                     "TaskToken.$": "$$.Task.Token"
                   },
                   "Task": "ScheduleTerraformApply",
-                  "Workflow": "ExecuteTerraformApply"
+                  "Workflow.$": "$$.StateMachine.Name"
                 }
               },
               "Retry": [
@@ -110,7 +110,50 @@ resource "aws_sfn_state_machine" "terraform_execution_workflow" {
               ],
               "TimeoutSeconds": 3660,
               "ResultPath": null,
-              "End": true
+              "Next": "IfDestroy"
+            },
+            "IfDestroy": {
+              "Type": "Choice",
+              "Choices": [
+                {
+                  "Variable": "$.Destroy",
+                  "BooleanEquals": true,
+                  "Next": "DeactivateModuleAssignment"
+                }
+              ],
+              "Default": "TerraformComplete"
+            },
+            "DeactivateModuleAssignment": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "OutputPath": "$.Payload",
+              "Parameters": {
+                "FunctionName": "arn:aws:lambda:us-east-1:306526781466:function:tfom-workflow-handler",
+                "Payload": {
+                  "Payload": {
+                    "TerraformWorkflowRequestId.$": "$.TerraformExecutionWorkflowRequestId"
+                  },
+                  "Task": "DeactivateModuleAssignment",
+                  "Workflow.$": "$$.StateMachine.Name"
+                }
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2
+                }
+              ],
+              "Next": "TerraformComplete"
+            },
+            "TerraformComplete": {
+              "Type": "Succeed"
             }
           }
         }
@@ -130,7 +173,7 @@ resource "aws_sfn_state_machine" "terraform_execution_workflow" {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "TableName": "${aws_dynamodb_table.terraform_execution_workflow_requests.name}",
+        "TableName": "tfom-terraform-execution-workflow-requests",
         "Key": {
           "TerraformExecutionWorkflowRequestId": {
             "S.$": "$.TerraformExecutionWorkflowRequestId"
@@ -146,7 +189,18 @@ resource "aws_sfn_state_machine" "terraform_execution_workflow" {
           "#s": "Status"
         }
       },
-      "Next": "SendTaskSuccess"
+      "Next": "SuccessTaskTokenExists"
+    },
+    "SuccessTaskTokenExists": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$$.Execution.Input.TaskToken",
+          "IsPresent": true,
+          "Next": "SendTaskSuccess"
+        }
+      ],
+      "Default": "Success"
     },
     "SendTaskSuccess": {
       "Type": "Task",
@@ -168,7 +222,7 @@ resource "aws_sfn_state_machine" "terraform_execution_workflow" {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "TableName": "${aws_dynamodb_table.terraform_execution_workflow_requests.name}",
+        "TableName": "tfom-terraform-execution-workflow-requests",
         "Key": {
           "TerraformExecutionWorkflowRequestId": {
             "S.$": "$.TerraformExecutionWorkflowRequestId"
@@ -184,7 +238,18 @@ resource "aws_sfn_state_machine" "terraform_execution_workflow" {
           "#s": "Status"
         }
       },
-      "Next": "SendTaskFailure"
+      "Next": "FailureTaskTokenExists"
+    },
+    "FailureTaskTokenExists": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$$.Execution.Input.TaskToken",
+          "IsPresent": true,
+          "Next": "SendTaskFailure"
+        }
+      ],
+      "Default": "Fail"
     },
     "SendTaskFailure": {
       "Type": "Task",

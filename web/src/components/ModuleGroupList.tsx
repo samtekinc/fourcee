@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { ModuleGroups } from "../__generated__/graphql";
-import { NavLink } from "react-router-dom";
+import { NavLink, Outlet, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
-import { Table } from "react-bootstrap";
 import Container from "react-bootstrap/Container";
-import { renderCloudPlatform } from "../utils/table_rendering";
+import { Accordion, Col, ListGroup, Nav, Row } from "react-bootstrap";
+import { NewModuleGroupButton } from "./NewModuleGroupButton";
+import { NewModuleVersionButton } from "./NewModuleVersionButton";
 
 const MODULE_GROUPS_QUERY = gql`
   query moduleGroups {
@@ -12,7 +13,12 @@ const MODULE_GROUPS_QUERY = gql`
       items {
         moduleGroupId
         name
-        cloudPlatform
+        versions {
+          items {
+            moduleVersionId
+            name
+          }
+        }
       }
     }
   }
@@ -23,40 +29,94 @@ type Response = {
 };
 
 export const ModuleGroupsList = () => {
-  const [orgAccountId, setOrgAccountId] = useState("");
+  const params = useParams();
 
-  const { loading, error, data } = useQuery<Response>(MODULE_GROUPS_QUERY, {});
+  const moduleGroupId = params.moduleGroupId ? params.moduleGroupId : "";
+
+  const { loading, error, data } = useQuery<Response>(MODULE_GROUPS_QUERY, {
+    pollInterval: 1000,
+  });
 
   if (loading) return null;
   if (error) return <div>Error</div>;
 
   return (
-    <Container>
-      <h1>Module Groups</h1>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Module Group Name</th>
-            <th>Module Group ID</th>
-            <th>Cloud Platform</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.moduleGroups.items.map((moduleGroup) => {
-            return (
-              <tr>
-                <td>{moduleGroup?.name}</td>
-                <td>
-                  <NavLink to={`/module-groups/${moduleGroup?.moduleGroupId}`}>
-                    {moduleGroup?.moduleGroupId}
-                  </NavLink>
-                </td>
-                {renderCloudPlatform(moduleGroup?.cloudPlatform)}
-              </tr>
-            );
-          })}
-        </tbody>
-      </Table>
+    <Container fluid>
+      <Row className="flex-xl-nowrap">
+        <Col
+          md={2}
+          xl={2}
+          className="d-flex flex-column"
+          style={{
+            position: "sticky",
+            top: "3.5rem",
+            backgroundColor: "#f7f7f7",
+            zIndex: 1000,
+
+            height: "calc(100vh - 3.5rem)",
+            borderRight: "1px solid #dee2e6",
+          }}
+        >
+          <h3>Module Groups</h3>
+          <Nav
+            as={ListGroup}
+            style={{
+              maxHeight: "calc(100vh - 6rem)",
+              flexDirection: "column",
+              height: "100%",
+              display: "flex",
+              overflow: "auto",
+              flexWrap: "nowrap",
+            }}
+          >
+            {data?.moduleGroups.items.map((moduleGroup) => {
+              return (
+                <Accordion defaultActiveKey={moduleGroupId}>
+                  <Accordion.Item eventKey={moduleGroup?.moduleGroupId ?? ""}>
+                    <Accordion.Header>
+                      <NavLink
+                        to={`/module-groups/${moduleGroup?.moduleGroupId}`}
+                        style={({ isActive, isPending }) =>
+                          isActive ? { fontWeight: 500 } : {}
+                        }
+                      >
+                        {moduleGroup?.name}
+                      </NavLink>
+                    </Accordion.Header>
+                    <Accordion.Body>
+                      Versions
+                      <ListGroup>
+                        {moduleGroup?.versions.items.map((version) => {
+                          return (
+                            <ListGroup.Item>
+                              <NavLink
+                                to={`/module-groups/${moduleGroup?.moduleGroupId}/versions/${version?.moduleVersionId}`}
+                                style={({ isActive, isPending }) =>
+                                  isActive ? { fontWeight: 500 } : {}
+                                }
+                              >
+                                {version?.name}
+                              </NavLink>
+                            </ListGroup.Item>
+                          );
+                        })}
+                        <br />
+                        <NewModuleVersionButton
+                          moduleGroupId={moduleGroup?.moduleGroupId}
+                        />
+                      </ListGroup>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                </Accordion>
+              );
+            })}
+            <NewModuleGroupButton />
+          </Nav>
+        </Col>
+        <Col md={"auto"}>
+          <Outlet />
+        </Col>
+      </Row>
     </Container>
   );
 };

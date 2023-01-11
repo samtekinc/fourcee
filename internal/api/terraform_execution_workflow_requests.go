@@ -28,6 +28,21 @@ func (c *OrganizationsAPIClient) GetTerraformExecutionWorkflowRequestsByModuleAs
 }
 
 func (c *OrganizationsAPIClient) PutTerraformExecutionWorkflowRequest(ctx context.Context, input *models.NewTerraformExecutionWorkflowRequest) (*models.TerraformExecutionWorkflowRequest, error) {
+	moduleAssignment, err := c.GetModuleAssignment(ctx, input.ModuleAssignmentId)
+	if err != nil {
+		return nil, err
+	}
+	// set module assignment to active if it is not already
+	if moduleAssignment.Status != models.ModuleAssignmentStatusActive {
+		newStatus := models.ModuleAssignmentStatusActive
+		_, err = c.UpdateModuleAssignment(ctx, input.ModuleAssignmentId, &models.ModuleAssignmentUpdate{
+			Status: &newStatus,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	id, err := identifiers.NewIdentifier(identifiers.ResourceTypeTerraformExecutionWorkflowRequest)
 	if err != nil {
 		return nil, err
@@ -49,10 +64,14 @@ func (c *OrganizationsAPIClient) PutTerraformExecutionWorkflowRequest(ctx contex
 		return nil, err
 	}
 
-	workflowExecutionInput, err := json.Marshal(map[string]string{
+	inputMap := map[string]interface{}{
 		"TerraformExecutionWorkflowRequestId": id.String(),
-		"TaskToken":                           input.CallbackTaskToken,
-	})
+		"Destroy":                             input.Destroy,
+	}
+	if input.CallbackTaskToken != nil && *input.CallbackTaskToken != "" {
+		inputMap["TaskToken"] = *input.CallbackTaskToken
+	}
+	workflowExecutionInput, err := json.Marshal(inputMap)
 	if err != nil {
 		return nil, err
 	}

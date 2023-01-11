@@ -15,7 +15,7 @@ type ScheduleTerraformExecutionWorkflowInput struct {
 	ModulePropagationId                 string
 	ModuleAssignment                    models.ModuleAssignment
 	Destroy                             bool
-	TaskToken                           string
+	TaskToken                           *string
 }
 
 type ScheduleTerraformExecutionWorkflowOutput struct {

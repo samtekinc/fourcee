@@ -20,22 +20,22 @@ type ModulePropagations struct {
 
 type AwsProviderConfiguration struct {
 	Region string
-	Alias  string
+	Alias  *string
 }
 
 type GcpProviderConfiguration struct {
 	Region string
-	Alias  string
+	Alias  *string
 }
 
 type AwsProviderConfigurationInput struct {
 	Region string
-	Alias  string
+	Alias  *string
 }
 
 type GcpProviderConfigurationInput struct {
 	Region string
-	Alias  string
+	Alias  *string
 }
 
 type Argument struct {

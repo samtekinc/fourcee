@@ -49,29 +49,32 @@ function App() {
         <Route
           path="/org-dimensions"
           element={<OrganizationalDimensionsList />}
-        />
-        <Route
-          path="/org-dimensions/:organizationalDimensionId"
-          element={<OrganizationalDimensionPage />}
-        />
-        <Route
-          path="/org-dimensions/:organizationalDimensionId/org-units/:organizationalUnitId"
-          element={<OrganizationalUnitPage />}
-        />
+        >
+          <Route
+            path="/org-dimensions/:organizationalDimensionId"
+            element={<OrganizationalDimensionPage />}
+          />
+          <Route
+            path="/org-dimensions/:organizationalDimensionId/org-units/:organizationalUnitId"
+            element={<OrganizationalUnitPage />}
+          />
+        </Route>
+
         <Route path="/org-accounts" element={<OrganizationalAccountsList />} />
         <Route
           path="/org-accounts/:organizationalAccountId"
           element={<OrganizationalAccountPage />}
         />
-        <Route path="/module-groups" element={<ModuleGroupsList />} />
-        <Route
-          path="/module-groups/:moduleGroupId"
-          element={<ModuleGroupPage />}
-        />
-        <Route
-          path="/module-groups/:moduleGroupId/versions/:moduleVersionId"
-          element={<ModuleVersionPage />}
-        />
+        <Route path="/module-groups" element={<ModuleGroupsList />}>
+          <Route
+            path="/module-groups/:moduleGroupId"
+            element={<ModuleGroupPage />}
+          />
+          <Route
+            path="/module-groups/:moduleGroupId/versions/:moduleVersionId"
+            element={<ModuleVersionPage />}
+          />
+        </Route>
       </Routes>
     </PageWrapper>
   );

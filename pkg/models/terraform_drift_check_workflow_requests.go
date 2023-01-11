@@ -10,7 +10,7 @@ type TerraformDriftCheckWorkflowRequest struct {
 	Status                               RequestStatus
 	SyncStatus                           TerraformDriftCheckStatus
 	Destroy                              bool
-	CallbackTaskToken                    string
+	CallbackTaskToken                    *string
 	ModulePropagationId                  *string `dynamodbav:",omitempty"`
 	ModulePropagationDriftCheckRequestId *string `dynamodbav:",omitempty"`
 }
@@ -23,7 +23,7 @@ type TerraformDriftCheckWorkflowRequests struct {
 type NewTerraformDriftCheckWorkflowRequest struct {
 	ModuleAssignmentId                   string
 	Destroy                              bool
-	CallbackTaskToken                    string
+	CallbackTaskToken                    *string
 	ModulePropagationId                  *string
 	ModulePropagationDriftCheckRequestId *string
 }

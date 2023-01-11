@@ -78,7 +78,7 @@ resource "aws_sfn_state_machine" "module_propagation_drift_check" {
                 "Payload": {
                   "Payload.$": "$",
                   "Task": "ClassifyModuleAssignments",
-                  "Workflow": "ModulePropagationDriftCheck"
+                  "Workflow.$": "$$.StateMachine.Name"
                 },
                 "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
               },
@@ -115,7 +115,7 @@ resource "aws_sfn_state_machine" "module_propagation_drift_check" {
                             "ActiveModuleAssignments.$": "$.ActiveModuleAssignments"
                           },
                           "Task": "CreateMissingModuleAssignments",
-                          "Workflow": "ModulePropagationDriftCheck"
+                          "Workflow.$": "$$.StateMachine.Name"
                         },
                         "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
                       },
@@ -156,7 +156,7 @@ resource "aws_sfn_state_machine" "module_propagation_drift_check" {
                                   "TaskToken.$": "$$.Task.Token"
                                 },
                                 "Task": "ScheduleTerraformDriftCheckWorkflow",
-                                "Workflow": "ModulePropagationDriftCheck"
+                                "Workflow.$": "$$.StateMachine.Name"
                               },
                               "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
                             },
@@ -207,7 +207,7 @@ resource "aws_sfn_state_machine" "module_propagation_drift_check" {
                                   "TaskToken.$": "$$.Task.Token"
                                 },
                                 "Task": "ScheduleTerraformDriftCheckWorkflowDestroy",
-                                "Workflow": "ModulePropagationDriftCheck"
+                                "Workflow.$": "$$.StateMachine.Name"
                               },
                               "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
                             },

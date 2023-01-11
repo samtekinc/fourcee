@@ -9,10 +9,17 @@ import { NotificationManager } from "react-notifications";
 import { Button } from "react-bootstrap";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { TriggerTerraformExecutionButton } from "./TriggerTerraformExecutionButton";
+import { TriggerTerraformDriftCheckButton } from "./TriggerTerraformDriftCheckButton";
+import {
+  renderCloudPlatform,
+  renderModuleAssignmentStatus,
+} from "../utils/rendering";
 
 const MODULE_ACCOUNT_ASSOCIATION_QUERY = gql`
   query moduleAssignment($moduleAssignmentId: ID!) {
     moduleAssignment(moduleAssignmentId: $moduleAssignmentId) {
+      name
       modulePropagation {
         modulePropagationId
         name
@@ -20,6 +27,7 @@ const MODULE_ACCOUNT_ASSOCIATION_QUERY = gql`
       orgAccount {
         orgAccountId
         name
+        cloudPlatform
       }
       moduleGroup {
         moduleGroupId
@@ -109,24 +117,38 @@ export const ModuleAssignmentPage = () => {
     ? atob(data?.moduleAssignment.terraformConfiguration)
     : "...";
 
+  let isPropagated = data?.moduleAssignment.modulePropagation ? true : false;
+
   return (
     <Container>
-      <h1>Module Assignment</h1>
+      <h1>
+        Module Assignment{" "}
+        <b>
+          {isPropagated
+            ? data?.moduleAssignment?.modulePropagation?.name
+            : data?.moduleAssignment?.name}
+        </b>
+      </h1>
       <p>
         <b>Account:</b>{" "}
         <NavLink
           to={`/org-accounts/${data?.moduleAssignment.orgAccount.orgAccountId}`}
         >
+          {renderCloudPlatform(data?.moduleAssignment.orgAccount.cloudPlatform)}{" "}
           {data?.moduleAssignment.orgAccount.name}
         </NavLink>
         <br />
-        <b>Module Propagation</b>{" "}
-        <NavLink
-          to={`/module-propagations/${data?.moduleAssignment.modulePropagation?.modulePropagationId}`}
-        >
-          {data?.moduleAssignment.modulePropagation?.name}
-        </NavLink>
-        <br />
+        {isPropagated && (
+          <>
+            <b>Module Propagation</b>{" "}
+            <NavLink
+              to={`/module-propagations/${data?.moduleAssignment.modulePropagation?.modulePropagationId}`}
+            >
+              {data?.moduleAssignment.modulePropagation?.name}
+            </NavLink>
+            <br />
+          </>
+        )}
         <b>Module Group:</b>{" "}
         <NavLink
           to={`/module-groups/${data?.moduleAssignment.moduleGroup.moduleGroupId}`}
@@ -140,6 +162,9 @@ export const ModuleAssignmentPage = () => {
         >
           {data?.moduleAssignment.moduleVersion.name}
         </NavLink>
+        <br />
+        <b>Status:</b>{" "}
+        {renderModuleAssignmentStatus(data?.moduleAssignment.status)}
       </p>
       <h2>Terraform Configuration</h2>
       <Container
@@ -156,6 +181,15 @@ export const ModuleAssignmentPage = () => {
         </SyntaxHighlighter>
       </Container>
       <h2>Terraform Execution Workflows</h2>
+      <TriggerTerraformExecutionButton
+        moduleAssignmentId={moduleAssignmentId}
+        destroy={false}
+      />
+      {"\t"}
+      <TriggerTerraformExecutionButton
+        moduleAssignmentId={moduleAssignmentId}
+        destroy={true}
+      />
       <Table striped bordered hover>
         <thead>
           <tr>
@@ -244,6 +278,9 @@ export const ModuleAssignmentPage = () => {
         </tbody>
       </Table>
       <h2>Terraform Drift Check Workflows</h2>
+      <TriggerTerraformDriftCheckButton
+        moduleAssignmentId={moduleAssignmentId}
+      />
       <Table striped bordered hover>
         <thead>
           <tr>

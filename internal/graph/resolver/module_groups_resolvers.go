@@ -28,6 +28,14 @@ func (r *moduleGroupResolver) ModulePropagations(ctx context.Context, obj *model
 	return r.apiClient.GetModulePropagationsByModuleGroupId(ctx, obj.ModuleGroupId, int32(*limit), aws.ToString(nextCursor))
 }
 
+// ModuleAssignments is the resolver for the moduleAssignments field.
+func (r *moduleGroupResolver) ModuleAssignments(ctx context.Context, obj *models.ModuleGroup, limit *int, nextCursor *string) (*models.ModuleAssignments, error) {
+	if limit == nil {
+		limit = aws.Int(100)
+	}
+	return r.apiClient.GetModuleAssignmentsByModuleGroupId(ctx, obj.ModuleGroupId, int32(*limit), aws.ToString(nextCursor))
+}
+
 // CreateModuleGroup is the resolver for the createModuleGroup field.
 func (r *mutationResolver) CreateModuleGroup(ctx context.Context, moduleGroup models.NewModuleGroup) (*models.ModuleGroup, error) {
 	return r.apiClient.PutModuleGroup(ctx, &moduleGroup)
@@ -55,8 +63,4 @@ func (r *queryResolver) ModuleGroups(ctx context.Context, limit *int, nextCursor
 // ModuleGroup returns generated.ModuleGroupResolver implementation.
 func (r *Resolver) ModuleGroup() generated.ModuleGroupResolver { return &moduleGroupResolver{r} }
 
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
-
 type moduleGroupResolver struct{ *Resolver }
-type mutationResolver struct{ *Resolver }

@@ -11,15 +11,20 @@ const (
 )
 
 type DeactivateModuleAssignmentInput struct {
-	ModuleAssignment models.ModuleAssignment
+	TerraformWorkflowRequestId string
 }
 
 type DeactivateModuleAssignmentOutput struct{}
 
 func (t *TaskHandler) DeactivateModuleAssignment(ctx context.Context, input DeactivateModuleAssignmentInput) (*DeactivateModuleAssignmentOutput, error) {
+	// get workflow details
+	terraformWorkflow, err := t.apiClient.GetTerraformExecutionWorkflowRequest(ctx, input.TerraformWorkflowRequestId)
+	if err != nil {
+		return nil, err
+	}
 
 	newStatus := models.ModuleAssignmentStatusInactive
-	_, err := t.apiClient.UpdateModuleAssignment(ctx, input.ModuleAssignment.ModuleAssignmentId, &models.ModuleAssignmentUpdate{
+	_, err = t.apiClient.UpdateModuleAssignment(ctx, terraformWorkflow.ModuleAssignmentId, &models.ModuleAssignmentUpdate{
 		Status: &newStatus,
 	})
 	if err != nil {

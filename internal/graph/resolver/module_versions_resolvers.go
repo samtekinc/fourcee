@@ -25,6 +25,14 @@ func (r *moduleVersionResolver) ModulePropagations(ctx context.Context, obj *mod
 	return r.apiClient.GetModulePropagationsByModuleVersionId(ctx, obj.ModuleVersionId, int32(*limit), aws.ToString(nextCursor))
 }
 
+// ModuleAssignments is the resolver for the moduleAssignments field.
+func (r *moduleVersionResolver) ModuleAssignments(ctx context.Context, obj *models.ModuleVersion, limit *int, nextCursor *string) (*models.ModuleAssignments, error) {
+	if limit == nil {
+		limit = aws.Int(100)
+	}
+	return r.apiClient.GetModuleAssignmentsByModuleVersionId(ctx, obj.ModuleVersionId, int32(*limit), aws.ToString(nextCursor))
+}
+
 // CreateModuleVersion is the resolver for the createModuleVersion field.
 func (r *mutationResolver) CreateModuleVersion(ctx context.Context, moduleVersion models.NewModuleVersion) (*models.ModuleVersion, error) {
 	return r.apiClient.PutModuleVersion(ctx, &moduleVersion)

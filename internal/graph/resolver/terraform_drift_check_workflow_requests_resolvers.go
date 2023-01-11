@@ -11,6 +11,11 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
+// CreateTerraformDriftCheckWorkflowRequest is the resolver for the createTerraformDriftCheckWorkflowRequest field.
+func (r *mutationResolver) CreateTerraformDriftCheckWorkflowRequest(ctx context.Context, terraformDriftCheckWorkflowRequest models.NewTerraformDriftCheckWorkflowRequest) (*models.TerraformDriftCheckWorkflowRequest, error) {
+	return r.apiClient.PutTerraformDriftCheckWorkflowRequest(ctx, &terraformDriftCheckWorkflowRequest)
+}
+
 // ModuleAssignment is the resolver for the moduleAssignment field.
 func (r *terraformDriftCheckWorkflowRequestResolver) ModuleAssignment(ctx context.Context, obj *models.TerraformDriftCheckWorkflowRequest) (*models.ModuleAssignment, error) {
 	return r.apiClient.GetModuleAssignment(ctx, obj.ModuleAssignmentId)

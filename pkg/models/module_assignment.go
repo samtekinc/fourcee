@@ -13,7 +13,7 @@ type ModuleAssignment struct {
 	Arguments                 []Argument
 	AwsProviderConfigurations []AwsProviderConfiguration
 	GcpProviderConfigurations []GcpProviderConfiguration
-	ModulePropagationId       *string
+	ModulePropagationId       *string `dynamodbav:",omitempty"`
 	Status                    ModuleAssignmentStatus
 }
 

@@ -24,7 +24,7 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "TableName": "${aws_dynamodb_table.terraform_drift_check_workflow_requests.name}",
+        "TableName": "tfom-terraform-drift-check-workflow-requests",
         "Key": {
           "TerraformDriftCheckWorkflowRequestId": {
             "S.$": "$.TerraformDriftCheckWorkflowRequestId"
@@ -54,14 +54,14 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
               "Type": "Task",
               "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
               "Parameters": {
-                "FunctionName": "${aws_lambda_function.workflow_handler.arn}",
+                "FunctionName": "arn:aws:lambda:us-east-1:306526781466:function:tfom-workflow-handler",
                 "Payload": {
                   "Payload": {
                     "TerraformWorkflowRequestId.$": "$.TerraformDriftCheckWorkflowRequestId",
                     "TaskToken.$": "$$.Task.Token"
                   },
                   "Task": "ScheduleTerraformPlan",
-                  "Workflow": "ExecuteTerraformApply"
+                  "Workflow.$": "$$.StateMachine.Name"
                 }
               },
               "Retry": [
@@ -85,13 +85,13 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
               "Type": "Task",
               "Resource": "arn:aws:states:::lambda:invoke",
               "Parameters": {
-                "FunctionName": "${aws_lambda_function.workflow_handler.arn}",
+                "FunctionName": "arn:aws:lambda:us-east-1:306526781466:function:tfom-workflow-handler",
                 "Payload": {
                   "Payload": {
                     "TerraformWorkflowRequestId.$": "$.TerraformDriftCheckWorkflowRequestId"
                   },
                   "Task": "DetermineSyncStatus",
-                  "Workflow": "ExecuteTerraformApply"
+                  "Workflow.$": "$$.StateMachine.Name"
                 }
               },
               "Retry": [
@@ -128,7 +128,7 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "TableName": "${aws_dynamodb_table.terraform_drift_check_workflow_requests.name}",
+        "TableName": "tfom-terraform-drift-check-workflow-requests",
         "Key": {
           "TerraformDriftCheckWorkflowRequestId": {
             "S.$": "$.TerraformDriftCheckWorkflowRequestId"
@@ -144,7 +144,18 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
           "#s": "Status"
         }
       },
-      "Next": "SendTaskSuccess"
+      "Next": "SuccessTaskTokenExists"
+    },
+    "SuccessTaskTokenExists": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$$.Execution.Input.TaskToken",
+          "IsPresent": true,
+          "Next": "SendTaskSuccess"
+        }
+      ],
+      "Default": "Success"
     },
     "SendTaskSuccess": {
       "Type": "Task",
@@ -166,7 +177,7 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "TableName": "${aws_dynamodb_table.terraform_drift_check_workflow_requests.name}",
+        "TableName": "tfom-terraform-drift-check-workflow-requests",
         "Key": {
           "TerraformDriftCheckWorkflowRequestId": {
             "S.$": "$.TerraformDriftCheckWorkflowRequestId"
@@ -182,7 +193,18 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
           "#s": "Status"
         }
       },
-      "Next": "SendTaskFailure"
+      "Next": "FailureTaskTokenExists"
+    },
+    "FailureTaskTokenExists": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$$.Execution.Input.TaskToken",
+          "IsPresent": true,
+          "Next": "SendTaskFailure"
+        }
+      ],
+      "Default": "Fail"
     },
     "SendTaskFailure": {
       "Type": "Task",

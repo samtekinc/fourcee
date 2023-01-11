@@ -7,6 +7,7 @@ type ModuleVersion {
   terraformVersion: String!
   variables: [ModuleVariable]!
   modulePropagations(limit: Int, nextCursor: String): ModulePropagations!
+  moduleAssignments(limit: Int, nextCursor: String): ModuleAssignments!
 }
 
 type ModuleVariable {

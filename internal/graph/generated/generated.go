@@ -136,6 +136,7 @@ type ComplexityRoot struct {
 
 	ModuleGroup struct {
 		CloudPlatform      func(childComplexity int) int
+		ModuleAssignments  func(childComplexity int, limit *int, nextCursor *string) int
 		ModuleGroupId      func(childComplexity int) int
 		ModulePropagations func(childComplexity int, limit *int, nextCursor *string) int
 		Name               func(childComplexity int) int
@@ -220,6 +221,7 @@ type ComplexityRoot struct {
 	}
 
 	ModuleVersion struct {
+		ModuleAssignments  func(childComplexity int, limit *int, nextCursor *string) int
 		ModuleGroup        func(childComplexity int) int
 		ModuleGroupId      func(childComplexity int) int
 		ModulePropagations func(childComplexity int, limit *int, nextCursor *string) int
@@ -236,6 +238,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		CreateModuleAssignment                   func(childComplexity int, newModuleAssignment models.NewModuleAssignment) int
 		CreateModuleGroup                        func(childComplexity int, moduleGroup models.NewModuleGroup) int
 		CreateModulePropagation                  func(childComplexity int, modulePropagation models.NewModulePropagation) int
 		CreateModulePropagationDriftCheckRequest func(childComplexity int, modulePropagationDriftCheckRequest models.NewModulePropagationDriftCheckRequest) int
@@ -245,6 +248,8 @@ type ComplexityRoot struct {
 		CreateOrganizationalDimension            func(childComplexity int, orgDimension models.NewOrganizationalDimension) int
 		CreateOrganizationalUnit                 func(childComplexity int, orgUnit models.NewOrganizationalUnit) int
 		CreateOrganizationalUnitMembership       func(childComplexity int, orgUnitMembership models.NewOrganizationalUnitMembership) int
+		CreateTerraformDriftCheckWorkflowRequest func(childComplexity int, terraformDriftCheckWorkflowRequest models.NewTerraformDriftCheckWorkflowRequest) int
+		CreateTerraformExecutionWorkflowRequest  func(childComplexity int, terraformExecutionWorkflowRequest models.NewTerraformExecutionWorkflowRequest) int
 		DeleteModuleGroup                        func(childComplexity int, moduleGroupID string) int
 		DeleteModulePropagation                  func(childComplexity int, modulePropagationID string) int
 		DeleteModuleVersion                      func(childComplexity int, moduleGroupID string, moduleVersionID string) int
@@ -252,6 +257,7 @@ type ComplexityRoot struct {
 		DeleteOrganizationalDimension            func(childComplexity int, orgDimensionID string) int
 		DeleteOrganizationalUnit                 func(childComplexity int, orgDimensionID string, orgUnitID string) int
 		DeleteOrganizationalUnitMembership       func(childComplexity int, orgDimensionID string, orgAccountID string) int
+		UpdateModuleAssignment                   func(childComplexity int, moduleAssignmentID string, moduleAssignmentUpdate models.ModuleAssignmentUpdate) int
 		UpdateModulePropagation                  func(childComplexity int, modulePropagationID string, update models.ModulePropagationUpdate) int
 		UpdateOrganizationalAccount              func(childComplexity int, orgAccountID string, update models.OrganizationalAccountUpdate) int
 		UpdateOrganizationalUnit                 func(childComplexity int, orgDimensionID string, orgUnitID string, update models.OrganizationalUnitUpdate) int
@@ -293,6 +299,7 @@ type ComplexityRoot struct {
 		Hierarchy          func(childComplexity int) int
 		ModulePropagations func(childComplexity int, limit *int, nextCursor *string) int
 		Name               func(childComplexity int) int
+		OrgDimension       func(childComplexity int) int
 		OrgDimensionId     func(childComplexity int) int
 		OrgUnitId          func(childComplexity int) int
 		OrgUnitMemberships func(childComplexity int, limit *int, nextCursor *string) int
@@ -450,6 +457,7 @@ type ModuleAssignmentResolver interface {
 type ModuleGroupResolver interface {
 	Versions(ctx context.Context, obj *models.ModuleGroup, limit *int, nextCursor *string) (*models.ModuleVersions, error)
 	ModulePropagations(ctx context.Context, obj *models.ModuleGroup, limit *int, nextCursor *string) (*models.ModulePropagations, error)
+	ModuleAssignments(ctx context.Context, obj *models.ModuleGroup, limit *int, nextCursor *string) (*models.ModuleAssignments, error)
 }
 type ModulePropagationResolver interface {
 	ModuleVersion(ctx context.Context, obj *models.ModulePropagation) (*models.ModuleVersion, error)
@@ -481,8 +489,11 @@ type ModuleVersionResolver interface {
 	ModuleGroup(ctx context.Context, obj *models.ModuleVersion) (*models.ModuleGroup, error)
 
 	ModulePropagations(ctx context.Context, obj *models.ModuleVersion, limit *int, nextCursor *string) (*models.ModulePropagations, error)
+	ModuleAssignments(ctx context.Context, obj *models.ModuleVersion, limit *int, nextCursor *string) (*models.ModuleAssignments, error)
 }
 type MutationResolver interface {
+	CreateModuleAssignment(ctx context.Context, newModuleAssignment models.NewModuleAssignment) (*models.ModuleAssignment, error)
+	UpdateModuleAssignment(ctx context.Context, moduleAssignmentID string, moduleAssignmentUpdate models.ModuleAssignmentUpdate) (*models.ModuleAssignment, error)
 	CreateModuleGroup(ctx context.Context, moduleGroup models.NewModuleGroup) (*models.ModuleGroup, error)
 	DeleteModuleGroup(ctx context.Context, moduleGroupID string) (bool, error)
 	CreateModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationDriftCheckRequest models.NewModulePropagationDriftCheckRequest) (*models.ModulePropagationDriftCheckRequest, error)
@@ -502,6 +513,8 @@ type MutationResolver interface {
 	CreateOrganizationalUnit(ctx context.Context, orgUnit models.NewOrganizationalUnit) (*models.OrganizationalUnit, error)
 	DeleteOrganizationalUnit(ctx context.Context, orgDimensionID string, orgUnitID string) (bool, error)
 	UpdateOrganizationalUnit(ctx context.Context, orgDimensionID string, orgUnitID string, update models.OrganizationalUnitUpdate) (*models.OrganizationalUnit, error)
+	CreateTerraformDriftCheckWorkflowRequest(ctx context.Context, terraformDriftCheckWorkflowRequest models.NewTerraformDriftCheckWorkflowRequest) (*models.TerraformDriftCheckWorkflowRequest, error)
+	CreateTerraformExecutionWorkflowRequest(ctx context.Context, terraformExecutionWorkflowRequest models.NewTerraformExecutionWorkflowRequest) (*models.TerraformExecutionWorkflowRequest, error)
 }
 type OrganizationalAccountResolver interface {
 	OrgUnitMemberships(ctx context.Context, obj *models.OrganizationalAccount, limit *int, nextCursor *string) (*models.OrganizationalUnitMemberships, error)
@@ -514,6 +527,8 @@ type OrganizationalDimensionResolver interface {
 	ModulePropagations(ctx context.Context, obj *models.OrganizationalDimension, limit *int, nextCursor *string) (*models.ModulePropagations, error)
 }
 type OrganizationalUnitResolver interface {
+	OrgDimension(ctx context.Context, obj *models.OrganizationalUnit) (*models.OrganizationalDimension, error)
+
 	ParentOrgUnit(ctx context.Context, obj *models.OrganizationalUnit) (*models.OrganizationalUnit, error)
 	Children(ctx context.Context, obj *models.OrganizationalUnit, limit *int, nextCursor *string) (*models.OrganizationalUnits, error)
 	DownstreamOrgUnits(ctx context.Context, obj *models.OrganizationalUnit, limit *int, nextCursor *string) (*models.OrganizationalUnits, error)
@@ -966,6 +981,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ModuleGroup.CloudPlatform(childComplexity), true
 
+	case "ModuleGroup.moduleAssignments":
+		if e.complexity.ModuleGroup.ModuleAssignments == nil {
+			break
+		}
+
+		args, err := ec.field_ModuleGroup_moduleAssignments_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ModuleGroup.ModuleAssignments(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+
 	case "ModuleGroup.moduleGroupId":
 		if e.complexity.ModuleGroup.ModuleGroupId == nil {
 			break
@@ -1358,6 +1385,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ModuleVariable.Type(childComplexity), true
 
+	case "ModuleVersion.moduleAssignments":
+		if e.complexity.ModuleVersion.ModuleAssignments == nil {
+			break
+		}
+
+		args, err := ec.field_ModuleVersion_moduleAssignments_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ModuleVersion.ModuleAssignments(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+
 	case "ModuleVersion.moduleGroup":
 		if e.complexity.ModuleVersion.ModuleGroup == nil {
 			break
@@ -1432,6 +1471,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ModuleVersions.NextCursor(childComplexity), true
+
+	case "Mutation.createModuleAssignment":
+		if e.complexity.Mutation.CreateModuleAssignment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createModuleAssignment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateModuleAssignment(childComplexity, args["newModuleAssignment"].(models.NewModuleAssignment)), true
 
 	case "Mutation.createModuleGroup":
 		if e.complexity.Mutation.CreateModuleGroup == nil {
@@ -1541,6 +1592,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateOrganizationalUnitMembership(childComplexity, args["orgUnitMembership"].(models.NewOrganizationalUnitMembership)), true
 
+	case "Mutation.createTerraformDriftCheckWorkflowRequest":
+		if e.complexity.Mutation.CreateTerraformDriftCheckWorkflowRequest == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createTerraformDriftCheckWorkflowRequest_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateTerraformDriftCheckWorkflowRequest(childComplexity, args["terraformDriftCheckWorkflowRequest"].(models.NewTerraformDriftCheckWorkflowRequest)), true
+
+	case "Mutation.createTerraformExecutionWorkflowRequest":
+		if e.complexity.Mutation.CreateTerraformExecutionWorkflowRequest == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createTerraformExecutionWorkflowRequest_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateTerraformExecutionWorkflowRequest(childComplexity, args["terraformExecutionWorkflowRequest"].(models.NewTerraformExecutionWorkflowRequest)), true
+
 	case "Mutation.deleteModuleGroup":
 		if e.complexity.Mutation.DeleteModuleGroup == nil {
 			break
@@ -1624,6 +1699,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteOrganizationalUnitMembership(childComplexity, args["orgDimensionId"].(string), args["orgAccountId"].(string)), true
+
+	case "Mutation.updateModuleAssignment":
+		if e.complexity.Mutation.UpdateModuleAssignment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateModuleAssignment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateModuleAssignment(childComplexity, args["moduleAssignmentId"].(string), args["moduleAssignmentUpdate"].(models.ModuleAssignmentUpdate)), true
 
 	case "Mutation.updateModulePropagation":
 		if e.complexity.Mutation.UpdateModulePropagation == nil {
@@ -1861,6 +1948,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.OrganizationalUnit.Name(childComplexity), true
+
+	case "OrganizationalUnit.orgDimension":
+		if e.complexity.OrganizationalUnit.OrgDimension == nil {
+			break
+		}
+
+		return e.complexity.OrganizationalUnit.OrgDimension(childComplexity), true
 
 	case "OrganizationalUnit.orgDimensionId":
 		if e.complexity.OrganizationalUnit.OrgDimensionId == nil {
@@ -2696,6 +2790,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputNewOrganizationalDimension,
 		ec.unmarshalInputNewOrganizationalUnit,
 		ec.unmarshalInputNewOrganizationalUnitMembership,
+		ec.unmarshalInputNewTerraformDriftCheckWorkflowRequest,
+		ec.unmarshalInputNewTerraformExecutionWorkflowRequest,
 		ec.unmarshalInputOrganizationalAccountUpdate,
 		ec.unmarshalInputOrganizationalUnitUpdate,
 	)
@@ -2870,6 +2966,16 @@ extend type Query {
   moduleAssignment(moduleAssignmentId: ID!): ModuleAssignment!
   moduleAssignments(limit: Int, nextCursor: String): ModuleAssignments!
 }
+
+extend type Mutation {
+  createModuleAssignment(
+    newModuleAssignment: NewModuleAssignment!
+  ): ModuleAssignment!
+  updateModuleAssignment(
+    moduleAssignmentId: ID!
+    moduleAssignmentUpdate: ModuleAssignmentUpdate!
+  ): ModuleAssignment!
+}
 `, BuiltIn: false},
 	{Name: "../module_groups.graphqls", Input: `type ModuleGroup {
   moduleGroupId: ID!
@@ -2877,6 +2983,7 @@ extend type Query {
   cloudPlatform: CloudPlatform!
   versions(limit: Int, nextCursor: String): ModuleVersions!
   modulePropagations(limit: Int, nextCursor: String): ModulePropagations!
+  moduleAssignments(limit: Int, nextCursor: String): ModuleAssignments!
 }
 
 type ModuleGroups {
@@ -3015,12 +3122,12 @@ extend type Mutation {
 
 type AwsProviderConfiguration {
   region: String!
-  alias: String!
+  alias: String
 }
 
 type GcpProviderConfiguration {
   region: String!
-  alias: String!
+  alias: String
 }
 
 type Argument {
@@ -3047,12 +3154,12 @@ input NewModulePropagation {
 
 input AwsProviderConfigurationInput {
   region: String!
-  alias: String!
+  alias: String
 }
 
 input GcpProviderConfigurationInput {
   region: String!
-  alias: String!
+  alias: String
 }
 
 input ModulePropagationUpdate {
@@ -3095,6 +3202,7 @@ extend type Mutation {
   terraformVersion: String!
   variables: [ModuleVariable]!
   modulePropagations(limit: Int, nextCursor: String): ModulePropagations!
+  moduleAssignments(limit: Int, nextCursor: String): ModuleAssignments!
 }
 
 type ModuleVariable {
@@ -3269,6 +3377,7 @@ extend type Mutation {
   orgUnitId: ID!
   name: String!
   orgDimensionId: String!
+  orgDimension: OrganizationalDimension!
   hierarchy: String!
   parentOrgUnitId: ID
   parentOrgUnit: OrganizationalUnit
@@ -3388,6 +3497,16 @@ enum TerraformDriftCheckStatus {
   IN_SYNC
   OUT_OF_SYNC
 }
+
+input NewTerraformDriftCheckWorkflowRequest {
+  moduleAssignmentId: ID!
+}
+
+extend type Mutation {
+  createTerraformDriftCheckWorkflowRequest(
+    terraformDriftCheckWorkflowRequest: NewTerraformDriftCheckWorkflowRequest!
+  ): TerraformDriftCheckWorkflowRequest!
+}
 `, BuiltIn: false},
 	{Name: "../terraform_execution_workflow_requests.graphqls", Input: `type TerraformExecutionWorkflowRequest {
   terraformExecutionWorkflowRequestId: ID!
@@ -3409,6 +3528,17 @@ enum TerraformDriftCheckStatus {
 type TerraformExecutionWorkflowRequests {
   items: [TerraformExecutionWorkflowRequest]!
   nextCursor: String
+}
+
+input NewTerraformExecutionWorkflowRequest {
+  moduleAssignmentId: ID!
+  destroy: Boolean!
+}
+
+extend type Mutation {
+  createTerraformExecutionWorkflowRequest(
+    terraformExecutionWorkflowRequest: NewTerraformExecutionWorkflowRequest!
+  ): TerraformExecutionWorkflowRequest!
 }
 `, BuiltIn: false},
 	{Name: "../terraform_output.graphqls", Input: `type TerraformInitOutput {
@@ -3508,6 +3638,30 @@ func (ec *executionContext) field_ModuleAssignment_terraformDriftCheckWorkflowRe
 }
 
 func (ec *executionContext) field_ModuleAssignment_terraformExecutionWorkflowRequests_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["nextCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nextCursor"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_ModuleGroup_moduleAssignments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
@@ -3699,6 +3853,30 @@ func (ec *executionContext) field_ModulePropagation_moduleAssignments_args(ctx c
 	return args, nil
 }
 
+func (ec *executionContext) field_ModuleVersion_moduleAssignments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["nextCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nextCursor"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_ModuleVersion_modulePropagations_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3720,6 +3898,21 @@ func (ec *executionContext) field_ModuleVersion_modulePropagations_args(ctx cont
 		}
 	}
 	args["nextCursor"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createModuleAssignment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.NewModuleAssignment
+	if tmp, ok := rawArgs["newModuleAssignment"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newModuleAssignment"))
+		arg0, err = ec.unmarshalNNewModuleAssignment2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewModuleAssignment(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["newModuleAssignment"] = arg0
 	return args, nil
 }
 
@@ -3858,6 +4051,36 @@ func (ec *executionContext) field_Mutation_createOrganizationalUnit_args(ctx con
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createTerraformDriftCheckWorkflowRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.NewTerraformDriftCheckWorkflowRequest
+	if tmp, ok := rawArgs["terraformDriftCheckWorkflowRequest"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("terraformDriftCheckWorkflowRequest"))
+		arg0, err = ec.unmarshalNNewTerraformDriftCheckWorkflowRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewTerraformDriftCheckWorkflowRequest(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["terraformDriftCheckWorkflowRequest"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createTerraformExecutionWorkflowRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.NewTerraformExecutionWorkflowRequest
+	if tmp, ok := rawArgs["terraformExecutionWorkflowRequest"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("terraformExecutionWorkflowRequest"))
+		arg0, err = ec.unmarshalNNewTerraformExecutionWorkflowRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewTerraformExecutionWorkflowRequest(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["terraformExecutionWorkflowRequest"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteModuleGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3987,6 +4210,30 @@ func (ec *executionContext) field_Mutation_deleteOrganizationalUnit_args(ctx con
 		}
 	}
 	args["orgUnitId"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateModuleAssignment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["moduleAssignmentId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleAssignmentId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["moduleAssignmentId"] = arg0
+	var arg1 models.ModuleAssignmentUpdate
+	if tmp, ok := rawArgs["moduleAssignmentUpdate"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleAssignmentUpdate"))
+		arg1, err = ec.unmarshalNModuleAssignmentUpdate2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAssignmentUpdate(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["moduleAssignmentUpdate"] = arg1
 	return args, nil
 }
 
@@ -5876,14 +6123,11 @@ func (ec *executionContext) _AwsProviderConfiguration_alias(ctx context.Context,
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AwsProviderConfiguration_alias(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5964,14 +6208,11 @@ func (ec *executionContext) _GcpProviderConfiguration_alias(ctx context.Context,
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_GcpProviderConfiguration_alias(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6218,6 +6459,8 @@ func (ec *executionContext) fieldContext_ModuleAssignment_moduleVersion(ctx cont
 				return ec.fieldContext_ModuleVersion_variables(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_ModuleVersion_modulePropagations(ctx, field)
+			case "moduleAssignments":
+				return ec.fieldContext_ModuleVersion_moduleAssignments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleVersion", field.Name)
 		},
@@ -6318,6 +6561,8 @@ func (ec *executionContext) fieldContext_ModuleAssignment_moduleGroup(ctx contex
 				return ec.fieldContext_ModuleGroup_versions(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_ModuleGroup_modulePropagations(ctx, field)
+			case "moduleAssignments":
+				return ec.fieldContext_ModuleGroup_moduleAssignments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleGroup", field.Name)
 		},
@@ -7630,6 +7875,67 @@ func (ec *executionContext) fieldContext_ModuleGroup_modulePropagations(ctx cont
 	return fc, nil
 }
 
+func (ec *executionContext) _ModuleGroup_moduleAssignments(ctx context.Context, field graphql.CollectedField, obj *models.ModuleGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleGroup_moduleAssignments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ModuleGroup().ModuleAssignments(rctx, obj, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleAssignments)
+	fc.Result = res
+	return ec.marshalNModuleAssignments2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAssignments(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleGroup_moduleAssignments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleGroup",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_ModuleAssignments_items(ctx, field)
+			case "nextCursor":
+				return ec.fieldContext_ModuleAssignments_nextCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignments", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_ModuleGroup_moduleAssignments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ModuleGroups_items(ctx context.Context, field graphql.CollectedField, obj *models.ModuleGroups) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ModuleGroups_items(ctx, field)
 	if err != nil {
@@ -7679,6 +7985,8 @@ func (ec *executionContext) fieldContext_ModuleGroups_items(ctx context.Context,
 				return ec.fieldContext_ModuleGroup_versions(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_ModuleGroup_modulePropagations(ctx, field)
+			case "moduleAssignments":
+				return ec.fieldContext_ModuleGroup_moduleAssignments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleGroup", field.Name)
 		},
@@ -7870,6 +8178,8 @@ func (ec *executionContext) fieldContext_ModulePropagation_moduleVersion(ctx con
 				return ec.fieldContext_ModuleVersion_variables(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_ModuleVersion_modulePropagations(ctx, field)
+			case "moduleAssignments":
+				return ec.fieldContext_ModuleVersion_moduleAssignments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleVersion", field.Name)
 		},
@@ -7970,6 +8280,8 @@ func (ec *executionContext) fieldContext_ModulePropagation_moduleGroup(ctx conte
 				return ec.fieldContext_ModuleGroup_versions(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_ModuleGroup_modulePropagations(ctx, field)
+			case "moduleAssignments":
+				return ec.fieldContext_ModuleGroup_moduleAssignments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleGroup", field.Name)
 		},
@@ -8066,6 +8378,8 @@ func (ec *executionContext) fieldContext_ModulePropagation_orgUnit(ctx context.C
 				return ec.fieldContext_OrganizationalUnit_name(ctx, field)
 			case "orgDimensionId":
 				return ec.fieldContext_OrganizationalUnit_orgDimensionId(ctx, field)
+			case "orgDimension":
+				return ec.fieldContext_OrganizationalUnit_orgDimension(ctx, field)
 			case "hierarchy":
 				return ec.fieldContext_OrganizationalUnit_hierarchy(ctx, field)
 			case "parentOrgUnitId":
@@ -10168,6 +10482,8 @@ func (ec *executionContext) fieldContext_ModuleVersion_moduleGroup(ctx context.C
 				return ec.fieldContext_ModuleGroup_versions(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_ModuleGroup_modulePropagations(ctx, field)
+			case "moduleAssignments":
+				return ec.fieldContext_ModuleGroup_moduleAssignments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleGroup", field.Name)
 		},
@@ -10422,6 +10738,67 @@ func (ec *executionContext) fieldContext_ModuleVersion_modulePropagations(ctx co
 	return fc, nil
 }
 
+func (ec *executionContext) _ModuleVersion_moduleAssignments(ctx context.Context, field graphql.CollectedField, obj *models.ModuleVersion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleVersion_moduleAssignments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ModuleVersion().ModuleAssignments(rctx, obj, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleAssignments)
+	fc.Result = res
+	return ec.marshalNModuleAssignments2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAssignments(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleVersion_moduleAssignments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleVersion",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_ModuleAssignments_items(ctx, field)
+			case "nextCursor":
+				return ec.fieldContext_ModuleAssignments_nextCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignments", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_ModuleVersion_moduleAssignments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ModuleVersions_items(ctx context.Context, field graphql.CollectedField, obj *models.ModuleVersions) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ModuleVersions_items(ctx, field)
 	if err != nil {
@@ -10477,6 +10854,8 @@ func (ec *executionContext) fieldContext_ModuleVersions_items(ctx context.Contex
 				return ec.fieldContext_ModuleVersion_variables(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_ModuleVersion_modulePropagations(ctx, field)
+			case "moduleAssignments":
+				return ec.fieldContext_ModuleVersion_moduleAssignments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleVersion", field.Name)
 		},
@@ -10521,6 +10900,212 @@ func (ec *executionContext) fieldContext_ModuleVersions_nextCursor(ctx context.C
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createModuleAssignment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createModuleAssignment(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateModuleAssignment(rctx, fc.Args["newModuleAssignment"].(models.NewModuleAssignment))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleAssignment)
+	fc.Result = res
+	return ec.marshalNModuleAssignment2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAssignment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createModuleAssignment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "moduleAssignmentId":
+				return ec.fieldContext_ModuleAssignment_moduleAssignmentId(ctx, field)
+			case "moduleVersionId":
+				return ec.fieldContext_ModuleAssignment_moduleVersionId(ctx, field)
+			case "moduleVersion":
+				return ec.fieldContext_ModuleAssignment_moduleVersion(ctx, field)
+			case "moduleGroupId":
+				return ec.fieldContext_ModuleAssignment_moduleGroupId(ctx, field)
+			case "moduleGroup":
+				return ec.fieldContext_ModuleAssignment_moduleGroup(ctx, field)
+			case "orgAccountId":
+				return ec.fieldContext_ModuleAssignment_orgAccountId(ctx, field)
+			case "orgAccount":
+				return ec.fieldContext_ModuleAssignment_orgAccount(ctx, field)
+			case "name":
+				return ec.fieldContext_ModuleAssignment_name(ctx, field)
+			case "description":
+				return ec.fieldContext_ModuleAssignment_description(ctx, field)
+			case "remoteStateRegion":
+				return ec.fieldContext_ModuleAssignment_remoteStateRegion(ctx, field)
+			case "remoteStateBucket":
+				return ec.fieldContext_ModuleAssignment_remoteStateBucket(ctx, field)
+			case "remoteStateKey":
+				return ec.fieldContext_ModuleAssignment_remoteStateKey(ctx, field)
+			case "arguments":
+				return ec.fieldContext_ModuleAssignment_arguments(ctx, field)
+			case "awsProviderConfigurations":
+				return ec.fieldContext_ModuleAssignment_awsProviderConfigurations(ctx, field)
+			case "gcpProviderConfigurations":
+				return ec.fieldContext_ModuleAssignment_gcpProviderConfigurations(ctx, field)
+			case "status":
+				return ec.fieldContext_ModuleAssignment_status(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_ModuleAssignment_modulePropagationId(ctx, field)
+			case "modulePropagation":
+				return ec.fieldContext_ModuleAssignment_modulePropagation(ctx, field)
+			case "terraformDriftCheckWorkflowRequests":
+				return ec.fieldContext_ModuleAssignment_terraformDriftCheckWorkflowRequests(ctx, field)
+			case "terraformExecutionWorkflowRequests":
+				return ec.fieldContext_ModuleAssignment_terraformExecutionWorkflowRequests(ctx, field)
+			case "planExecutionRequests":
+				return ec.fieldContext_ModuleAssignment_planExecutionRequests(ctx, field)
+			case "applyExecutionRequests":
+				return ec.fieldContext_ModuleAssignment_applyExecutionRequests(ctx, field)
+			case "terraformConfiguration":
+				return ec.fieldContext_ModuleAssignment_terraformConfiguration(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createModuleAssignment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateModuleAssignment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateModuleAssignment(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateModuleAssignment(rctx, fc.Args["moduleAssignmentId"].(string), fc.Args["moduleAssignmentUpdate"].(models.ModuleAssignmentUpdate))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ModuleAssignment)
+	fc.Result = res
+	return ec.marshalNModuleAssignment2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAssignment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateModuleAssignment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "moduleAssignmentId":
+				return ec.fieldContext_ModuleAssignment_moduleAssignmentId(ctx, field)
+			case "moduleVersionId":
+				return ec.fieldContext_ModuleAssignment_moduleVersionId(ctx, field)
+			case "moduleVersion":
+				return ec.fieldContext_ModuleAssignment_moduleVersion(ctx, field)
+			case "moduleGroupId":
+				return ec.fieldContext_ModuleAssignment_moduleGroupId(ctx, field)
+			case "moduleGroup":
+				return ec.fieldContext_ModuleAssignment_moduleGroup(ctx, field)
+			case "orgAccountId":
+				return ec.fieldContext_ModuleAssignment_orgAccountId(ctx, field)
+			case "orgAccount":
+				return ec.fieldContext_ModuleAssignment_orgAccount(ctx, field)
+			case "name":
+				return ec.fieldContext_ModuleAssignment_name(ctx, field)
+			case "description":
+				return ec.fieldContext_ModuleAssignment_description(ctx, field)
+			case "remoteStateRegion":
+				return ec.fieldContext_ModuleAssignment_remoteStateRegion(ctx, field)
+			case "remoteStateBucket":
+				return ec.fieldContext_ModuleAssignment_remoteStateBucket(ctx, field)
+			case "remoteStateKey":
+				return ec.fieldContext_ModuleAssignment_remoteStateKey(ctx, field)
+			case "arguments":
+				return ec.fieldContext_ModuleAssignment_arguments(ctx, field)
+			case "awsProviderConfigurations":
+				return ec.fieldContext_ModuleAssignment_awsProviderConfigurations(ctx, field)
+			case "gcpProviderConfigurations":
+				return ec.fieldContext_ModuleAssignment_gcpProviderConfigurations(ctx, field)
+			case "status":
+				return ec.fieldContext_ModuleAssignment_status(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_ModuleAssignment_modulePropagationId(ctx, field)
+			case "modulePropagation":
+				return ec.fieldContext_ModuleAssignment_modulePropagation(ctx, field)
+			case "terraformDriftCheckWorkflowRequests":
+				return ec.fieldContext_ModuleAssignment_terraformDriftCheckWorkflowRequests(ctx, field)
+			case "terraformExecutionWorkflowRequests":
+				return ec.fieldContext_ModuleAssignment_terraformExecutionWorkflowRequests(ctx, field)
+			case "planExecutionRequests":
+				return ec.fieldContext_ModuleAssignment_planExecutionRequests(ctx, field)
+			case "applyExecutionRequests":
+				return ec.fieldContext_ModuleAssignment_applyExecutionRequests(ctx, field)
+			case "terraformConfiguration":
+				return ec.fieldContext_ModuleAssignment_terraformConfiguration(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateModuleAssignment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -10574,6 +11159,8 @@ func (ec *executionContext) fieldContext_Mutation_createModuleGroup(ctx context.
 				return ec.fieldContext_ModuleGroup_versions(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_ModuleGroup_modulePropagations(ctx, field)
+			case "moduleAssignments":
+				return ec.fieldContext_ModuleGroup_moduleAssignments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleGroup", field.Name)
 		},
@@ -11073,6 +11660,8 @@ func (ec *executionContext) fieldContext_Mutation_createModuleVersion(ctx contex
 				return ec.fieldContext_ModuleVersion_variables(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_ModuleVersion_modulePropagations(ctx, field)
+			case "moduleAssignments":
+				return ec.fieldContext_ModuleVersion_moduleAssignments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleVersion", field.Name)
 		},
@@ -11638,6 +12227,8 @@ func (ec *executionContext) fieldContext_Mutation_createOrganizationalUnit(ctx c
 				return ec.fieldContext_OrganizationalUnit_name(ctx, field)
 			case "orgDimensionId":
 				return ec.fieldContext_OrganizationalUnit_orgDimensionId(ctx, field)
+			case "orgDimension":
+				return ec.fieldContext_OrganizationalUnit_orgDimension(ctx, field)
 			case "hierarchy":
 				return ec.fieldContext_OrganizationalUnit_hierarchy(ctx, field)
 			case "parentOrgUnitId":
@@ -11770,6 +12361,8 @@ func (ec *executionContext) fieldContext_Mutation_updateOrganizationalUnit(ctx c
 				return ec.fieldContext_OrganizationalUnit_name(ctx, field)
 			case "orgDimensionId":
 				return ec.fieldContext_OrganizationalUnit_orgDimensionId(ctx, field)
+			case "orgDimension":
+				return ec.fieldContext_OrganizationalUnit_orgDimension(ctx, field)
 			case "hierarchy":
 				return ec.fieldContext_OrganizationalUnit_hierarchy(ctx, field)
 			case "parentOrgUnitId":
@@ -11796,6 +12389,174 @@ func (ec *executionContext) fieldContext_Mutation_updateOrganizationalUnit(ctx c
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateOrganizationalUnit_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createTerraformDriftCheckWorkflowRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createTerraformDriftCheckWorkflowRequest(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateTerraformDriftCheckWorkflowRequest(rctx, fc.Args["terraformDriftCheckWorkflowRequest"].(models.NewTerraformDriftCheckWorkflowRequest))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.TerraformDriftCheckWorkflowRequest)
+	fc.Result = res
+	return ec.marshalNTerraformDriftCheckWorkflowRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformDriftCheckWorkflowRequest(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createTerraformDriftCheckWorkflowRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "terraformDriftCheckWorkflowRequestId":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_terraformDriftCheckWorkflowRequestId(ctx, field)
+			case "moduleAssignmentId":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_moduleAssignmentId(ctx, field)
+			case "moduleAssignment":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_moduleAssignment(ctx, field)
+			case "planExecutionRequestId":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_planExecutionRequestId(ctx, field)
+			case "planExecutionRequest":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_planExecutionRequest(ctx, field)
+			case "requestTime":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_requestTime(ctx, field)
+			case "status":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_status(ctx, field)
+			case "syncStatus":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_syncStatus(ctx, field)
+			case "destroy":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_destroy(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagationId(ctx, field)
+			case "modulePropagation":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagation(ctx, field)
+			case "modulePropagationDriftCheckRequestId":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagationDriftCheckRequestId(ctx, field)
+			case "modulePropagationDriftCheckRequest":
+				return ec.fieldContext_TerraformDriftCheckWorkflowRequest_modulePropagationDriftCheckRequest(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TerraformDriftCheckWorkflowRequest", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createTerraformDriftCheckWorkflowRequest_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createTerraformExecutionWorkflowRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createTerraformExecutionWorkflowRequest(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateTerraformExecutionWorkflowRequest(rctx, fc.Args["terraformExecutionWorkflowRequest"].(models.NewTerraformExecutionWorkflowRequest))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.TerraformExecutionWorkflowRequest)
+	fc.Result = res
+	return ec.marshalNTerraformExecutionWorkflowRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformExecutionWorkflowRequest(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createTerraformExecutionWorkflowRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "terraformExecutionWorkflowRequestId":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_terraformExecutionWorkflowRequestId(ctx, field)
+			case "moduleAssignmentId":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_moduleAssignmentId(ctx, field)
+			case "moduleAssignment":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_moduleAssignment(ctx, field)
+			case "planExecutionRequestId":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_planExecutionRequestId(ctx, field)
+			case "planExecutionRequest":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_planExecutionRequest(ctx, field)
+			case "applyExecutionRequestId":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_applyExecutionRequestId(ctx, field)
+			case "applyExecutionRequest":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_applyExecutionRequest(ctx, field)
+			case "requestTime":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_requestTime(ctx, field)
+			case "status":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_status(ctx, field)
+			case "destroy":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_destroy(ctx, field)
+			case "modulePropagationId":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_modulePropagationId(ctx, field)
+			case "modulePropagation":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_modulePropagation(ctx, field)
+			case "modulePropagationExecutionRequestId":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_modulePropagationExecutionRequestId(ctx, field)
+			case "modulePropagationExecutionRequest":
+				return ec.fieldContext_TerraformExecutionWorkflowRequest_modulePropagationExecutionRequest(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TerraformExecutionWorkflowRequest", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createTerraformExecutionWorkflowRequest_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -12428,6 +13189,8 @@ func (ec *executionContext) fieldContext_OrganizationalDimension_rootOrgUnit(ctx
 				return ec.fieldContext_OrganizationalUnit_name(ctx, field)
 			case "orgDimensionId":
 				return ec.fieldContext_OrganizationalUnit_orgDimensionId(ctx, field)
+			case "orgDimension":
+				return ec.fieldContext_OrganizationalUnit_orgDimension(ctx, field)
 			case "hierarchy":
 				return ec.fieldContext_OrganizationalUnit_hierarchy(ctx, field)
 			case "parentOrgUnitId":
@@ -12865,6 +13628,66 @@ func (ec *executionContext) fieldContext_OrganizationalUnit_orgDimensionId(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _OrganizationalUnit_orgDimension(ctx context.Context, field graphql.CollectedField, obj *models.OrganizationalUnit) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OrganizationalUnit_orgDimension(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.OrganizationalUnit().OrgDimension(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.OrganizationalDimension)
+	fc.Result = res
+	return ec.marshalNOrganizationalDimension2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐOrganizationalDimension(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OrganizationalUnit_orgDimension(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OrganizationalUnit",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "orgDimensionId":
+				return ec.fieldContext_OrganizationalDimension_orgDimensionId(ctx, field)
+			case "name":
+				return ec.fieldContext_OrganizationalDimension_name(ctx, field)
+			case "rootOrgUnitId":
+				return ec.fieldContext_OrganizationalDimension_rootOrgUnitId(ctx, field)
+			case "rootOrgUnit":
+				return ec.fieldContext_OrganizationalDimension_rootOrgUnit(ctx, field)
+			case "orgUnits":
+				return ec.fieldContext_OrganizationalDimension_orgUnits(ctx, field)
+			case "orgUnitMemberships":
+				return ec.fieldContext_OrganizationalDimension_orgUnitMemberships(ctx, field)
+			case "modulePropagations":
+				return ec.fieldContext_OrganizationalDimension_modulePropagations(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OrganizationalDimension", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _OrganizationalUnit_hierarchy(ctx context.Context, field graphql.CollectedField, obj *models.OrganizationalUnit) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_OrganizationalUnit_hierarchy(ctx, field)
 	if err != nil {
@@ -12992,6 +13815,8 @@ func (ec *executionContext) fieldContext_OrganizationalUnit_parentOrgUnit(ctx co
 				return ec.fieldContext_OrganizationalUnit_name(ctx, field)
 			case "orgDimensionId":
 				return ec.fieldContext_OrganizationalUnit_orgDimensionId(ctx, field)
+			case "orgDimension":
+				return ec.fieldContext_OrganizationalUnit_orgDimension(ctx, field)
 			case "hierarchy":
 				return ec.fieldContext_OrganizationalUnit_hierarchy(ctx, field)
 			case "parentOrgUnitId":
@@ -13450,6 +14275,8 @@ func (ec *executionContext) fieldContext_OrganizationalUnitMembership_orgUnit(ct
 				return ec.fieldContext_OrganizationalUnit_name(ctx, field)
 			case "orgDimensionId":
 				return ec.fieldContext_OrganizationalUnit_orgDimensionId(ctx, field)
+			case "orgDimension":
+				return ec.fieldContext_OrganizationalUnit_orgDimension(ctx, field)
 			case "hierarchy":
 				return ec.fieldContext_OrganizationalUnit_hierarchy(ctx, field)
 			case "parentOrgUnitId":
@@ -13719,6 +14546,8 @@ func (ec *executionContext) fieldContext_OrganizationalUnits_items(ctx context.C
 				return ec.fieldContext_OrganizationalUnit_name(ctx, field)
 			case "orgDimensionId":
 				return ec.fieldContext_OrganizationalUnit_orgDimensionId(ctx, field)
+			case "orgDimension":
+				return ec.fieldContext_OrganizationalUnit_orgDimension(ctx, field)
 			case "hierarchy":
 				return ec.fieldContext_OrganizationalUnit_hierarchy(ctx, field)
 			case "parentOrgUnitId":
@@ -14787,6 +15616,8 @@ func (ec *executionContext) fieldContext_Query_moduleGroup(ctx context.Context, 
 				return ec.fieldContext_ModuleGroup_versions(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_ModuleGroup_modulePropagations(ctx, field)
+			case "moduleAssignments":
+				return ec.fieldContext_ModuleGroup_moduleAssignments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleGroup", field.Name)
 		},
@@ -15329,6 +16160,8 @@ func (ec *executionContext) fieldContext_Query_moduleVersion(ctx context.Context
 				return ec.fieldContext_ModuleVersion_variables(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_ModuleVersion_modulePropagations(ctx, field)
+			case "moduleAssignments":
+				return ec.fieldContext_ModuleVersion_moduleAssignments(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleVersion", field.Name)
 		},
@@ -15900,6 +16733,8 @@ func (ec *executionContext) fieldContext_Query_organizationalUnit(ctx context.Co
 				return ec.fieldContext_OrganizationalUnit_name(ctx, field)
 			case "orgDimensionId":
 				return ec.fieldContext_OrganizationalUnit_orgDimensionId(ctx, field)
+			case "orgDimension":
+				return ec.fieldContext_OrganizationalUnit_orgDimension(ctx, field)
 			case "hierarchy":
 				return ec.fieldContext_OrganizationalUnit_hierarchy(ctx, field)
 			case "parentOrgUnitId":
@@ -20248,7 +21083,7 @@ func (ec *executionContext) unmarshalInputAwsProviderConfigurationInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
-			it.Alias, err = ec.unmarshalNString2string(ctx, v)
+			it.Alias, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20284,7 +21119,7 @@ func (ec *executionContext) unmarshalInputGcpProviderConfigurationInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
-			it.Alias, err = ec.unmarshalNString2string(ctx, v)
+			it.Alias, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20954,6 +21789,70 @@ func (ec *executionContext) unmarshalInputNewOrganizationalUnitMembership(ctx co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputNewTerraformDriftCheckWorkflowRequest(ctx context.Context, obj interface{}) (models.NewTerraformDriftCheckWorkflowRequest, error) {
+	var it models.NewTerraformDriftCheckWorkflowRequest
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"moduleAssignmentId"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "moduleAssignmentId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleAssignmentId"))
+			it.ModuleAssignmentId, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewTerraformExecutionWorkflowRequest(ctx context.Context, obj interface{}) (models.NewTerraformExecutionWorkflowRequest, error) {
+	var it models.NewTerraformExecutionWorkflowRequest
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"moduleAssignmentId", "destroy"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "moduleAssignmentId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moduleAssignmentId"))
+			it.ModuleAssignmentId, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "destroy":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destroy"))
+			it.Destroy, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputOrganizationalAccountUpdate(ctx context.Context, obj interface{}) (models.OrganizationalAccountUpdate, error) {
 	var it models.OrganizationalAccountUpdate
 	asMap := map[string]interface{}{}
@@ -21226,9 +22125,6 @@ func (ec *executionContext) _AwsProviderConfiguration(ctx context.Context, sel a
 
 			out.Values[i] = ec._AwsProviderConfiguration_alias(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21261,9 +22157,6 @@ func (ec *executionContext) _GcpProviderConfiguration(ctx context.Context, sel a
 
 			out.Values[i] = ec._GcpProviderConfiguration_alias(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21690,6 +22583,26 @@ func (ec *executionContext) _ModuleGroup(ctx context.Context, sel ast.SelectionS
 					}
 				}()
 				res = ec._ModuleGroup_modulePropagations(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "moduleAssignments":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ModuleGroup_moduleAssignments(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -22474,6 +23387,26 @@ func (ec *executionContext) _ModuleVersion(ctx context.Context, sel ast.Selectio
 				return innerFunc(ctx)
 
 			})
+		case "moduleAssignments":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ModuleVersion_moduleAssignments(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -22536,6 +23469,24 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "createModuleAssignment":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createModuleAssignment(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateModuleAssignment":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateModuleAssignment(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createModuleGroup":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -22702,6 +23653,24 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateOrganizationalUnit(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createTerraformDriftCheckWorkflowRequest":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createTerraformDriftCheckWorkflowRequest(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createTerraformExecutionWorkflowRequest":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createTerraformExecutionWorkflowRequest(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -23031,6 +24000,26 @@ func (ec *executionContext) _OrganizationalUnit(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "orgDimension":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._OrganizationalUnit_orgDimension(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "hierarchy":
 
 			out.Values[i] = ec._OrganizationalUnit_hierarchy(ctx, field, obj)
@@ -25364,6 +26353,11 @@ func (ec *executionContext) marshalNModuleAssignmentStatus2githubᚗcomᚋsheacl
 	return res
 }
 
+func (ec *executionContext) unmarshalNModuleAssignmentUpdate2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAssignmentUpdate(ctx context.Context, v interface{}) (models.ModuleAssignmentUpdate, error) {
+	res, err := ec.unmarshalInputModuleAssignmentUpdate(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNModuleAssignments2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐModuleAssignments(ctx context.Context, sel ast.SelectionSet, v models.ModuleAssignments) graphql.Marshaler {
 	return ec._ModuleAssignments(ctx, sel, &v)
 }
@@ -25789,6 +26783,11 @@ func (ec *executionContext) marshalNModuleVersions2ᚖgithubᚗcomᚋsheacloud�
 	return ec._ModuleVersions(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNNewModuleAssignment2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewModuleAssignment(ctx context.Context, v interface{}) (models.NewModuleAssignment, error) {
+	res, err := ec.unmarshalInputNewModuleAssignment(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNNewModuleGroup2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewModuleGroup(ctx context.Context, v interface{}) (models.NewModuleGroup, error) {
 	res, err := ec.unmarshalInputNewModuleGroup(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -25831,6 +26830,16 @@ func (ec *executionContext) unmarshalNNewOrganizationalUnit2githubᚗcomᚋsheac
 
 func (ec *executionContext) unmarshalNNewOrganizationalUnitMembership2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewOrganizationalUnitMembership(ctx context.Context, v interface{}) (models.NewOrganizationalUnitMembership, error) {
 	res, err := ec.unmarshalInputNewOrganizationalUnitMembership(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNNewTerraformDriftCheckWorkflowRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewTerraformDriftCheckWorkflowRequest(ctx context.Context, v interface{}) (models.NewTerraformDriftCheckWorkflowRequest, error) {
+	res, err := ec.unmarshalInputNewTerraformDriftCheckWorkflowRequest(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNNewTerraformExecutionWorkflowRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewTerraformExecutionWorkflowRequest(ctx context.Context, v interface{}) (models.NewTerraformExecutionWorkflowRequest, error) {
+	res, err := ec.unmarshalInputNewTerraformExecutionWorkflowRequest(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -26247,6 +27256,10 @@ func (ec *executionContext) marshalNTerraformDriftCheckStatus2githubᚗcomᚋshe
 	return res
 }
 
+func (ec *executionContext) marshalNTerraformDriftCheckWorkflowRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformDriftCheckWorkflowRequest(ctx context.Context, sel ast.SelectionSet, v models.TerraformDriftCheckWorkflowRequest) graphql.Marshaler {
+	return ec._TerraformDriftCheckWorkflowRequest(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNTerraformDriftCheckWorkflowRequest2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformDriftCheckWorkflowRequest(ctx context.Context, sel ast.SelectionSet, v []models.TerraformDriftCheckWorkflowRequest) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -26285,6 +27298,16 @@ func (ec *executionContext) marshalNTerraformDriftCheckWorkflowRequest2ᚕgithub
 	return ret
 }
 
+func (ec *executionContext) marshalNTerraformDriftCheckWorkflowRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformDriftCheckWorkflowRequest(ctx context.Context, sel ast.SelectionSet, v *models.TerraformDriftCheckWorkflowRequest) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._TerraformDriftCheckWorkflowRequest(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNTerraformDriftCheckWorkflowRequests2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformDriftCheckWorkflowRequests(ctx context.Context, sel ast.SelectionSet, v models.TerraformDriftCheckWorkflowRequests) graphql.Marshaler {
 	return ec._TerraformDriftCheckWorkflowRequests(ctx, sel, &v)
 }
@@ -26297,6 +27320,10 @@ func (ec *executionContext) marshalNTerraformDriftCheckWorkflowRequests2ᚖgithu
 		return graphql.Null
 	}
 	return ec._TerraformDriftCheckWorkflowRequests(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNTerraformExecutionWorkflowRequest2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformExecutionWorkflowRequest(ctx context.Context, sel ast.SelectionSet, v models.TerraformExecutionWorkflowRequest) graphql.Marshaler {
+	return ec._TerraformExecutionWorkflowRequest(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNTerraformExecutionWorkflowRequest2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformExecutionWorkflowRequest(ctx context.Context, sel ast.SelectionSet, v []models.TerraformExecutionWorkflowRequest) graphql.Marshaler {
@@ -26335,6 +27362,16 @@ func (ec *executionContext) marshalNTerraformExecutionWorkflowRequest2ᚕgithub�
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) marshalNTerraformExecutionWorkflowRequest2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformExecutionWorkflowRequest(ctx context.Context, sel ast.SelectionSet, v *models.TerraformExecutionWorkflowRequest) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._TerraformExecutionWorkflowRequest(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNTerraformExecutionWorkflowRequests2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐTerraformExecutionWorkflowRequests(ctx context.Context, sel ast.SelectionSet, v models.TerraformExecutionWorkflowRequests) graphql.Marshaler {

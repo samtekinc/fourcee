@@ -10,7 +10,7 @@ type TerraformExecutionWorkflowRequest struct {
 	RequestTime                         time.Time
 	Status                              RequestStatus
 	Destroy                             bool
-	CallbackTaskToken                   string
+	CallbackTaskToken                   *string
 	ModulePropagationId                 *string `dynamodbav:",omitempty"`
 	ModulePropagationExecutionRequestId *string `dynamodbav:",omitempty"`
 }
@@ -23,7 +23,7 @@ type TerraformExecutionWorkflowRequests struct {
 type NewTerraformExecutionWorkflowRequest struct {
 	ModuleAssignmentId                  string
 	Destroy                             bool
-	CallbackTaskToken                   string
+	CallbackTaskToken                   *string
 	ModulePropagationId                 *string
 	ModulePropagationExecutionRequestId *string
 }

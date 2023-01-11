@@ -2,6 +2,7 @@ type OrganizationalUnit {
   orgUnitId: ID!
   name: String!
   orgDimensionId: String!
+  orgDimension: OrganizationalDimension!
   hierarchy: String!
   parentOrgUnitId: ID
   parentOrgUnit: OrganizationalUnit

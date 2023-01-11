@@ -2,17 +2,23 @@ import React, { useState } from "react";
 import {
   OrganizationalDimension,
   OrganizationalDimensions,
+  OrganizationalUnit,
 } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
 import Container from "react-bootstrap/Container";
+import { Tree } from "react-organizational-chart";
+import { TreeNode } from "react-organizational-chart";
+import { NewOrganizationalUnitButton } from "./NewOrganizationalUnitButton";
+import { GetOrgUnitTree, OrgUnitTreeNode } from "../utils/org_tree_rendering";
 
 const ORGANIZATIONAL_DIMENSION_QUERY = gql`
   query organizationalDimension($orgDimensionId: ID!) {
     organizationalDimension(orgDimensionId: $orgDimensionId) {
       orgDimensionId
       name
+      rootOrgUnitId
       orgUnits {
         items {
           orgUnitId
@@ -67,124 +73,37 @@ export const OrganizationalDimensionPage = () => {
       variables: {
         orgDimensionId: organizationalDimensionId,
       },
+      pollInterval: 1000,
     }
   );
 
   if (loading) return null;
   if (error) return <div>Error</div>;
 
-  let orgUnitsSorted = Array.prototype.slice
-    .call(data?.organizationalDimension.orgUnits.items)
-    .sort((a, b) =>
-      a.hierarchy + a.orgUnitId > b.hierarchy + b.orgUnitId ? 1 : -1
-    );
+  let orgUnitsMap = GetOrgUnitTree(
+    organizationalDimensionId,
+    data?.organizationalDimension.orgUnits.items ?? []
+  );
 
   return (
-    <Container>
-      <h1>
-        <b>
-          <u>{data?.organizationalDimension.name}</u>
-        </b>{" "}
-        ({data?.organizationalDimension.orgDimensionId})
-      </h1>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Org Unit Name</th>
-            <th>ID</th>
-            <th>Parent</th>
-            <th>Hierarchy</th>
-          </tr>
-        </thead>
-        <tbody>
-          {orgUnitsSorted?.map((orgUnit) => {
-            return (
-              <tr>
-                <td>
-                  <NavLink
-                    to={`/org-dimensions/${organizationalDimensionId}/org-units/${orgUnit.orgUnitId}`}
-                  >
-                    {orgUnit.name}
-                  </NavLink>
-                </td>
-                <td>{orgUnit.orgUnitId}</td>
-                <td>{orgUnit.parentOrgUnitId}</td>
-                <td>{orgUnit.hierarchy}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </Table>
-      <h2>Module Propagations</h2>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>ID</th>
-            <th>Org Unit Id</th>
-            <th>Module Version Id</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.organizationalDimension.modulePropagations.items.map(
-            (modulePropagation) => {
-              return (
-                <tr>
-                  <td>
-                    <NavLink
-                      to={`/module-propagations/${modulePropagation?.modulePropagationId}`}
-                    >
-                      {modulePropagation?.name}
-                    </NavLink>
-                  </td>
-                  <td>{modulePropagation?.modulePropagationId}</td>
-                  <td>{modulePropagation?.orgUnitId}</td>
-                  <td>{modulePropagation?.moduleVersionId}</td>
-                </tr>
-              );
-            }
+    <Container style={{ minWidth: "50vw" }}>
+      <Tree
+        label={<h1>{data?.organizationalDimension.name} Org Dimension</h1>}
+        lineWidth={"2px"}
+        nodePadding={"30px"}
+      >
+        <OrgUnitTreeNode
+          orgUnit={orgUnitsMap.get(
+            data?.organizationalDimension.rootOrgUnitId ?? ""
           )}
-        </tbody>
-      </Table>
-      <h2>Org Unit Memberships</h2>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Org Account</th>
-            <th>Cloud Platform</th>
-            <th>Cloud ID</th>
-            <th>Org Unit</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.organizationalDimension.orgUnitMemberships.items.map(
-            (membership) => {
-              return (
-                <tr>
-                  <td>
-                    <NavLink
-                      to={`/org-accounts/${membership?.orgAccount.orgAccountId}`}
-                    >
-                      {membership?.orgAccount.name} (
-                      {membership?.orgAccount.orgAccountId})
-                    </NavLink>
-                  </td>
-                  <td>{membership?.orgAccount.cloudPlatform}</td>
-                  <td>{membership?.orgAccount.cloudIdentifier}</td>
-                  <td>
-                    <NavLink
-                      to={`/org-dimensions/${organizationalDimensionId}/org-units/${membership?.orgUnit.orgUnitId}`}
-                    >
-                      {membership?.orgUnit.name} (
-                      {membership?.orgUnit.orgUnitId})
-                    </NavLink>
-                  </td>
-                </tr>
-              );
-            }
-          )}
-        </tbody>
-      </Table>
+        />
+      </Tree>
+      <br />
+      <NewOrganizationalUnitButton
+        key={data?.organizationalDimension.orgDimensionId ?? ""}
+        orgDimensionId={data?.organizationalDimension.orgDimensionId ?? ""}
+        existingOrgUnits={data?.organizationalDimension.orgUnits.items ?? []}
+      />
     </Container>
   );
 };

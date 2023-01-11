@@ -7,31 +7,36 @@ import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
 import Container from "react-bootstrap/Container";
+import { GetOrgUnitTree, OrgUnitTreeNode } from "../utils/org_tree_rendering";
+import { Tree } from "react-organizational-chart";
+import { Card, CardGroup, Col, ListGroup, Row } from "react-bootstrap";
+import { renderCloudPlatform } from "../utils/rendering";
+import { NewOrganizationalUnitMembershipButton } from "./NewOrganizationalUnitMembershipButton";
+import { DeleteOrganizationalUnitMembershipButton } from "./DeleteOrganizationalUnitMembershipButton";
 
 const ORGANIZATIONAL_UNIT_QUERY = gql`
   query organizationalUnit($orgUnitId: ID!, $orgDimensionId: ID!) {
     organizationalUnit(orgDimensionId: $orgDimensionId, orgUnitId: $orgUnitId) {
       orgUnitId
-      orgDimensionId
+      orgDimension {
+        orgDimensionId
+        name
+      }
       name
       hierarchy
       parentOrgUnitId
-      children {
-        items {
-          orgUnitId
-          name
-          hierarchy
-        }
-      }
       downstreamOrgUnits {
         items {
           orgUnitId
           name
           hierarchy
+          parentOrgUnitId
         }
       }
       orgUnitMemberships {
         items {
+          orgDimensionId
+          orgAccountId
           orgAccount {
             orgAccountId
             name
@@ -43,12 +48,16 @@ const ORGANIZATIONAL_UNIT_QUERY = gql`
       modulePropagations {
         items {
           modulePropagationId
-          moduleGroupId
-          moduleVersionId
-          orgUnitId
-          orgDimensionId
           name
           description
+          moduleGroup {
+            moduleGroupId
+            name
+          }
+          moduleVersion {
+            moduleVersionId
+            name
+          }
         }
       }
     }
@@ -76,11 +85,19 @@ export const OrganizationalUnitPage = () => {
         orgUnitId: organizationalUnitId,
         orgDimensionId: organizationalDimensionId,
       },
+      pollInterval: 1000,
     }
   );
 
   if (loading) return null;
   if (error) return <div>Error</div>;
+
+  let orgUnits = Array.from(
+    data?.organizationalUnit.downstreamOrgUnits.items ?? []
+  );
+  orgUnits.push(data?.organizationalUnit ?? null);
+
+  let orgUnitsMap = GetOrgUnitTree(organizationalDimensionId, orgUnits);
 
   return (
     <Container>
@@ -90,116 +107,83 @@ export const OrganizationalUnitPage = () => {
         </b>{" "}
         ({data?.organizationalUnit.orgUnitId})
       </h1>
-      <h2>Children</h2>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Org Dimension Id</th>
-            <th>Name</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.organizationalUnit.children.items.map((orgUnit) => {
-            return (
-              <tr>
-                <td>
-                  <NavLink
-                    to={`/org-dimensions/${organizationalDimensionId}/org-units/${orgUnit?.orgUnitId}`}
-                  >
-                    {orgUnit?.orgUnitId}
-                  </NavLink>
-                </td>
-                <td>{orgUnit?.name}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </Table>
-      <h2>Downstream Org Units</h2>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Org Dimension Id</th>
-            <th>Name</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.organizationalUnit.downstreamOrgUnits.items.map((orgUnit) => {
-            return (
-              <tr>
-                <td>
-                  <NavLink
-                    to={`/org-dimensions/${organizationalDimensionId}/org-units/${orgUnit?.orgUnitId}`}
-                  >
-                    {orgUnit?.orgUnitId}
-                  </NavLink>
-                </td>
-                <td>{orgUnit?.name}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </Table>
+      <Tree lineWidth={"2px"} nodePadding={"30px"}>
+        <OrgUnitTreeNode
+          orgUnit={orgUnitsMap.get(data?.organizationalUnit.orgUnitId ?? "")}
+        />
+      </Tree>
       <h2>Module Propagations</h2>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>ID</th>
-            <th>Module Version Id</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.organizationalUnit.modulePropagations.items.map(
-            (modulePropagation) => {
-              return (
-                <tr>
-                  <td>
+      {data?.organizationalUnit.modulePropagations.items.map(
+        (modulePropagation) => {
+          return (
+            <>
+              <Card>
+                <Card.Header>
+                  <NavLink
+                    to={`/module-propagations/${modulePropagation?.modulePropagationId}`}
+                  >
+                    {modulePropagation?.name}
+                  </NavLink>
+                </Card.Header>
+                <Card.Body>
+                  <Card.Text>
+                    <b>Module Group:</b>{" "}
                     <NavLink
-                      to={`/module-propagations/${modulePropagation?.modulePropagationId}`}
+                      to={`/module-groups/${modulePropagation?.moduleGroup.moduleGroupId}`}
                     >
-                      {modulePropagation?.name}
+                      {modulePropagation?.moduleGroup.name}
                     </NavLink>
-                  </td>
-                  <td>{modulePropagation?.modulePropagationId}</td>
-                  <td>{modulePropagation?.moduleVersionId}</td>
-                </tr>
-              );
-            }
-          )}
-        </tbody>
-      </Table>
+                    <br />
+                    <b>Module Version:</b>{" "}
+                    <NavLink
+                      to={`/module-groups/${modulePropagation?.moduleGroup.moduleGroupId}/versions/${modulePropagation?.moduleVersion.moduleVersionId}`}
+                    >
+                      {modulePropagation?.moduleVersion.name}
+                    </NavLink>
+                    <br />
+                    {modulePropagation?.description}
+                  </Card.Text>
+                </Card.Body>
+              </Card>
+              <br />
+            </>
+          );
+        }
+      )}
+      <br />
       <h2>Org Unit Memberships</h2>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Org Account Id</th>
-            <th>Org Account Name</th>
-            <th>Cloud Platform</th>
-            <th>Cloud ID</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.organizationalUnit.orgUnitMemberships.items.map(
-            (membership) => {
-              return (
-                <tr>
-                  <td>
-                    <NavLink
-                      to={`/org-accounts/${membership?.orgAccount.orgAccountId}`}
-                    >
-                      {membership?.orgAccount.orgAccountId}
-                    </NavLink>
-                  </td>
-                  <td>{membership?.orgAccount.name}</td>
-                  <td>{membership?.orgAccount.cloudPlatform}</td>
-                  <td>{membership?.orgAccount.cloudIdentifier}</td>
-                </tr>
-              );
-            }
-          )}
-        </tbody>
-      </Table>
+      <ListGroup>
+        {data?.organizationalUnit.orgUnitMemberships.items.map((membership) => {
+          return (
+            <ListGroup.Item>
+              <Row>
+                <Col md={10}>
+                  {renderCloudPlatform(membership?.orgAccount.cloudPlatform)}{" "}
+                  <NavLink
+                    to={`/org-accounts/${membership?.orgAccount.orgAccountId}`}
+                  >
+                    {membership?.orgAccount.name} (
+                    {membership?.orgAccount.cloudIdentifier})
+                  </NavLink>
+                </Col>
+                <Col md={2}>
+                  <DeleteOrganizationalUnitMembershipButton
+                    orgDimensionId={membership?.orgDimensionId}
+                    orgAccountId={membership?.orgAccountId}
+                  />
+                </Col>
+              </Row>
+            </ListGroup.Item>
+          );
+        })}
+      </ListGroup>
+      <br />
+      <NewOrganizationalUnitMembershipButton
+        orgDimension={data?.organizationalUnit.orgDimension}
+        orgUnit={data?.organizationalUnit}
+        orgAccount={undefined}
+        key={data?.organizationalUnit.orgUnitId}
+      />
     </Container>
   );
 };

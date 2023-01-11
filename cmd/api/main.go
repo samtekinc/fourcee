@@ -75,7 +75,9 @@ func main() {
 		SfnClient:                              sfnClient,
 		ModulePropagationExecutionWorkflowArn:  "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-execution",
 		ModulePropagationDriftCheckWorkflowArn: "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-drift-check",
-		TerraformExecutionWorkflowArn:          "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-execution",
+		TerraformCommandWorkflowArn:            "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-command",
+		TerraformExecutionWorkflowArn:          "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-execution-workflow",
+		TerraformDriftCheckWorkflowArn:         "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-drift-check-workflow",
 		RemoteStateBucket:                      "tfom-backend-states",
 		RemoteStateRegion:                      "us-east-1",
 	}

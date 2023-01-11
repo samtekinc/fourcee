@@ -18,7 +18,7 @@ type AWSProviderTemplate struct {
 }
 
 func (t *AWSProviderTemplate) GetProviderConfiguration() (string, error) {
-	if t.Config.Alias == "" {
+	if t.Config.Alias == nil || *t.Config.Alias == "" {
 		return fmt.Sprintf(`provider "aws" {
 			region = "%s"
 			assume_role {
@@ -54,7 +54,7 @@ type GCPProviderTemplate struct {
 }
 
 func (t *GCPProviderTemplate) GetProviderConfiguration() (string, error) {
-	if t.Config.Alias == "" {
+	if t.Config.Alias == nil || *t.Config.Alias == "" {
 		return fmt.Sprintf(`provider "google" {
 			project = "%s"
 			region = "%s"

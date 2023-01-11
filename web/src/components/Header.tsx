@@ -7,8 +7,8 @@ import { NavLink } from "react-router-dom";
 
 export function Header() {
   return (
-    <Navbar bg="light" expand="lg">
-      <Container>
+    <Navbar bg="light" expand="lg" sticky="top">
+      <Container fluid>
         <Navbar.Brand href="#organizations">TFOM</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">

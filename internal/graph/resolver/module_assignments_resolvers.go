@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sheacloud/tfom/internal/graph/generated"
@@ -99,6 +100,23 @@ func (r *moduleAssignmentResolver) TerraformConfiguration(ctx context.Context, o
 	return terraformConfig, err
 }
 
+// CreateModuleAssignment is the resolver for the createModuleAssignment field.
+func (r *mutationResolver) CreateModuleAssignment(ctx context.Context, newModuleAssignment models.NewModuleAssignment) (*models.ModuleAssignment, error) {
+	return r.apiClient.PutModuleAssignment(ctx, &newModuleAssignment)
+}
+
+// UpdateModuleAssignment is the resolver for the updateModuleAssignment field.
+func (r *mutationResolver) UpdateModuleAssignment(ctx context.Context, moduleAssignmentID string, moduleAssignmentUpdate models.ModuleAssignmentUpdate) (*models.ModuleAssignment, error) {
+	moduleAssignment, err := r.apiClient.GetModuleAssignment(ctx, moduleAssignmentID)
+	if err != nil {
+		return nil, err
+	}
+	if moduleAssignment.ModulePropagationId != nil {
+		return nil, errors.New("cannot update module assignment that is propagated")
+	}
+	return r.apiClient.UpdateModuleAssignment(ctx, moduleAssignmentID, &moduleAssignmentUpdate)
+}
+
 // ModuleAssignment is the resolver for the moduleAssignment field.
 func (r *queryResolver) ModuleAssignment(ctx context.Context, moduleAssignmentID string) (*models.ModuleAssignment, error) {
 	return r.apiClient.GetModuleAssignment(ctx, moduleAssignmentID)
@@ -117,4 +135,8 @@ func (r *Resolver) ModuleAssignment() generated.ModuleAssignmentResolver {
 	return &moduleAssignmentResolver{r}
 }
 
+// Mutation returns generated.MutationResolver implementation.
+func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+
 type moduleAssignmentResolver struct{ *Resolver }
+type mutationResolver struct{ *Resolver }

@@ -19,3 +19,14 @@ type TerraformExecutionWorkflowRequests {
   items: [TerraformExecutionWorkflowRequest]!
   nextCursor: String
 }
+
+input NewTerraformExecutionWorkflowRequest {
+  moduleAssignmentId: ID!
+  destroy: Boolean!
+}
+
+extend type Mutation {
+  createTerraformExecutionWorkflowRequest(
+    terraformExecutionWorkflowRequest: NewTerraformExecutionWorkflowRequest!
+  ): TerraformExecutionWorkflowRequest!
+}

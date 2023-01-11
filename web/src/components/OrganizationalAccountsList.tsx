@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import { Table } from "react-bootstrap";
 import Container from "react-bootstrap/Container";
-import { renderCloudPlatform } from "../utils/table_rendering";
+import { renderCloudPlatformTableData } from "../utils/table_rendering";
 
 const ORGANIZATIONAL_ACCOUNTS_QUERY = gql`
   query organizationalAccounts {
@@ -56,7 +56,7 @@ export const OrganizationalAccountsList = () => {
                   </NavLink>
                 </td>
                 <td>{account?.name}</td>
-                {renderCloudPlatform(account?.cloudPlatform)}
+                {renderCloudPlatformTableData(account?.cloudPlatform)}
                 <td>{account?.cloudIdentifier}</td>
               </tr>
             );

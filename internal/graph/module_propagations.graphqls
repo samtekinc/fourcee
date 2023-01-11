@@ -26,12 +26,12 @@ type ModulePropagation {
 
 type AwsProviderConfiguration {
   region: String!
-  alias: String!
+  alias: String
 }
 
 type GcpProviderConfiguration {
   region: String!
-  alias: String!
+  alias: String
 }
 
 type Argument {
@@ -58,12 +58,12 @@ input NewModulePropagation {
 
 input AwsProviderConfigurationInput {
   region: String!
-  alias: String!
+  alias: String
 }
 
 input GcpProviderConfigurationInput {
   region: String!
-  alias: String!
+  alias: String
 }
 
 input ModulePropagationUpdate {

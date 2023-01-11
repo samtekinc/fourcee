@@ -25,7 +25,7 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "TableName": "${aws_dynamodb_table.module_propagation_execution_requests.name}",
+        "TableName": "tfom-module-propagation-execution-requests",
         "Key": {
           "ModulePropagationId": {
             "S.$": "$.ModulePropagationId"
@@ -61,7 +61,7 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
               "Type": "Task",
               "Resource": "arn:aws:states:::states:startExecution.sync:2",
               "Parameters": {
-                "StateMachineArn": "${aws_sfn_state_machine.list_mp_accounts.arn}",
+                "StateMachineArn": "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-list-mp-accounts",
                 "Input": {
                   "StatePayload.$": "$",
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id"
@@ -78,9 +78,9 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
                 "Payload": {
                   "Payload.$": "$",
                   "Task": "ClassifyModuleAssignments",
-                  "Workflow": "ExecuteModulePropagation"
+                  "Workflow.$": "$$.StateMachine.Name"
                 },
-                "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
+                "FunctionName": "arn:aws:lambda:us-east-1:306526781466:function:tfom-workflow-handler"
               },
               "Retry": [
                 {
@@ -115,9 +115,9 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
                             "ActiveModuleAssignments.$": "$.ActiveModuleAssignments"
                           },
                           "Task": "CreateMissingModuleAssignments",
-                          "Workflow": "ExecuteModulePropagation"
+                          "Workflow.$": "$$.StateMachine.Name"
                         },
-                        "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
+                        "FunctionName": "arn:aws:lambda:us-east-1:306526781466:function:tfom-workflow-handler"
                       },
                       "Retry": [
                         {
@@ -156,9 +156,9 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
                                   "TaskToken.$": "$$.Task.Token"
                                 },
                                 "Task": "ScheduleTerraformExecutionWorkflow",
-                                "Workflow": "ExecuteModulePropagation"
+                                "Workflow.$": "$$.StateMachine.Name"
                               },
-                              "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
+                              "FunctionName": "arn:aws:lambda:us-east-1:306526781466:function:tfom-workflow-handler"
                             },
                             "Retry": [
                               {
@@ -214,9 +214,9 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
                                   "TaskToken.$": "$$.Task.Token"
                                 },
                                 "Task": "ScheduleTerraformExecutionWorkflow",
-                                "Workflow": "ExecuteModulePropagation"
+                                "Workflow.$": "$$.StateMachine.Name"
                               },
-                              "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
+                              "FunctionName": "arn:aws:lambda:us-east-1:306526781466:function:tfom-workflow-handler"
                             },
                             "Retry": [
                               {
@@ -239,36 +239,7 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
                                 "MaxAttempts": 3
                               }
                             ],
-                            "Next": "DeactivateModulePropagationAccountAssociation",
-                            "ResultPath": null
-                          },
-                          "DeactivateModulePropagationAccountAssociation": {
-                            "Type": "Task",
-                            "Resource": "arn:aws:states:::lambda:invoke",
-                            "OutputPath": "$.Payload",
-                            "Parameters": {
-                              "FunctionName": "${aws_lambda_function.workflow_handler.arn}",
-                              "Payload": {
-                                "Payload": {
-                                  "ModulePropagationAccountAssociation.$": "$"
-                                },
-                                "Task": "DeactivateModulePropagationAccountAssociation",
-                                "Workflow": "ExecuteModulePropagation"
-                              }
-                            },
-                            "Retry": [
-                              {
-                                "ErrorEquals": [
-                                  "Lambda.ServiceException",
-                                  "Lambda.AWSLambdaException",
-                                  "Lambda.SdkClientException",
-                                  "Lambda.TooManyRequestsException"
-                                ],
-                                "IntervalSeconds": 2,
-                                "MaxAttempts": 6,
-                                "BackoffRate": 2
-                              }
-                            ],
+                            "ResultPath": null,
                             "End": true
                           }
                         }
@@ -299,7 +270,7 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "TableName": "${aws_dynamodb_table.module_propagation_execution_requests.name}",
+        "TableName": "tfom-module-propagation-execution-requests",
         "Key": {
           "ModulePropagationId": {
             "S.$": "$.ModulePropagationId"
@@ -327,7 +298,7 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "TableName": "${aws_dynamodb_table.module_propagation_execution_requests.name}",
+        "TableName": "tfom-module-propagation-execution-requests",
         "Key": {
           "ModulePropagationId": {
             "S.$": "$.ModulePropagationId"

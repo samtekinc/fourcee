@@ -23,14 +23,17 @@ func GetTerraformConfigurationBase64(input *TerraformConfigurationInput) (string
 	var arguments []models.Argument
 	var awsProviderConfigurations []models.AwsProviderConfiguration
 	var gcpProviderConfigurations []models.GcpProviderConfiguration
+	var moduleName string
 	if input.ModulePropagation == nil {
 		arguments = input.ModuleAssignment.Arguments
 		awsProviderConfigurations = input.ModuleAssignment.AwsProviderConfigurations
 		gcpProviderConfigurations = input.ModuleAssignment.GcpProviderConfigurations
+		moduleName = input.ModuleAssignment.Name
 	} else {
 		arguments = input.ModulePropagation.Arguments
 		awsProviderConfigurations = input.ModulePropagation.AwsProviderConfigurations
 		gcpProviderConfigurations = input.ModulePropagation.GcpProviderConfigurations
+		moduleName = input.ModulePropagation.Name
 	}
 
 	switch input.OrgAccount.CloudPlatform {
@@ -40,7 +43,7 @@ func GetTerraformConfigurationBase64(input *TerraformConfigurationInput) (string
 				Config:         awsProvider,
 				AssumeRoleName: input.OrgAccount.AssumeRoleName,
 				AccountId:      input.OrgAccount.CloudIdentifier,
-				SessionName:    fmt.Sprintf("tfom-%s", input.ModulePropagation.ModulePropagationId),
+				SessionName:    fmt.Sprintf("tfom-%s", input.ModuleAssignment.ModuleAssignmentId),
 			})
 		}
 	case models.CloudPlatformAzure:
@@ -65,7 +68,7 @@ func GetTerraformConfigurationBase64(input *TerraformConfigurationInput) (string
 		Providers:             providers,
 		AccountMetadata:       append(input.OrgAccount.Metadata, input.OrgAccount.GetInternalMetadata()...),
 		ModuleVersionMetadata: input.ModuleVersion.GetInternalMetadata(),
-		ModuleName:            input.ModulePropagation.Name,
+		ModuleName:            moduleName,
 		ModuleSource:          input.ModuleVersion.RemoteSource,
 		ModuleArguments:       arguments,
 	}

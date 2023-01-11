@@ -28,6 +28,11 @@ func (r *mutationResolver) UpdateOrganizationalUnit(ctx context.Context, orgDime
 	return r.apiClient.UpdateOrganizationalUnit(ctx, orgDimensionID, orgUnitID, &update)
 }
 
+// OrgDimension is the resolver for the orgDimension field.
+func (r *organizationalUnitResolver) OrgDimension(ctx context.Context, obj *models.OrganizationalUnit) (*models.OrganizationalDimension, error) {
+	return r.apiClient.GetOrganizationalDimension(ctx, obj.OrgDimensionId)
+}
+
 // ParentOrgUnit is the resolver for the parentOrgUnit field.
 func (r *organizationalUnitResolver) ParentOrgUnit(ctx context.Context, obj *models.OrganizationalUnit) (*models.OrganizationalUnit, error) {
 	if obj.ParentOrgUnitId == "" {

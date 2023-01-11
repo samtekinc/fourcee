@@ -79,6 +79,29 @@ export const ModuleVersionPage = () => {
           <b>Terraform Version:</b> {data?.moduleVersion.terraformVersion}
         </li>
       </p>
+      <h2>Variables</h2>
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data?.moduleVersion.variables.map((variable) => {
+            return (
+              <tr>
+                <td>{variable?.name}</td>
+                <td>{variable?.type}</td>
+                <td>{variable?.default}</td>
+                <td>{variable?.description}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </Table>
       <h2>Module Propagations</h2>
       <Table striped bordered hover>
         <thead>
@@ -96,23 +119,21 @@ export const ModuleVersionPage = () => {
                   <NavLink
                     to={`/module-propagations/${propagation?.modulePropagationId}`}
                   >
-                    {propagation?.name} ({propagation?.modulePropagationId})
+                    {propagation?.name}
                   </NavLink>
                 </td>
                 <td>
                   <NavLink
                     to={`/org-dimensions/${propagation?.orgDimension?.orgDimensionId}`}
                   >
-                    {propagation?.orgDimension?.name} (
-                    {propagation?.orgDimension?.orgDimensionId})
+                    {propagation?.orgDimension?.name}
                   </NavLink>
                 </td>
                 <td>
                   <NavLink
                     to={`/org-dimensions/${propagation?.orgDimension?.orgDimensionId}/org-units/${propagation?.orgUnit?.orgUnitId}`}
                   >
-                    {propagation?.orgUnit?.name} (
-                    {propagation?.orgUnit?.orgUnitId})
+                    {propagation?.orgUnit?.name}
                   </NavLink>
                 </td>
               </tr>

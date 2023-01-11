@@ -10,12 +10,10 @@ import (
 	"go.uber.org/zap"
 )
 
-type Workflow string
-
 type Task string
 
 type CommonTaskInput struct {
-	Workflow Workflow
+	Workflow string
 	Task     Task
 	Payload  map[string]interface{}
 }

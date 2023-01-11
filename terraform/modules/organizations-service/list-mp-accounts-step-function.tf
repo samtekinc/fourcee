@@ -35,7 +35,7 @@ resource "aws_sfn_state_machine" "list_mp_accounts" {
                 "Payload": {
                   "Payload.$": "$.StatePayload",
                   "Task": "ListModulePropagationOrgUnits",
-                  "Workflow": "ExecuteModulePropagation"
+                  "Workflow.$": "$$.StateMachine.Name"
                 },
                 "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
               },
@@ -73,7 +73,7 @@ resource "aws_sfn_state_machine" "list_mp_accounts" {
                           "CloudPlatform.$": "$$.Execution.Input.StatePayload.CloudPlatform"
                         },
                         "Task": "ListOrgUnitAccounts",
-                        "Workflow": "ExecuteModulePropagation"
+                        "Workflow.$": "$$.StateMachine.Name"
                       },
                       "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
                     },
@@ -110,7 +110,7 @@ resource "aws_sfn_state_machine" "list_mp_accounts" {
                 "Payload": {
                   "Payload.$": "$.StatePayload",
                   "Task": "ListActiveModulePropagationAssignments",
-                  "Workflow": "ExecuteModulePropagation"
+                  "Workflow.$": "$$.StateMachine.Name"
                 },
                 "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
               },

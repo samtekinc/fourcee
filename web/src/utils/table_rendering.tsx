@@ -18,23 +18,14 @@ import { SiMicrosoftazure } from "react-icons/si";
 import { FcGoogle } from "react-icons/fc";
 
 import { CloudPlatform } from "../__generated__/graphql";
+import { renderCloudPlatform } from "./rendering";
 
-export function renderCloudPlatform(
+export function renderCloudPlatformTableData(
   cloudPlatform: CloudPlatform | undefined
 ): JSX.Element {
   return (
     <>
-      <td>
-        {cloudPlatform === CloudPlatform.Aws ? (
-          <FaAws color="FF9900" />
-        ) : cloudPlatform === CloudPlatform.Azure ? (
-          <SiMicrosoftazure color="007FFF" />
-        ) : cloudPlatform === CloudPlatform.Gcp ? (
-          <FcGoogle />
-        ) : (
-          <BsQuestionCircle color="#FF0000" />
-        )}
-      </td>
+      <td>{renderCloudPlatform(cloudPlatform)}</td>
     </>
   );
 }

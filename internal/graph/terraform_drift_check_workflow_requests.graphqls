@@ -24,3 +24,13 @@ enum TerraformDriftCheckStatus {
   IN_SYNC
   OUT_OF_SYNC
 }
+
+input NewTerraformDriftCheckWorkflowRequest {
+  moduleAssignmentId: ID!
+}
+
+extend type Mutation {
+  createTerraformDriftCheckWorkflowRequest(
+    terraformDriftCheckWorkflowRequest: NewTerraformDriftCheckWorkflowRequest!
+  ): TerraformDriftCheckWorkflowRequest!
+}

@@ -50,10 +50,13 @@ func (c *OrganizationsAPIClient) PutTerraformDriftCheckWorkflowRequest(ctx conte
 		return nil, err
 	}
 
-	workflowExecutionInput, err := json.Marshal(map[string]string{
+	inputMap := map[string]string{
 		"TerraformDriftCheckWorkflowRequestId": id.String(),
-		"TaskToken":                            input.CallbackTaskToken,
-	})
+	}
+	if input.CallbackTaskToken != nil && *input.CallbackTaskToken != "" {
+		inputMap["TaskToken"] = *input.CallbackTaskToken
+	}
+	workflowExecutionInput, err := json.Marshal(inputMap)
 	if err != nil {
 		return nil, err
 	}

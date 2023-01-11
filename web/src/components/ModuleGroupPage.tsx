@@ -4,6 +4,7 @@ import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
 import { Container } from "react-bootstrap";
+import { renderModuleAssignmentStatus } from "../utils/rendering";
 
 const MODULE_GROUP_QUERY = gql`
   query moduleGroup($moduleGroupId: ID!) {
@@ -34,6 +35,24 @@ const MODULE_GROUP_QUERY = gql`
             orgDimensionId
             name
           }
+        }
+      }
+      moduleAssignments {
+        items {
+          moduleAssignmentId
+          moduleVersion {
+            moduleVersionId
+            name
+          }
+          modulePropagation {
+            modulePropagationId
+            name
+          }
+          orgAccount {
+            orgAccountId
+            name
+          }
+          status
         }
       }
     }
@@ -113,32 +132,82 @@ export const ModuleGroupPage = () => {
                   <NavLink
                     to={`/module-propagations/${propagation?.modulePropagationId}`}
                   >
-                    {propagation?.name} ({propagation?.modulePropagationId})
+                    {propagation?.name}
                   </NavLink>
                 </td>
                 <td>
                   <NavLink
                     to={`/module-groups/${data?.moduleGroup.moduleGroupId}/versions/${propagation?.moduleVersion?.moduleVersionId}`}
                   >
-                    {propagation?.moduleVersion?.name} (
-                    {propagation?.moduleVersion?.moduleVersionId})
+                    {propagation?.moduleVersion?.name}
                   </NavLink>
                 </td>
                 <td>
                   <NavLink
                     to={`/org-dimensions/${propagation?.orgDimension?.orgDimensionId}`}
                   >
-                    {propagation?.orgDimension?.name} (
-                    {propagation?.orgDimension?.orgDimensionId})
+                    {propagation?.orgDimension?.name}
                   </NavLink>
                 </td>
                 <td>
                   <NavLink
                     to={`/org-dimensions/${propagation?.orgDimension?.orgDimensionId}/org-units/${propagation?.orgUnit?.orgUnitId}`}
                   >
-                    {propagation?.orgUnit?.name} (
-                    {propagation?.orgUnit?.orgUnitId})
+                    {propagation?.orgUnit?.name}
                   </NavLink>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </Table>
+      <h2>Module Assignments</h2>
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            <th>Assignment Id</th>
+            <th>Account</th>
+            <th>Module Version</th>
+            <th>Status</th>
+            <th>Propagated By</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data?.moduleGroup.moduleAssignments.items.map((assignment) => {
+            return (
+              <tr>
+                <td>
+                  <NavLink
+                    to={`/module-assignments/${assignment?.moduleAssignmentId}`}
+                  >
+                    {assignment?.moduleAssignmentId}
+                  </NavLink>
+                </td>
+                <td>
+                  <NavLink
+                    to={`/org-accounts/${assignment?.orgAccount?.orgAccountId}`}
+                  >
+                    {assignment?.orgAccount?.name}
+                  </NavLink>
+                </td>
+                <td>
+                  <NavLink
+                    to={`/module-groups/${moduleGroupId}/versions/${assignment?.moduleVersion?.moduleVersionId}`}
+                  >
+                    {assignment?.moduleVersion?.name}
+                  </NavLink>
+                </td>
+                <td>{renderModuleAssignmentStatus(assignment?.status)}</td>
+                <td>
+                  {assignment?.modulePropagation ? (
+                    <NavLink
+                      to={`/module-propagations/${assignment?.modulePropagation.modulePropagationId}`}
+                    >
+                      {assignment?.modulePropagation?.name}
+                    </NavLink>
+                  ) : (
+                    <div>Direct Assignment</div>
+                  )}
                 </td>
               </tr>
             );

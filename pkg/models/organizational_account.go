@@ -36,5 +36,9 @@ func (a *OrganizationalAccount) GetInternalMetadata() []Metadata {
 			Name:  "name",
 			Value: a.Name,
 		},
+		{
+			Name:  "cloud_identifier",
+			Value: a.CloudIdentifier,
+		},
 	}
 }

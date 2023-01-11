@@ -4,6 +4,7 @@ type ModuleGroup {
   cloudPlatform: CloudPlatform!
   versions(limit: Int, nextCursor: String): ModuleVersions!
   modulePropagations(limit: Int, nextCursor: String): ModulePropagations!
+  moduleAssignments(limit: Int, nextCursor: String): ModuleAssignments!
 }
 
 type ModuleGroups {

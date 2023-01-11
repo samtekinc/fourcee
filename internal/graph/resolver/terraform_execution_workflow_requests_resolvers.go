@@ -11,6 +11,11 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
+// CreateTerraformExecutionWorkflowRequest is the resolver for the createTerraformExecutionWorkflowRequest field.
+func (r *mutationResolver) CreateTerraformExecutionWorkflowRequest(ctx context.Context, terraformExecutionWorkflowRequest models.NewTerraformExecutionWorkflowRequest) (*models.TerraformExecutionWorkflowRequest, error) {
+	return r.apiClient.PutTerraformExecutionWorkflowRequest(ctx, &terraformExecutionWorkflowRequest)
+}
+
 // ModuleAssignment is the resolver for the moduleAssignment field.
 func (r *terraformExecutionWorkflowRequestResolver) ModuleAssignment(ctx context.Context, obj *models.TerraformExecutionWorkflowRequest) (*models.ModuleAssignment, error) {
 	return r.apiClient.GetModuleAssignment(ctx, obj.ModuleAssignmentId)

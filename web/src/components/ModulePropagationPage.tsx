@@ -11,9 +11,11 @@ import { NavLink, useParams } from "react-router-dom";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
 import { renderStatus, renderTimeField } from "../utils/table_rendering";
-import { Container, Form, Modal } from "react-bootstrap";
+import { Container, Form, ListGroup, Modal } from "react-bootstrap";
 import { NotificationManager } from "react-notifications";
 import { Button } from "react-bootstrap";
+import { DriftCheckModulePropagationButton } from "./TriggerModulePropagationDriftCheckButton";
+import { ExecuteModulePropagationButton } from "./TriggerModulePropagationExecutionButton";
 
 const MODULE_PROPAGATION_QUERY = gql`
   query modulePropagation($modulePropagationId: ID!) {
@@ -125,11 +127,15 @@ export const ModulePropagationPage = () => {
       </p>
       <UpdateModulePropagationButton
         modulePropagation={data.modulePropagation}
+        key={data.modulePropagation.modulePropagationId}
       />
-      <h2>Execution Requests</h2>
-      <ExecuteModulePropagationButton
-        modulePropagationId={modulePropagationId}
-      />
+      <h2>
+        Execution Requests{" "}
+        <ExecuteModulePropagationButton
+          modulePropagationId={modulePropagationId}
+        />
+      </h2>
+
       <Table striped bordered hover>
         <thead>
           <tr>
@@ -158,10 +164,13 @@ export const ModulePropagationPage = () => {
           )}
         </tbody>
       </Table>
-      <h2>Drift Check Requests</h2>
-      <DriftCheckModulePropagationButton
-        modulePropagationId={modulePropagationId}
-      />
+      <h2>
+        Drift Check Requests{" "}
+        <DriftCheckModulePropagationButton
+          modulePropagationId={modulePropagationId}
+        />
+      </h2>
+
       <Table striped bordered hover>
         <thead>
           <tr>
@@ -224,7 +233,7 @@ export const ModulePropagationPage = () => {
             })}
         </tbody>
       </Table>
-      <h2>Account Associations</h2>
+      <h2>Account Assignments</h2>
       <Table striped bordered hover>
         <thead>
           <tr>
@@ -241,8 +250,7 @@ export const ModulePropagationPage = () => {
                     <NavLink
                       to={`/org-accounts/${moduleAssignment?.orgAccount.orgAccountId}`}
                     >
-                      {moduleAssignment?.orgAccount.name} (
-                      {moduleAssignment?.orgAccount.orgAccountId})
+                      {moduleAssignment?.orgAccount.name}
                     </NavLink>
                   </td>
                   <td>
@@ -259,133 +267,6 @@ export const ModulePropagationPage = () => {
         </tbody>
       </Table>
     </Container>
-  );
-};
-
-const EXECUTE_MODULE_PROPAGATION_MUTATION = gql(`
-  mutation createModulePropagationExecutionRequest($modulePropagationId: ID!) {
-    createModulePropagationExecutionRequest(
-      modulePropagationExecutionRequest: {
-        modulePropagationId: $modulePropagationId
-      }
-    ) {
-      modulePropagationExecutionRequestId
-      status
-    }
-  }
-`);
-
-interface ExecuteModulePropagationButtonProps {
-  modulePropagationId: string;
-}
-
-type ExecuteModulePropagationResponse = {
-  createModulePropagationExecutionRequest: {
-    modulePropagationExecutionRequestId: string;
-    status: string;
-  };
-};
-
-const ExecuteModulePropagationButton: React.VFC<
-  ExecuteModulePropagationButtonProps
-> = (props: ExecuteModulePropagationButtonProps) => {
-  const [mutation, { loading }] = useMutation<ExecuteModulePropagationResponse>(
-    EXECUTE_MODULE_PROPAGATION_MUTATION,
-    {
-      variables: {
-        modulePropagationId: props.modulePropagationId,
-      },
-      onError: (error) => {
-        console.log(error);
-        NotificationManager.error(
-          error.message,
-          `Error executing module propagation`,
-          5000
-        );
-      },
-      onCompleted: (data) => {
-        NotificationManager.success(
-          `Initiated ${data.createModulePropagationExecutionRequest.modulePropagationExecutionRequestId}`,
-          "",
-          5000
-        );
-      },
-    }
-  );
-
-  return (
-    <Button
-      disabled={loading}
-      onClick={() => {
-        mutation();
-      }}
-    >
-      {loading ? "Submitting..." : "Execute Module Propagation"}
-    </Button>
-  );
-};
-
-const DRIFT_CHECK_MODULE_PROPAGATION_MUTATION = gql(`
-  mutation createModulePropagationDriftCheckRequest($modulePropagationId: ID!) {
-    createModulePropagationDriftCheckRequest(
-      modulePropagationDriftCheckRequest: {
-        modulePropagationId: $modulePropagationId
-      }
-    ) {
-      modulePropagationDriftCheckRequestId
-      status
-    }
-  }
-`);
-
-interface DriftCheckModulePropagationButtonProps {
-  modulePropagationId: string;
-}
-
-type DriftCheckModulePropagationResponse = {
-  createModulePropagationDriftCheckRequest: {
-    modulePropagationDriftCheckRequestId: string;
-    status: string;
-  };
-};
-
-const DriftCheckModulePropagationButton: React.VFC<
-  DriftCheckModulePropagationButtonProps
-> = (props: DriftCheckModulePropagationButtonProps) => {
-  const [mutation, { loading }] =
-    useMutation<DriftCheckModulePropagationResponse>(
-      DRIFT_CHECK_MODULE_PROPAGATION_MUTATION,
-      {
-        variables: {
-          modulePropagationId: props.modulePropagationId,
-        },
-        onError: (error) => {
-          console.log(error);
-          NotificationManager.error(
-            error.message,
-            `Error running drift check on module propagation`,
-            5000
-          );
-        },
-        onCompleted: (data) => {
-          NotificationManager.success(
-            `Initiated ${data.createModulePropagationDriftCheckRequest.modulePropagationDriftCheckRequestId}`,
-            "",
-            5000
-          );
-        },
-      }
-    );
-
-  return (
-    <Button
-      disabled={loading}
-      onClick={() => {
-        mutation();
-      }}
-    >
-      {loading ? "Submitting..." : "DriftCheck Module Propagation"}
-    </Button>
   );
 };
 
