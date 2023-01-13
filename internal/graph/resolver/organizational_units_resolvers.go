@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sheacloud/tfom/internal/graph/generated"
@@ -55,6 +56,33 @@ func (r *organizationalUnitResolver) DownstreamOrgUnits(ctx context.Context, obj
 		limit = aws.Int(100)
 	}
 	return r.apiClient.GetOrganizationalUnitsByHierarchy(ctx, obj.OrgDimensionId, obj.Hierarchy+obj.OrgUnitId, int32(*limit), aws.ToString(nextCursor))
+}
+
+// UpstreamOrgUnits is the resolver for the upstreamOrgUnits field.
+func (r *organizationalUnitResolver) UpstreamOrgUnits(ctx context.Context, obj *models.OrganizationalUnit) (*models.OrganizationalUnits, error) {
+	// TODO: Improve this by adding a bulk query function to the DB client to do batch GETs
+
+	if obj.Hierarchy == "/" {
+		return &models.OrganizationalUnits{
+			Items:      []models.OrganizationalUnit{},
+			NextCursor: "",
+		}, nil
+	}
+
+	parentOrgUnitIds := strings.Split(strings.Trim(obj.Hierarchy, "/"), "/")
+	parentsOrgUnits := make([]models.OrganizationalUnit, len(parentOrgUnitIds))
+	for i, parentOrgUnitId := range parentOrgUnitIds {
+		parentOrgUnit, err := r.apiClient.GetOrganizationalUnit(ctx, obj.OrgDimensionId, parentOrgUnitId)
+		if err != nil {
+			return nil, err
+		}
+		parentsOrgUnits[i] = *parentOrgUnit
+	}
+
+	return &models.OrganizationalUnits{
+		Items:      parentsOrgUnits,
+		NextCursor: "",
+	}, nil
 }
 
 // OrgUnitMemberships is the resolver for the orgUnitMemberships field.

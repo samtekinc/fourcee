@@ -12,13 +12,13 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-// TerraformExecutionWorkflowRequests is the resolver for the terraformExecutionWorkflowRequests field.
-func (r *modulePropagationExecutionRequestResolver) TerraformExecutionWorkflowRequests(ctx context.Context, obj *models.ModulePropagationExecutionRequest, limit *int, nextCursor *string) (*models.TerraformExecutionWorkflowRequests, error) {
+// TerraformExecutionRequests is the resolver for the terraformExecutionRequests field.
+func (r *modulePropagationExecutionRequestResolver) TerraformExecutionRequests(ctx context.Context, obj *models.ModulePropagationExecutionRequest, limit *int, nextCursor *string) (*models.TerraformExecutionRequests, error) {
 	if limit == nil {
 		limit = aws.Int(100)
 	}
 
-	return r.apiClient.GetTerraformExecutionWorkflowRequestsByModulePropagationExecutionRequestId(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetTerraformExecutionRequestsByModulePropagationExecutionRequestId(ctx, obj.ModulePropagationExecutionRequestId, int32(*limit), aws.ToString(nextCursor))
 }
 
 // CreateModulePropagationExecutionRequest is the resolver for the createModulePropagationExecutionRequest field.

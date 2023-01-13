@@ -19,12 +19,12 @@ type CommonTaskInput struct {
 }
 
 type TaskHandler struct {
-	apiClient         api.OrganizationsAPIClientInterface
+	apiClient         api.APIClientInterface
 	remoteStateBucket string
 	remoteStateRegion string
 }
 
-func NewTaskHandler(apiClient api.OrganizationsAPIClientInterface, remoteStateBucket string, remoteStateRegion string) *TaskHandler {
+func NewTaskHandler(apiClient api.APIClientInterface, remoteStateBucket string, remoteStateRegion string) *TaskHandler {
 	return &TaskHandler{
 		apiClient:         apiClient,
 		remoteStateBucket: remoteStateBucket,
@@ -47,18 +47,18 @@ func (t *TaskHandler) RouteTask(ctx context.Context, input map[string]interface{
 			return nil, fmt.Errorf("unable to decode task payload: %w", err)
 		}
 		return t.CreateMissingModuleAssignments(ctx, taskPayload)
-	case TaskScheduleTerraformExecutionWorkflow:
-		var taskPayload ScheduleTerraformExecutionWorkflowInput
+	case TaskScheduleTerraformExecution:
+		var taskPayload ScheduleTerraformExecutionInput
 		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {
 			return nil, fmt.Errorf("unable to decode task payload: %w", err)
 		}
-		return t.ScheduleTerraformExecutionWorkflow(ctx, taskPayload)
-	case TaskScheduleTerraformDriftCheckWorkflow:
-		var taskPayload ScheduleTerraformDriftCheckWorkflowInput
+		return t.ScheduleTerraformExecution(ctx, taskPayload)
+	case TaskScheduleTerraformDriftCheck:
+		var taskPayload ScheduleTerraformDriftCheckInput
 		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {
 			return nil, fmt.Errorf("unable to decode task payload: %w", err)
 		}
-		return t.ScheduleTerraformDriftCheckWorkflow(ctx, taskPayload)
+		return t.ScheduleTerraformDriftCheck(ctx, taskPayload)
 	case TaskDeactivateModuleAssignment:
 		var taskPayload DeactivateModuleAssignmentInput
 		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {
@@ -107,6 +107,12 @@ func (t *TaskHandler) RouteTask(ctx context.Context, input map[string]interface{
 			return nil, fmt.Errorf("unable to decode task payload: %w", err)
 		}
 		return t.ScheduleTerraformPlan(ctx, taskPayload)
+	case TaskUpdateModuleAssignments:
+		var taskPayload UpdateModuleAssignmentsInput
+		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {
+			return nil, fmt.Errorf("unable to decode task payload: %w", err)
+		}
+		return t.UpdateModuleAssignments(ctx, taskPayload)
 	default:
 		return nil, fmt.Errorf("unknown task: %s", parsedInput.Task)
 	}

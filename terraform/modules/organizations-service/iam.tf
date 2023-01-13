@@ -126,6 +126,7 @@ data "aws_iam_policy_document" "workflow_handler_policy" {
       "dynamodb:UpdateItem",
       "dynamodb:DeleteItem",
       "dynamodb:GetItem",
+      "dynamodb:BatchGetItem",
       "dynamodb:Query",
       "dynamodb:Scan",
     ]
@@ -250,8 +251,8 @@ data "aws_iam_policy_document" "step_functions_policy" {
       aws_dynamodb_table.module_propagation_drift_check_requests.arn,
       aws_dynamodb_table.plan_execution_requests.arn,
       aws_dynamodb_table.apply_execution_requests.arn,
-      aws_dynamodb_table.terraform_execution_workflow_requests.arn,
-      aws_dynamodb_table.terraform_drift_check_workflow_requests.arn
+      aws_dynamodb_table.terraform_execution_requests.arn,
+      aws_dynamodb_table.terraform_drift_check_requests.arn
     ]
   }
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -18,7 +19,7 @@ import (
 )
 
 // Defining the Graphql handler
-func graphqlHandler(apiClient api.OrganizationsAPIClientInterface) gin.HandlerFunc {
+func graphqlHandler(apiClient api.APIClientInterface) gin.HandlerFunc {
 	// NewExecutableSchema and Config are in the generated.go file
 	// Resolver is in the resolver.go file
 	h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver.NewResolver(apiClient)}))
@@ -48,7 +49,7 @@ func main() {
 	s3Client := s3.NewFromConfig(cfg)
 	sfnClient := sfn.NewFromConfig(cfg)
 
-	dbInput := database.OrganizationsDatabaseClientInput{
+	dbInput := database.DatabaseClientInput{
 		DynamoDB:              dynamodbClient,
 		S3:                    s3Client,
 		DimensionsTableName:   "tfom-organizational-dimensions",
@@ -62,28 +63,27 @@ func main() {
 		ModulePropagationDriftCheckRequestsTableName: "tfom-module-propagation-drift-check-requests",
 		ModuleAssignmentsTableName:                   "tfom-module-assignments",
 		ModulePropagationAssignmentsTableName:        "tfom-module-propagation-assignments",
-		TerraformExecutionWorkflowRequestsTableName:  "tfom-terraform-execution-workflow-requests",
-		TerraformDriftCheckWorkflowRequestsTableName: "tfom-terraform-drift-check-workflow-requests",
+		TerraformExecutionRequestsTableName:          "tfom-terraform-execution-requests",
+		TerraformDriftCheckRequestsTableName:         "tfom-terraform-drift-check-requests",
 		PlanExecutionsTableName:                      "tfom-plan-execution-requests",
 		ApplyExecutionsTableName:                     "tfom-apply-execution-requests",
 		ResultsBucketName:                            "tfom-execution-results",
 	}
-	dbClient := database.NewOrganizationsDatabaseClient(&dbInput)
-	apiInput := api.OrganizationsAPIClientInput{
-		DBClient:                               dbClient,
-		WorkingDirectory:                       "./tmp",
-		SfnClient:                              sfnClient,
-		ModulePropagationExecutionWorkflowArn:  "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-execution",
-		ModulePropagationDriftCheckWorkflowArn: "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-drift-check",
-		TerraformCommandWorkflowArn:            "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-command",
-		TerraformExecutionWorkflowArn:          "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-execution-workflow",
-		TerraformDriftCheckWorkflowArn:         "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-drift-check-workflow",
-		RemoteStateBucket:                      "tfom-backend-states",
-		RemoteStateRegion:                      "us-east-1",
+	dbClient := database.NewDatabaseClient(&dbInput)
+	apiInput := api.APIClientInput{
+		DBClient:                       dbClient,
+		WorkingDirectory:               "./tmp/",
+		SfnClient:                      sfnClient,
+		ModulePropagationExecutionArn:  "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-execution",
+		ModulePropagationDriftCheckArn: "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-drift-check",
+		TerraformCommandWorkflowArn:    "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-command",
+		TerraformExecutionArn:          "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-execution",
+		TerraformDriftCheckArn:         "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-drift-check",
+		RemoteStateBucket:              "tfom-backend-states",
+		RemoteStateRegion:              "us-east-1",
+		DataLoaderWaitTime:             time.Millisecond * 16,
 	}
-	apiClient := api.NewOrganizationsAPIClient(&apiInput)
-
-	// orgRouter := rest.NewOrganizationsRouter(apiClient)
+	apiClient := api.NewAPIClient(&apiInput)
 
 	router := gin.Default()
 	config := cors.DefaultConfig()
@@ -92,7 +92,6 @@ func main() {
 
 	router.POST("/query", graphqlHandler(apiClient))
 	router.GET("/", playgroundHandler())
-	// orgRouter.RegisterRoutes(&router.RouterGroup)
 
 	router.Run(":8080")
 }

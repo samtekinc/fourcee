@@ -18,6 +18,13 @@ type PlanExecutionRequests {
 }
 
 extend type Query {
-  planExecutionRequest(planExecutionRequestId: ID!): PlanExecutionRequest!
-  planExecutionRequests(limit: Int, nextCursor: String): PlanExecutionRequests!
+  planExecutionRequest(
+    planExecutionRequestId: ID!
+    withOutputs: Boolean = false
+  ): PlanExecutionRequest!
+  planExecutionRequests(
+    limit: Int
+    nextCursor: String
+    withOutputs: Boolean = false
+  ): PlanExecutionRequests!
 }

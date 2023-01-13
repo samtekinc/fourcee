@@ -13,7 +13,8 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-func (c *OrganizationsDatabaseClient) GetOrganizationalAccount(ctx context.Context, orgAccountId string) (*models.OrganizationalAccount, error) {
+func (c *DatabaseClient) GetOrganizationalAccount(ctx context.Context, orgAccountId string) (*models.OrganizationalAccount, error) {
+	fmt.Println("getting org account")
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &c.accountsTableName,
 		Key: map[string]types.AttributeValue{
@@ -34,7 +35,52 @@ func (c *OrganizationsDatabaseClient) GetOrganizationalAccount(ctx context.Conte
 	return &orgAccount, nil
 }
 
-func (c OrganizationsDatabaseClient) GetOrganizationalAccounts(ctx context.Context, limit int32, cursor string) (*models.OrganizationalAccounts, error) {
+func (c *DatabaseClient) GetOrganizationalAccountsByIds(ctx context.Context, ids []string) ([]models.OrganizationalAccount, error) {
+	fmt.Println("getting org accounts by ids", len(ids))
+	var keys []map[string]types.AttributeValue
+
+	for _, id := range ids {
+		keys = append(keys, map[string]types.AttributeValue{
+			"OrgAccountId": &types.AttributeValueMemberS{Value: id},
+		})
+	}
+
+	bii := dynamodb.BatchGetItemInput{
+		RequestItems: map[string]types.KeysAndAttributes{
+			c.accountsTableName: {
+				Keys: keys,
+			},
+		},
+	}
+	items := []map[string]types.AttributeValue{}
+
+	for {
+		bgo, err := c.dynamodb.BatchGetItem(ctx, &bii)
+		if err != nil {
+			return nil, err
+		}
+		if bgo.Responses != nil {
+			items = append(items, bgo.Responses[c.accountsTableName]...)
+		}
+		requestItems := bgo.UnprocessedKeys
+		bii = dynamodb.BatchGetItemInput{RequestItems: requestItems}
+		if len(requestItems) == 0 {
+			break
+		}
+	}
+
+	items = SortDynamoDBBatchResponses(keys, items)
+
+	results := []models.OrganizationalAccount{}
+	err := attributevalue.UnmarshalListOfMaps(items, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (c DatabaseClient) GetOrganizationalAccounts(ctx context.Context, limit int32, cursor string) (*models.OrganizationalAccounts, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -72,7 +118,7 @@ func (c OrganizationsDatabaseClient) GetOrganizationalAccounts(ctx context.Conte
 	}, nil
 }
 
-func (c *OrganizationsDatabaseClient) PutOrganizationalAccount(ctx context.Context, input *models.OrganizationalAccount) error {
+func (c *DatabaseClient) PutOrganizationalAccount(ctx context.Context, input *models.OrganizationalAccount) error {
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
@@ -102,7 +148,7 @@ func (c *OrganizationsDatabaseClient) PutOrganizationalAccount(ctx context.Conte
 	}
 }
 
-func (c *OrganizationsDatabaseClient) DeleteOrganizationalAccount(ctx context.Context, orgAccountId string) error {
+func (c *DatabaseClient) DeleteOrganizationalAccount(ctx context.Context, orgAccountId string) error {
 	condition := expression.AttributeExists(expression.Name("OrgAccountId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()
@@ -128,7 +174,7 @@ func (c *OrganizationsDatabaseClient) DeleteOrganizationalAccount(ctx context.Co
 	}
 }
 
-func (c *OrganizationsDatabaseClient) UpdateOrganizationalAccount(ctx context.Context, orgAccountId string, update *models.OrganizationalAccountUpdate) (*models.OrganizationalAccount, error) {
+func (c *DatabaseClient) UpdateOrganizationalAccount(ctx context.Context, orgAccountId string, update *models.OrganizationalAccountUpdate) (*models.OrganizationalAccount, error) {
 	condition := expression.AttributeExists(expression.Name("OrgAccountId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()

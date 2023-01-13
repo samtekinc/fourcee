@@ -19,9 +19,13 @@ type ApplyExecutionRequests {
 }
 
 extend type Query {
-  applyExecutionRequest(applyExecutionRequestId: ID!): ApplyExecutionRequest!
+  applyExecutionRequest(
+    applyExecutionRequestId: ID!
+    withOutputs: Boolean = false
+  ): ApplyExecutionRequest!
   applyExecutionRequests(
     limit: Int
     nextCursor: String
+    withOutputs: Boolean = false
   ): ApplyExecutionRequests!
 }

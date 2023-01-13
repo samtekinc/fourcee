@@ -13,7 +13,7 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-func (c *OrganizationsDatabaseClient) GetOrganizationalDimension(ctx context.Context, orgDimensionId string) (*models.OrganizationalDimension, error) {
+func (c *DatabaseClient) GetOrganizationalDimension(ctx context.Context, orgDimensionId string) (*models.OrganizationalDimension, error) {
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &c.dimensionsTableName,
 		Key: map[string]types.AttributeValue{
@@ -34,7 +34,52 @@ func (c *OrganizationsDatabaseClient) GetOrganizationalDimension(ctx context.Con
 	return &orgDimension, nil
 }
 
-func (c OrganizationsDatabaseClient) GetOrganizationalDimensions(ctx context.Context, limit int32, cursor string) (*models.OrganizationalDimensions, error) {
+func (c *DatabaseClient) GetOrganizationalDimensionsByIds(ctx context.Context, ids []string) ([]models.OrganizationalDimension, error) {
+	fmt.Println("getting org dimensions by ids", len(ids))
+	var keys []map[string]types.AttributeValue
+
+	for _, id := range ids {
+		keys = append(keys, map[string]types.AttributeValue{
+			"OrgDimensionId": &types.AttributeValueMemberS{Value: id},
+		})
+	}
+
+	bii := dynamodb.BatchGetItemInput{
+		RequestItems: map[string]types.KeysAndAttributes{
+			c.dimensionsTableName: {
+				Keys: keys,
+			},
+		},
+	}
+	items := []map[string]types.AttributeValue{}
+
+	for {
+		bgo, err := c.dynamodb.BatchGetItem(ctx, &bii)
+		if err != nil {
+			return nil, err
+		}
+		if bgo.Responses != nil {
+			items = append(items, bgo.Responses[c.dimensionsTableName]...)
+		}
+		requestItems := bgo.UnprocessedKeys
+		bii = dynamodb.BatchGetItemInput{RequestItems: requestItems}
+		if len(requestItems) == 0 {
+			break
+		}
+	}
+
+	items = SortDynamoDBBatchResponses(keys, items)
+
+	results := []models.OrganizationalDimension{}
+	err := attributevalue.UnmarshalListOfMaps(items, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (c DatabaseClient) GetOrganizationalDimensions(ctx context.Context, limit int32, cursor string) (*models.OrganizationalDimensions, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -72,7 +117,7 @@ func (c OrganizationsDatabaseClient) GetOrganizationalDimensions(ctx context.Con
 	}, nil
 }
 
-func (c *OrganizationsDatabaseClient) PutOrganizationalDimension(ctx context.Context, input *models.OrganizationalDimension) error {
+func (c *DatabaseClient) PutOrganizationalDimension(ctx context.Context, input *models.OrganizationalDimension) error {
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
@@ -102,7 +147,7 @@ func (c *OrganizationsDatabaseClient) PutOrganizationalDimension(ctx context.Con
 	}
 }
 
-func (c *OrganizationsDatabaseClient) DeleteOrganizationalDimension(ctx context.Context, orgDimensionId string) error {
+func (c *DatabaseClient) DeleteOrganizationalDimension(ctx context.Context, orgDimensionId string) error {
 	condition := expression.AttributeExists(expression.Name("OrgDimensionId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()

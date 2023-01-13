@@ -44,6 +44,7 @@ type NewModuleAssignment struct {
 type ModuleAssignmentUpdate struct {
 	Name                      *string
 	Description               *string
+	ModuleVersionId           *string
 	Arguments                 []ArgumentInput
 	AwsProviderConfigurations []AwsProviderConfigurationInput
 	GcpProviderConfigurations []GcpProviderConfigurationInput

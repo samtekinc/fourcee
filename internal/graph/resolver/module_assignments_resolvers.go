@@ -37,36 +37,36 @@ func (r *moduleAssignmentResolver) ModulePropagation(ctx context.Context, obj *m
 	return r.apiClient.GetModulePropagation(ctx, *obj.ModulePropagationId)
 }
 
-// TerraformDriftCheckWorkflowRequests is the resolver for the terraformDriftCheckWorkflowRequests field.
-func (r *moduleAssignmentResolver) TerraformDriftCheckWorkflowRequests(ctx context.Context, obj *models.ModuleAssignment, limit *int, nextCursor *string) (*models.TerraformDriftCheckWorkflowRequests, error) {
+// TerraformDriftCheckRequests is the resolver for the terraformDriftCheckRequests field.
+func (r *moduleAssignmentResolver) TerraformDriftCheckRequests(ctx context.Context, obj *models.ModuleAssignment, limit *int, nextCursor *string) (*models.TerraformDriftCheckRequests, error) {
 	if limit == nil {
 		limit = aws.Int(100)
 	}
-	return r.apiClient.GetTerraformDriftCheckWorkflowRequestsByModuleAssignmentId(ctx, obj.ModuleAssignmentId, int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetTerraformDriftCheckRequestsByModuleAssignmentId(ctx, obj.ModuleAssignmentId, int32(*limit), aws.ToString(nextCursor))
 }
 
-// TerraformExecutionWorkflowRequests is the resolver for the terraformExecutionWorkflowRequests field.
-func (r *moduleAssignmentResolver) TerraformExecutionWorkflowRequests(ctx context.Context, obj *models.ModuleAssignment, limit *int, nextCursor *string) (*models.TerraformExecutionWorkflowRequests, error) {
+// TerraformExecutionRequests is the resolver for the terraformExecutionRequests field.
+func (r *moduleAssignmentResolver) TerraformExecutionRequests(ctx context.Context, obj *models.ModuleAssignment, limit *int, nextCursor *string) (*models.TerraformExecutionRequests, error) {
 	if limit == nil {
 		limit = aws.Int(100)
 	}
-	return r.apiClient.GetTerraformExecutionWorkflowRequestsByModuleAssignmentId(ctx, obj.ModuleAssignmentId, int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetTerraformExecutionRequestsByModuleAssignmentId(ctx, obj.ModuleAssignmentId, int32(*limit), aws.ToString(nextCursor))
 }
 
 // PlanExecutionRequests is the resolver for the planExecutionRequests field.
-func (r *moduleAssignmentResolver) PlanExecutionRequests(ctx context.Context, obj *models.ModuleAssignment, limit *int, nextCursor *string) (*models.PlanExecutionRequests, error) {
+func (r *moduleAssignmentResolver) PlanExecutionRequests(ctx context.Context, obj *models.ModuleAssignment, limit *int, nextCursor *string, withOutputs *bool) (*models.PlanExecutionRequests, error) {
 	if limit == nil {
 		limit = aws.Int(100)
 	}
-	return r.apiClient.GetPlanExecutionRequestsByModuleAssignmentId(ctx, obj.ModuleAssignmentId, int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetPlanExecutionRequestsByModuleAssignmentId(ctx, obj.ModuleAssignmentId, int32(*limit), aws.ToString(nextCursor), aws.ToBool(withOutputs))
 }
 
 // ApplyExecutionRequests is the resolver for the applyExecutionRequests field.
-func (r *moduleAssignmentResolver) ApplyExecutionRequests(ctx context.Context, obj *models.ModuleAssignment, limit *int, nextCursor *string) (*models.ApplyExecutionRequests, error) {
+func (r *moduleAssignmentResolver) ApplyExecutionRequests(ctx context.Context, obj *models.ModuleAssignment, limit *int, nextCursor *string, withOutputs *bool) (*models.ApplyExecutionRequests, error) {
 	if limit == nil {
 		limit = aws.Int(100)
 	}
-	return r.apiClient.GetApplyExecutionRequestsByModuleAssignmentId(ctx, obj.ModuleAssignmentId, int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetApplyExecutionRequestsByModuleAssignmentId(ctx, obj.ModuleAssignmentId, int32(*limit), aws.ToString(nextCursor), aws.ToBool(withOutputs))
 }
 
 // TerraformConfiguration is the resolver for the terraformConfiguration field.

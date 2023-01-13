@@ -27,31 +27,6 @@ const ORGANIZATIONAL_DIMENSION_QUERY = gql`
           hierarchy
         }
       }
-      modulePropagations {
-        items {
-          modulePropagationId
-          moduleGroupId
-          moduleVersionId
-          orgUnitId
-          orgDimensionId
-          name
-          description
-        }
-      }
-      orgUnitMemberships {
-        items {
-          orgAccount {
-            orgAccountId
-            name
-            cloudPlatform
-            cloudIdentifier
-          }
-          orgUnit {
-            orgUnitId
-            name
-          }
-        }
-      }
     }
   }
 `;
@@ -73,7 +48,7 @@ export const OrganizationalDimensionPage = () => {
       variables: {
         orgDimensionId: organizationalDimensionId,
       },
-      pollInterval: 1000,
+      pollInterval: 5000,
     }
   );
 

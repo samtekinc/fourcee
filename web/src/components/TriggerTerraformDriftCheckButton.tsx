@@ -5,13 +5,11 @@ import { NotificationManager } from "react-notifications";
 import { Button } from "react-bootstrap";
 
 const TERRAFORM_DRIFT_CHECK_MUTATION = gql`
-  mutation createTerraformDriftCheckWorkflowRequest($moduleAssignmentId: ID!) {
-    createTerraformDriftCheckWorkflowRequest(
-      terraformDriftCheckWorkflowRequest: {
-        moduleAssignmentId: $moduleAssignmentId
-      }
+  mutation createTerraformDriftCheckRequest($moduleAssignmentId: ID!) {
+    createTerraformDriftCheckRequest(
+      terraformDriftCheckRequest: { moduleAssignmentId: $moduleAssignmentId }
     ) {
-      terraformDriftCheckWorkflowRequestId
+      terraformDriftCheckRequestId
     }
   }
 `;
@@ -21,8 +19,8 @@ interface TriggerTerraformDriftCheckButtonProps {
 }
 
 type TriggerTerraformDriftCheckResponse = {
-  createTerraformDriftCheckWorkflowRequest: {
-    terraformDriftCheckWorkflowRequestId: string;
+  createTerraformDriftCheckRequest: {
+    terraformDriftCheckRequestId: string;
   };
 };
 
@@ -46,7 +44,7 @@ export const TriggerTerraformDriftCheckButton: React.VFC<
         },
         onCompleted: (data) => {
           NotificationManager.success(
-            `Initiated ${data.createTerraformDriftCheckWorkflowRequest.terraformDriftCheckWorkflowRequestId}`,
+            `Initiated ${data.createTerraformDriftCheckRequest.terraformDriftCheckRequestId}`,
             "",
             5000
           );

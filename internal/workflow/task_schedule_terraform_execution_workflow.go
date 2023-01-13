@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	TaskScheduleTerraformExecutionWorkflow Task = "ScheduleTerraformExecutionWorkflow"
+	TaskScheduleTerraformExecution Task = "ScheduleTerraformExecution"
 )
 
-type ScheduleTerraformExecutionWorkflowInput struct {
+type ScheduleTerraformExecutionInput struct {
 	ModulePropagationExecutionRequestId string
 	ModulePropagationId                 string
 	ModuleAssignment                    models.ModuleAssignment
@@ -18,12 +18,12 @@ type ScheduleTerraformExecutionWorkflowInput struct {
 	TaskToken                           *string
 }
 
-type ScheduleTerraformExecutionWorkflowOutput struct {
-	TerraformExecutionWorkflowRequestId string
+type ScheduleTerraformExecutionOutput struct {
+	TerraformExecutionRequestId string
 }
 
-func (t *TaskHandler) ScheduleTerraformExecutionWorkflow(ctx context.Context, input ScheduleTerraformExecutionWorkflowInput) (*ScheduleTerraformExecutionWorkflowOutput, error) {
-	tfWorkflow, err := t.apiClient.PutTerraformExecutionWorkflowRequest(ctx, &models.NewTerraformExecutionWorkflowRequest{
+func (t *TaskHandler) ScheduleTerraformExecution(ctx context.Context, input ScheduleTerraformExecutionInput) (*ScheduleTerraformExecutionOutput, error) {
+	tfWorkflow, err := t.apiClient.PutTerraformExecutionRequest(ctx, &models.NewTerraformExecutionRequest{
 		ModuleAssignmentId:                  input.ModuleAssignment.ModuleAssignmentId,
 		ModulePropagationExecutionRequestId: &input.ModulePropagationExecutionRequestId,
 		ModulePropagationId:                 &input.ModulePropagationId,
@@ -35,7 +35,7 @@ func (t *TaskHandler) ScheduleTerraformExecutionWorkflow(ctx context.Context, in
 		return nil, err
 	}
 
-	return &ScheduleTerraformExecutionWorkflowOutput{
-		TerraformExecutionWorkflowRequestId: tfWorkflow.TerraformExecutionWorkflowRequestId,
+	return &ScheduleTerraformExecutionOutput{
+		TerraformExecutionRequestId: tfWorkflow.TerraformExecutionRequestId,
 	}, nil
 }

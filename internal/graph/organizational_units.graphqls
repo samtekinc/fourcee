@@ -8,6 +8,7 @@ type OrganizationalUnit {
   parentOrgUnit: OrganizationalUnit
   children(limit: Int, nextCursor: String): OrganizationalUnits!
   downstreamOrgUnits(limit: Int, nextCursor: String): OrganizationalUnits!
+  upstreamOrgUnits: OrganizationalUnits!
   orgUnitMemberships(
     limit: Int
     nextCursor: String

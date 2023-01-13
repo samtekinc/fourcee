@@ -6,6 +6,7 @@ import {
   OrganizationalDimensions,
   OrganizationalUnit,
   ModulePropagationUpdate,
+  ModuleGroup,
 } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, useMutation, gql } from "@apollo/client";
@@ -16,6 +17,7 @@ import { NotificationManager } from "react-notifications";
 import { Button } from "react-bootstrap";
 import { DriftCheckModulePropagationButton } from "./TriggerModulePropagationDriftCheckButton";
 import { ExecuteModulePropagationButton } from "./TriggerModulePropagationExecutionButton";
+import { renderModuleAssignmentStatus } from "../utils/rendering";
 
 const MODULE_PROPAGATION_QUERY = gql`
   query modulePropagation($modulePropagationId: ID!) {
@@ -93,7 +95,7 @@ export const ModulePropagationPage = () => {
       variables: {
         modulePropagationId: modulePropagationId,
       },
-      pollInterval: 1000,
+      pollInterval: 3000,
     }
   );
 
@@ -237,8 +239,9 @@ export const ModulePropagationPage = () => {
       <Table striped bordered hover>
         <thead>
           <tr>
-            <th>Org Account</th>
             <th>Status</th>
+            <th>Account</th>
+            <th>Assignment Id</th>
           </tr>
         </thead>
         <tbody>
@@ -246,6 +249,9 @@ export const ModulePropagationPage = () => {
             (moduleAssignment) => {
               return (
                 <tr>
+                  <td>
+                    {renderModuleAssignmentStatus(moduleAssignment?.status)}
+                  </td>
                   <td>
                     <NavLink
                       to={`/org-accounts/${moduleAssignment?.orgAccount.orgAccountId}`}
@@ -257,7 +263,7 @@ export const ModulePropagationPage = () => {
                     <NavLink
                       to={`/module-assignments/${moduleAssignment?.moduleAssignmentId}`}
                     >
-                      {moduleAssignment?.status}
+                      {moduleAssignment?.moduleAssignmentId}
                     </NavLink>
                   </td>
                 </tr>
@@ -297,8 +303,8 @@ const UpdateModulePropagationButton: React.VFC<
   );
 };
 
-const ORG_DIMENSIONS_QUERY = gql`
-  query orgDimensions {
+const MODULE_PROPAGATION_UPDATE_OPTIONS_QUERY = gql`
+  query modulePropagationUpdateOptions($moduleGroupId: ID!) {
     organizationalDimensions(limit: 10000) {
       items {
         orgDimensionId
@@ -308,6 +314,14 @@ const ORG_DIMENSIONS_QUERY = gql`
             orgUnitId
             name
           }
+        }
+      }
+    }
+    moduleGroup(moduleGroupId: $moduleGroupId) {
+      versions {
+        items {
+          moduleVersionId
+          name
         }
       }
     }
@@ -328,8 +342,9 @@ const UPDATE_MODULE_PROPAGATION_MUTATION = gql`
   }
 `;
 
-type OrgDimensionResposne = {
+type ModulePropagationUpdateOptionsResponse = {
   organizationalDimensions: OrganizationalDimensions;
+  moduleGroup: ModuleGroup;
 };
 
 interface UpdateModulePropagationFormProps {
@@ -366,7 +381,14 @@ const UpdateModulePropagationForm: React.VFC<
   });
 
   const { loading, error, data } =
-    useQuery<OrgDimensionResposne>(ORG_DIMENSIONS_QUERY);
+    useQuery<ModulePropagationUpdateOptionsResponse>(
+      MODULE_PROPAGATION_UPDATE_OPTIONS_QUERY,
+      {
+        variables: {
+          moduleGroupId: props.modulePropagation.moduleGroup.moduleGroupId,
+        },
+      }
+    );
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error :(</p>;
   if (!data) return <p>No data</p>;
@@ -436,6 +458,28 @@ const UpdateModulePropagationForm: React.VFC<
               name="description"
               onChange={handleInputChange}
             />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Module Version</Form.Label>
+            <Form.Select name="moduleVersionId" onChange={handleSelectChange}>
+              <option selected={true} disabled={true}>
+                Select Module Version
+              </option>
+              {data.moduleGroup?.versions.items.map((moduleVersion) => {
+                return (
+                  <option
+                    value={moduleVersion?.moduleVersionId}
+                    key={moduleVersion?.moduleVersionId}
+                    disabled={
+                      props.modulePropagation.moduleVersion.moduleVersionId ===
+                      moduleVersion?.moduleVersionId
+                    }
+                  >
+                    {moduleVersion?.name}
+                  </option>
+                );
+              })}
+            </Form.Select>
           </Form.Group>
           <Form.Group>
             <Form.Label>Org Dimension</Form.Label>

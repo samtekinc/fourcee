@@ -17,7 +17,8 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-func (c *OrganizationsDatabaseClient) GetPlanExecutionRequest(ctx context.Context, planExecutionRequestId string) (*models.PlanExecutionRequest, error) {
+func (c *DatabaseClient) GetPlanExecutionRequest(ctx context.Context, planExecutionRequestId string) (*models.PlanExecutionRequest, error) {
+	fmt.Println("getting plan execution request")
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &c.planExecutionsTableName,
 		Key: map[string]types.AttributeValue{
@@ -38,7 +39,52 @@ func (c *OrganizationsDatabaseClient) GetPlanExecutionRequest(ctx context.Contex
 	return &planExecutionRequest, nil
 }
 
-func (c OrganizationsDatabaseClient) GetPlanExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
+func (c *DatabaseClient) GetPlanExecutionRequestsByIds(ctx context.Context, ids []string) ([]models.PlanExecutionRequest, error) {
+	fmt.Println("getting plan execution requests by ids", len(ids))
+	var keys []map[string]types.AttributeValue
+
+	for _, id := range ids {
+		keys = append(keys, map[string]types.AttributeValue{
+			"PlanExecutionRequestId": &types.AttributeValueMemberS{Value: id},
+		})
+	}
+
+	bii := dynamodb.BatchGetItemInput{
+		RequestItems: map[string]types.KeysAndAttributes{
+			c.planExecutionsTableName: {
+				Keys: keys,
+			},
+		},
+	}
+	items := []map[string]types.AttributeValue{}
+
+	for {
+		bgo, err := c.dynamodb.BatchGetItem(ctx, &bii)
+		if err != nil {
+			return nil, err
+		}
+		if bgo.Responses != nil {
+			items = append(items, bgo.Responses[c.planExecutionsTableName]...)
+		}
+		requestItems := bgo.UnprocessedKeys
+		bii = dynamodb.BatchGetItemInput{RequestItems: requestItems}
+		if len(requestItems) == 0 {
+			break
+		}
+	}
+
+	items = SortDynamoDBBatchResponses(keys, items)
+
+	results := []models.PlanExecutionRequest{}
+	err := attributevalue.UnmarshalListOfMaps(items, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (c DatabaseClient) GetPlanExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -76,7 +122,7 @@ func (c OrganizationsDatabaseClient) GetPlanExecutionRequests(ctx context.Contex
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetPlanExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
+func (c DatabaseClient) GetPlanExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -127,7 +173,7 @@ func (c OrganizationsDatabaseClient) GetPlanExecutionRequestsByModuleAssignmentI
 	}, nil
 }
 
-func (c *OrganizationsDatabaseClient) PutPlanExecutionRequest(ctx context.Context, input *models.PlanExecutionRequest) error {
+func (c *DatabaseClient) PutPlanExecutionRequest(ctx context.Context, input *models.PlanExecutionRequest) error {
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
@@ -157,7 +203,7 @@ func (c *OrganizationsDatabaseClient) PutPlanExecutionRequest(ctx context.Contex
 	}
 }
 
-func (c *OrganizationsDatabaseClient) UpdatePlanExecutionRequest(ctx context.Context, planExecutionRequestId string, update *models.PlanExecutionRequestUpdate) (*models.PlanExecutionRequest, error) {
+func (c *DatabaseClient) UpdatePlanExecutionRequest(ctx context.Context, planExecutionRequestId string, update *models.PlanExecutionRequestUpdate) (*models.PlanExecutionRequest, error) {
 	condition := expression.AttributeExists(expression.Name("PlanExecutionRequestId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()
@@ -211,7 +257,7 @@ func (c *OrganizationsDatabaseClient) UpdatePlanExecutionRequest(ctx context.Con
 	return &planExecutionRequest, nil
 }
 
-func (c *OrganizationsDatabaseClient) UploadTerraformPlanInitResults(ctx context.Context, planExecutionRequestId string, initResults *models.TerraformInitOutput) (string, error) {
+func (c *DatabaseClient) UploadTerraformPlanInitResults(ctx context.Context, planExecutionRequestId string, initResults *models.TerraformInitOutput) (string, error) {
 	outputKey := fmt.Sprintf("plans/%s/init-results.json", planExecutionRequestId)
 
 	initResultsBytes, err := json.Marshal(initResults)
@@ -228,7 +274,7 @@ func (c *OrganizationsDatabaseClient) UploadTerraformPlanInitResults(ctx context
 	return outputKey, err
 }
 
-func (c *OrganizationsDatabaseClient) UploadTerraformPlanResults(ctx context.Context, planExecutionRequestId string, planResults *models.TerraformPlanOutput) (string, error) {
+func (c *DatabaseClient) UploadTerraformPlanResults(ctx context.Context, planExecutionRequestId string, planResults *models.TerraformPlanOutput) (string, error) {
 	outputKey := fmt.Sprintf("plans/%s/plan-results.json", planExecutionRequestId)
 
 	planResultsBytes, err := json.Marshal(planResults)
@@ -245,7 +291,7 @@ func (c *OrganizationsDatabaseClient) UploadTerraformPlanResults(ctx context.Con
 	return outputKey, err
 }
 
-func (c *OrganizationsDatabaseClient) DownloadTerraformPlanInitResults(ctx context.Context, initResultsObjectKey string) (*models.TerraformInitOutput, error) {
+func (c *DatabaseClient) DownloadTerraformPlanInitResults(ctx context.Context, initResultsObjectKey string) (*models.TerraformInitOutput, error) {
 	result, err := c.s3.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: &c.resultsBucketName,
 		Key:    &initResultsObjectKey,
@@ -263,7 +309,7 @@ func (c *OrganizationsDatabaseClient) DownloadTerraformPlanInitResults(ctx conte
 	return &initResults, nil
 }
 
-func (c *OrganizationsDatabaseClient) DownloadTerraformPlanResults(ctx context.Context, planResultsObjectKey string) (*models.TerraformPlanOutput, error) {
+func (c *DatabaseClient) DownloadTerraformPlanResults(ctx context.Context, planResultsObjectKey string) (*models.TerraformPlanOutput, error) {
 	result, err := c.s3.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: &c.resultsBucketName,
 		Key:    &planResultsObjectKey,

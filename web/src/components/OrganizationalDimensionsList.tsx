@@ -26,10 +26,10 @@ type Response = {
 };
 
 export const OrganizationalDimensionsList = () => {
-  const { loading, error, data } = useQuery<Response>(
+  const { loading, error, data, refetch } = useQuery<Response>(
     ORGANIZATIONAL_DIMENSIONS_QUERY,
     {
-      pollInterval: 1000,
+      pollInterval: 30000,
     }
   );
 
@@ -79,7 +79,7 @@ export const OrganizationalDimensionsList = () => {
                 </ListGroup.Item>
               );
             })}
-            <NewOrganizationalDimensionButton />
+            <NewOrganizationalDimensionButton onCompleted={refetch} />
           </Nav>
         </Col>
         <Col md={"auto"}>

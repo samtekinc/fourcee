@@ -13,7 +13,7 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-func (c *OrganizationsDatabaseClient) GetModuleGroup(ctx context.Context, moduleGroupId string) (*models.ModuleGroup, error) {
+func (c *DatabaseClient) GetModuleGroup(ctx context.Context, moduleGroupId string) (*models.ModuleGroup, error) {
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &c.groupsTableName,
 		Key: map[string]types.AttributeValue{
@@ -34,7 +34,52 @@ func (c *OrganizationsDatabaseClient) GetModuleGroup(ctx context.Context, module
 	return &moduleGroup, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModuleGroups(ctx context.Context, limit int32, cursor string) (*models.ModuleGroups, error) {
+func (c *DatabaseClient) GetModuleGroupsByIds(ctx context.Context, ids []string) ([]models.ModuleGroup, error) {
+	fmt.Println("getting module groups by ids", len(ids))
+	var keys []map[string]types.AttributeValue
+
+	for _, id := range ids {
+		keys = append(keys, map[string]types.AttributeValue{
+			"ModuleGroupId": &types.AttributeValueMemberS{Value: id},
+		})
+	}
+
+	bii := dynamodb.BatchGetItemInput{
+		RequestItems: map[string]types.KeysAndAttributes{
+			c.groupsTableName: {
+				Keys: keys,
+			},
+		},
+	}
+	items := []map[string]types.AttributeValue{}
+
+	for {
+		bgo, err := c.dynamodb.BatchGetItem(ctx, &bii)
+		if err != nil {
+			return nil, err
+		}
+		if bgo.Responses != nil {
+			items = append(items, bgo.Responses[c.groupsTableName]...)
+		}
+		requestItems := bgo.UnprocessedKeys
+		bii = dynamodb.BatchGetItemInput{RequestItems: requestItems}
+		if len(requestItems) == 0 {
+			break
+		}
+	}
+
+	items = SortDynamoDBBatchResponses(keys, items)
+
+	results := []models.ModuleGroup{}
+	err := attributevalue.UnmarshalListOfMaps(items, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (c DatabaseClient) GetModuleGroups(ctx context.Context, limit int32, cursor string) (*models.ModuleGroups, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -72,7 +117,7 @@ func (c OrganizationsDatabaseClient) GetModuleGroups(ctx context.Context, limit 
 	}, nil
 }
 
-func (c *OrganizationsDatabaseClient) PutModuleGroup(ctx context.Context, input *models.ModuleGroup) error {
+func (c *DatabaseClient) PutModuleGroup(ctx context.Context, input *models.ModuleGroup) error {
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
@@ -102,7 +147,7 @@ func (c *OrganizationsDatabaseClient) PutModuleGroup(ctx context.Context, input 
 	}
 }
 
-func (c *OrganizationsDatabaseClient) DeleteModuleGroup(ctx context.Context, moduleGroupId string) error {
+func (c *DatabaseClient) DeleteModuleGroup(ctx context.Context, moduleGroupId string) error {
 	condition := expression.AttributeExists(expression.Name("ModuleGroupId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()

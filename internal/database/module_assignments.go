@@ -14,7 +14,8 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-func (c *OrganizationsDatabaseClient) GetModuleAssignment(ctx context.Context, moduleAssignmentId string) (*models.ModuleAssignment, error) {
+func (c *DatabaseClient) GetModuleAssignment(ctx context.Context, moduleAssignmentId string) (*models.ModuleAssignment, error) {
+	fmt.Println("getting module assignment")
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &c.moduleAssignmentsTableName,
 		Key: map[string]types.AttributeValue{
@@ -35,7 +36,52 @@ func (c *OrganizationsDatabaseClient) GetModuleAssignment(ctx context.Context, m
 	return &moduleAssignment, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModuleAssignments(ctx context.Context, limit int32, cursor string) (*models.ModuleAssignments, error) {
+func (c *DatabaseClient) GetModuleAssignmentsByIds(ctx context.Context, ids []string) ([]models.ModuleAssignment, error) {
+	fmt.Println("getting module assignments by ids", len(ids))
+	var keys []map[string]types.AttributeValue
+
+	for _, id := range ids {
+		keys = append(keys, map[string]types.AttributeValue{
+			"ModuleAssignmentId": &types.AttributeValueMemberS{Value: id},
+		})
+	}
+
+	bii := dynamodb.BatchGetItemInput{
+		RequestItems: map[string]types.KeysAndAttributes{
+			c.moduleAssignmentsTableName: {
+				Keys: keys,
+			},
+		},
+	}
+	items := []map[string]types.AttributeValue{}
+
+	for {
+		bgo, err := c.dynamodb.BatchGetItem(ctx, &bii)
+		if err != nil {
+			return nil, err
+		}
+		if bgo.Responses != nil {
+			items = append(items, bgo.Responses[c.moduleAssignmentsTableName]...)
+		}
+		requestItems := bgo.UnprocessedKeys
+		bii = dynamodb.BatchGetItemInput{RequestItems: requestItems}
+		if len(requestItems) == 0 {
+			break
+		}
+	}
+
+	items = SortDynamoDBBatchResponses(keys, items)
+
+	results := []models.ModuleAssignment{}
+	err := attributevalue.UnmarshalListOfMaps(items, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (c DatabaseClient) GetModuleAssignments(ctx context.Context, limit int32, cursor string) (*models.ModuleAssignments, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -73,7 +119,7 @@ func (c OrganizationsDatabaseClient) GetModuleAssignments(ctx context.Context, l
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModuleAssignmentsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModuleAssignments, error) {
+func (c DatabaseClient) GetModuleAssignmentsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModuleAssignments, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -124,7 +170,7 @@ func (c OrganizationsDatabaseClient) GetModuleAssignmentsByModulePropagationId(c
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModuleAssignmentsByOrgAccountId(ctx context.Context, orgAccountId string, limit int32, cursor string) (*models.ModuleAssignments, error) {
+func (c DatabaseClient) GetModuleAssignmentsByOrgAccountId(ctx context.Context, orgAccountId string, limit int32, cursor string) (*models.ModuleAssignments, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -139,7 +185,7 @@ func (c OrganizationsDatabaseClient) GetModuleAssignmentsByOrgAccountId(ctx cont
 
 	queryInput := &dynamodb.QueryInput{
 		TableName:                 &c.moduleAssignmentsTableName,
-		IndexName:                 aws.String("OrgAccountId-ModulePropagationId-index"),
+		IndexName:                 aws.String("OrgAccountId-ModuleGroupId-index"),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		KeyConditionExpression:    expr.KeyCondition(),
@@ -149,7 +195,7 @@ func (c OrganizationsDatabaseClient) GetModuleAssignmentsByOrgAccountId(ctx cont
 		ScanIndexForward:          aws.Bool(false),
 	}
 
-	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"ModuleAssignmentId", "OrgAccountId", "ModulePropagationId"})
+	resultItems, lastEvaluatedKey, err := helpers.QueryDynamoDBUntilLimit(ctx, c.dynamodb, queryInput, limit, []string{"ModuleAssignmentId", "OrgAccountId", "ModuleGroupId"})
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +221,7 @@ func (c OrganizationsDatabaseClient) GetModuleAssignmentsByOrgAccountId(ctx cont
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModuleAssignmentsByModuleVersionId(ctx context.Context, moduleVersionId string, limit int32, cursor string) (*models.ModuleAssignments, error) {
+func (c DatabaseClient) GetModuleAssignmentsByModuleVersionId(ctx context.Context, moduleVersionId string, limit int32, cursor string) (*models.ModuleAssignments, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -226,7 +272,7 @@ func (c OrganizationsDatabaseClient) GetModuleAssignmentsByModuleVersionId(ctx c
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModuleAssignmentsByModuleGroupId(ctx context.Context, moduleGroupId string, limit int32, cursor string) (*models.ModuleAssignments, error) {
+func (c DatabaseClient) GetModuleAssignmentsByModuleGroupId(ctx context.Context, moduleGroupId string, limit int32, cursor string) (*models.ModuleAssignments, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -277,7 +323,7 @@ func (c OrganizationsDatabaseClient) GetModuleAssignmentsByModuleGroupId(ctx con
 	}, nil
 }
 
-func (c *OrganizationsDatabaseClient) PutModuleAssignment(ctx context.Context, input *models.ModuleAssignment) error {
+func (c *DatabaseClient) PutModuleAssignment(ctx context.Context, input *models.ModuleAssignment) error {
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
@@ -307,7 +353,7 @@ func (c *OrganizationsDatabaseClient) PutModuleAssignment(ctx context.Context, i
 	}
 }
 
-func (c *OrganizationsDatabaseClient) UpdateModuleAssignment(ctx context.Context, moduleAssignmentId string, update *models.ModuleAssignmentUpdate) (*models.ModuleAssignment, error) {
+func (c *DatabaseClient) UpdateModuleAssignment(ctx context.Context, moduleAssignmentId string, update *models.ModuleAssignmentUpdate) (*models.ModuleAssignment, error) {
 	condition := expression.AttributeExists(expression.Name("ModuleAssignmentId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()
@@ -330,6 +376,9 @@ func (c *OrganizationsDatabaseClient) UpdateModuleAssignment(ctx context.Context
 	}
 	if update.Description != nil {
 		updateBuilder = updateBuilder.Set(expression.Name("Description"), expression.Value(*update.Description))
+	}
+	if update.ModuleVersionId != nil {
+		updateBuilder = updateBuilder.Set(expression.Name("ModuleVersionId"), expression.Value(*update.ModuleVersionId))
 	}
 	if update.Status != nil {
 		updateBuilder = updateBuilder.Set(expression.Name("Status"), expression.Value(*update.Status))

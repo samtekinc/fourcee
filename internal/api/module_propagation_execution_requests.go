@@ -3,27 +3,50 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/graph-gophers/dataloader"
 	"github.com/sheacloud/tfom/internal/identifiers"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-func (c *OrganizationsAPIClient) GetModulePropagationExecutionRequest(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string) (*models.ModulePropagationExecutionRequest, error) {
-	return c.dbClient.GetModulePropagationExecutionRequest(ctx, modulePropagationId, modulePropagationExecutionRequestId)
+func (c *APIClient) GetModulePropagationExecutionRequestsByIds(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+	output := make([]*dataloader.Result, len(keys))
+	results, err := c.dbClient.GetModulePropagationExecutionRequestsByIds(ctx, keys.Keys())
+	if err != nil {
+		for i := range keys {
+			output[i] = &dataloader.Result{Error: err}
+		}
+		return output
+	}
+
+	for i := range keys {
+		output[i] = &dataloader.Result{Data: &results[i], Error: nil}
+	}
+	return output
 }
 
-func (c *OrganizationsAPIClient) GetModulePropagationExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationExecutionRequests, error) {
+func (c *APIClient) GetModulePropagationExecutionRequest(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string) (*models.ModulePropagationExecutionRequest, error) {
+	thunk := c.modulePropagationExecutionRequestsLoader.Load(ctx, dataloader.StringKey(fmt.Sprintf("%s:%s", modulePropagationId, modulePropagationExecutionRequestId)))
+	result, err := thunk()
+	if err != nil {
+		return nil, err
+	}
+	return result.(*models.ModulePropagationExecutionRequest), nil
+}
+
+func (c *APIClient) GetModulePropagationExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationExecutionRequests, error) {
 	return c.dbClient.GetModulePropagationExecutionRequests(ctx, limit, cursor)
 }
 
-func (c *OrganizationsAPIClient) GetModulePropagationExecutionRequestsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationExecutionRequests, error) {
+func (c *APIClient) GetModulePropagationExecutionRequestsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationExecutionRequests, error) {
 	return c.dbClient.GetModulePropagationExecutionRequestsByModulePropagationId(ctx, modulePropagationId, limit, cursor)
 }
 
-func (c *OrganizationsAPIClient) PutModulePropagationExecutionRequest(ctx context.Context, input *models.NewModulePropagationExecutionRequest) (*models.ModulePropagationExecutionRequest, error) {
+func (c *APIClient) PutModulePropagationExecutionRequest(ctx context.Context, input *models.NewModulePropagationExecutionRequest) (*models.ModulePropagationExecutionRequest, error) {
 	modulePropagationExecutionRequestId, err := identifiers.NewIdentifier(identifiers.ResourceTypeModulePropagationExecutionRequest)
 	if err != nil {
 		return nil, err
@@ -61,7 +84,7 @@ func (c *OrganizationsAPIClient) PutModulePropagationExecutionRequest(ctx contex
 	}
 
 	_, err = c.sfnClient.StartExecution(ctx, &sfn.StartExecutionInput{
-		StateMachineArn: aws.String(c.modulePropagationExecutionWorkflowArn),
+		StateMachineArn: aws.String(c.modulePropagationExecutionArn),
 		Input:           aws.String(string(workflowExecutionInput)),
 	})
 	if err != nil {
@@ -71,6 +94,6 @@ func (c *OrganizationsAPIClient) PutModulePropagationExecutionRequest(ctx contex
 	return &modulePropagationExecutionRequest, nil
 }
 
-func (c *OrganizationsAPIClient) UpdateModulePropagationExecutionRequest(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string, update *models.ModulePropagationExecutionRequestUpdate) (*models.ModulePropagationExecutionRequest, error) {
+func (c *APIClient) UpdateModulePropagationExecutionRequest(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string, update *models.ModulePropagationExecutionRequestUpdate) (*models.ModulePropagationExecutionRequest, error) {
 	return c.dbClient.UpdateModulePropagationExecutionRequest(ctx, modulePropagationId, modulePropagationExecutionRequestId, update)
 }

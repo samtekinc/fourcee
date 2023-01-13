@@ -63,6 +63,7 @@ type NewModulePropagation struct {
 type ModulePropagationUpdate struct {
 	OrgDimensionId            *string
 	OrgUnitId                 *string
+	ModuleVersionId           *string
 	Name                      *string
 	Description               *string
 	Arguments                 []ArgumentInput

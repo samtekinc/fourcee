@@ -1,19 +1,19 @@
-resource "aws_cloudwatch_log_group" "terraform_drift_check_workflow" {
+resource "aws_cloudwatch_log_group" "terraform_drift_check" {
   # The /aws/vendedlogs/* path is special -- it gets policy length limit mitigation strategies.
-  name              = "/aws/vendedlogs/AsyncWorkflow/${var.prefix}-terraform-drift-check-workflow"
+  name              = "/aws/vendedlogs/AsyncWorkflow/${var.prefix}-terraform-drift-check"
   retention_in_days = 731
 }
 
 
-resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
-  name     = "${var.prefix}-terraform-drift-check-workflow"
+resource "aws_sfn_state_machine" "terraform_drift_check" {
+  name     = "${var.prefix}-terraform-drift-check"
   type     = "STANDARD"
   role_arn = aws_iam_role.step_functions_role.arn
 
   logging_configuration {
     include_execution_data = true
     level                  = "ALL"
-    log_destination        = "${aws_cloudwatch_log_group.terraform_drift_check_workflow.arn}:*"
+    log_destination        = "${aws_cloudwatch_log_group.terraform_drift_check.arn}:*"
   }
 
   definition = <<EOF
@@ -24,10 +24,10 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "TableName": "tfom-terraform-drift-check-workflow-requests",
+        "TableName": "tfom-terraform-drift-check-requests",
         "Key": {
-          "TerraformDriftCheckWorkflowRequestId": {
-            "S.$": "$.TerraformDriftCheckWorkflowRequestId"
+          "TerraformDriftCheckRequestId": {
+            "S.$": "$.TerraformDriftCheckRequestId"
           }
         },
         "UpdateExpression": "SET #s = :status",
@@ -57,7 +57,7 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
                 "FunctionName": "arn:aws:lambda:us-east-1:306526781466:function:tfom-workflow-handler",
                 "Payload": {
                   "Payload": {
-                    "TerraformWorkflowRequestId.$": "$.TerraformDriftCheckWorkflowRequestId",
+                    "TerraformWorkflowRequestId.$": "$.TerraformDriftCheckRequestId",
                     "TaskToken.$": "$$.Task.Token"
                   },
                   "Task": "ScheduleTerraformPlan",
@@ -88,7 +88,7 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
                 "FunctionName": "arn:aws:lambda:us-east-1:306526781466:function:tfom-workflow-handler",
                 "Payload": {
                   "Payload": {
-                    "TerraformWorkflowRequestId.$": "$.TerraformDriftCheckWorkflowRequestId"
+                    "TerraformWorkflowRequestId.$": "$.TerraformDriftCheckRequestId"
                   },
                   "Task": "DetermineSyncStatus",
                   "Workflow.$": "$$.StateMachine.Name"
@@ -128,10 +128,10 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "TableName": "tfom-terraform-drift-check-workflow-requests",
+        "TableName": "tfom-terraform-drift-check-requests",
         "Key": {
-          "TerraformDriftCheckWorkflowRequestId": {
-            "S.$": "$.TerraformDriftCheckWorkflowRequestId"
+          "TerraformDriftCheckRequestId": {
+            "S.$": "$.TerraformDriftCheckRequestId"
           }
         },
         "UpdateExpression": "SET #s = :status",
@@ -163,7 +163,7 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
       "Parameters": {
         "Output": {
           "Payload": {
-            "TerraformDriftCheckWorkflowRequestId.$": "$$.Execution.Input.TerraformDriftCheckWorkflowRequestId"
+            "TerraformDriftCheckRequestId.$": "$$.Execution.Input.TerraformDriftCheckRequestId"
           }
         },
         "TaskToken.$": "$$.Execution.Input.TaskToken"
@@ -177,10 +177,10 @@ resource "aws_sfn_state_machine" "terraform_drift_check_workflow" {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Parameters": {
-        "TableName": "tfom-terraform-drift-check-workflow-requests",
+        "TableName": "tfom-terraform-drift-check-requests",
         "Key": {
-          "TerraformDriftCheckWorkflowRequestId": {
-            "S.$": "$.TerraformDriftCheckWorkflowRequestId"
+          "TerraformDriftCheckRequestId": {
+            "S.$": "$.TerraformDriftCheckRequestId"
           }
         },
         "UpdateExpression": "SET #s = :status",

@@ -17,18 +17,23 @@ type ModuleAssignment {
   status: ModuleAssignmentStatus!
   modulePropagationId: ID
   modulePropagation: ModulePropagation
-  terraformDriftCheckWorkflowRequests(
+  terraformDriftCheckRequests(
     limit: Int
     nextCursor: String
-  ): TerraformDriftCheckWorkflowRequests!
-  terraformExecutionWorkflowRequests(
+  ): TerraformDriftCheckRequests!
+  terraformExecutionRequests(
     limit: Int
     nextCursor: String
-  ): TerraformExecutionWorkflowRequests!
-  planExecutionRequests(limit: Int, nextCursor: String): PlanExecutionRequests!
+  ): TerraformExecutionRequests!
+  planExecutionRequests(
+    limit: Int
+    nextCursor: String
+    withOutputs: Boolean = false
+  ): PlanExecutionRequests!
   applyExecutionRequests(
     limit: Int
     nextCursor: String
+    withOutputs: Boolean = false
   ): ApplyExecutionRequests!
   terraformConfiguration: String!
 }
@@ -52,6 +57,7 @@ input NewModuleAssignment {
 input ModuleAssignmentUpdate {
   name: String
   description: String
+  moduleVersionId: ID
   arguments: [ArgumentInput!]
   awsProviderConfigurations: [AwsProviderConfigurationInput!]
   gcpProviderConfigurations: [GcpProviderConfigurationInput!]

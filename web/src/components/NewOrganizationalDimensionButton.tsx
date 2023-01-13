@@ -22,7 +22,13 @@ type CreateOrgDimensionResponse = {
   };
 };
 
-export const NewOrganizationalDimensionButton: React.VFC = () => {
+type NewOrganizationalDimensionButtonProps = {
+  onCompleted: () => void;
+};
+
+export const NewOrganizationalDimensionButton: React.VFC<
+  NewOrganizationalDimensionButtonProps
+> = (props: NewOrganizationalDimensionButtonProps) => {
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
@@ -61,7 +67,7 @@ export const NewOrganizationalDimensionButton: React.VFC = () => {
     event.stopPropagation();
 
     mutation();
-
+    setTimeout(props.onCompleted, 1000);
     handleClose();
   };
 

@@ -22,7 +22,7 @@ type ScheduleTerraformApplyOutput struct {
 
 func (t *TaskHandler) ScheduleTerraformApply(ctx context.Context, input ScheduleTerraformApplyInput) (*ScheduleTerraformApplyOutput, error) {
 	// get workflow details
-	tfWorkflow, err := t.apiClient.GetTerraformExecutionWorkflowRequest(ctx, input.TerraformWorkflowRequestId)
+	tfWorkflow, err := t.apiClient.GetTerraformExecutionRequest(ctx, input.TerraformWorkflowRequestId)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (t *TaskHandler) ScheduleTerraformApply(ctx context.Context, input Schedule
 	}
 
 	// get plan request details
-	planRequest, err := t.apiClient.GetPlanExecutionRequest(ctx, *tfWorkflow.PlanExecutionRequestId)
+	planRequest, err := t.apiClient.GetPlanExecutionRequest(ctx, *tfWorkflow.PlanExecutionRequestId, true)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (t *TaskHandler) ScheduleTerraformApply(ctx context.Context, input Schedule
 	}
 
 	// update tf workflow with apply request id
-	_, err = t.apiClient.UpdateTerraformExecutionWorkflowRequest(ctx, input.TerraformWorkflowRequestId, &models.TerraformExecutionWorkflowRequestUpdate{
+	_, err = t.apiClient.UpdateTerraformExecutionRequest(ctx, input.TerraformWorkflowRequestId, &models.TerraformExecutionRequestUpdate{
 		ApplyExecutionRequestId: &applyRequest.ApplyExecutionRequestId,
 	})
 	if err != nil {

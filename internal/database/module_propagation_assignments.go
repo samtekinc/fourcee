@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -14,7 +15,7 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-func (c *OrganizationsDatabaseClient) GetModulePropagationAssignment(ctx context.Context, modulePropagationId string, orgAccountId string) (*models.ModulePropagationAssignment, error) {
+func (c *DatabaseClient) GetModulePropagationAssignment(ctx context.Context, modulePropagationId string, orgAccountId string) (*models.ModulePropagationAssignment, error) {
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &c.modulePropagationAssignmentsTableName,
 		Key: map[string]types.AttributeValue{
@@ -36,7 +37,54 @@ func (c *OrganizationsDatabaseClient) GetModulePropagationAssignment(ctx context
 	return &modulePropagationAssignment, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModulePropagationAssignments(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationAssignments, error) {
+func (c *DatabaseClient) GetModulePropagationAssignmentsByIds(ctx context.Context, ids []string) ([]models.ModulePropagationAssignment, error) {
+	fmt.Println("getting module propagation assignments by ids", len(ids))
+	var keys []map[string]types.AttributeValue
+
+	for _, id := range ids {
+		parts := strings.Split(id, ":")
+		keys = append(keys, map[string]types.AttributeValue{
+			"ModulePropagationId": &types.AttributeValueMemberS{Value: parts[0]},
+			"OrgAccountId":        &types.AttributeValueMemberS{Value: parts[1]},
+		})
+	}
+
+	bii := dynamodb.BatchGetItemInput{
+		RequestItems: map[string]types.KeysAndAttributes{
+			c.modulePropagationAssignmentsTableName: {
+				Keys: keys,
+			},
+		},
+	}
+	items := []map[string]types.AttributeValue{}
+
+	for {
+		bgo, err := c.dynamodb.BatchGetItem(ctx, &bii)
+		if err != nil {
+			return nil, err
+		}
+		if bgo.Responses != nil {
+			items = append(items, bgo.Responses[c.modulePropagationAssignmentsTableName]...)
+		}
+		requestItems := bgo.UnprocessedKeys
+		bii = dynamodb.BatchGetItemInput{RequestItems: requestItems}
+		if len(requestItems) == 0 {
+			break
+		}
+	}
+
+	items = SortDynamoDBBatchResponses(keys, items)
+
+	results := []models.ModulePropagationAssignment{}
+	err := attributevalue.UnmarshalListOfMaps(items, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (c DatabaseClient) GetModulePropagationAssignments(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationAssignments, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -74,7 +122,7 @@ func (c OrganizationsDatabaseClient) GetModulePropagationAssignments(ctx context
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModulePropagationAssignmentsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationAssignments, error) {
+func (c DatabaseClient) GetModulePropagationAssignmentsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationAssignments, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -124,7 +172,7 @@ func (c OrganizationsDatabaseClient) GetModulePropagationAssignmentsByModuleProp
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModulePropagationAssignmentsByOrgAccountId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationAssignments, error) {
+func (c DatabaseClient) GetModulePropagationAssignmentsByOrgAccountId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationAssignments, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -175,7 +223,7 @@ func (c OrganizationsDatabaseClient) GetModulePropagationAssignmentsByOrgAccount
 	}, nil
 }
 
-func (c *OrganizationsDatabaseClient) PutModulePropagationAssignment(ctx context.Context, input *models.ModuleAssignment) (*models.ModulePropagationAssignment, *models.ModuleAssignment, error) {
+func (c *DatabaseClient) PutModulePropagationAssignment(ctx context.Context, input *models.ModuleAssignment) (*models.ModulePropagationAssignment, *models.ModuleAssignment, error) {
 	if input.ModulePropagationId == nil {
 		return nil, nil, errors.New("modulePropagationId is required")
 	}

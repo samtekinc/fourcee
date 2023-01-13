@@ -279,9 +279,9 @@ resource "aws_dynamodb_table" "module_assignments" {
   }
 
   global_secondary_index {
-    name            = "OrgAccountId-ModulePropagationId-index"
+    name            = "OrgAccountId-ModuleGroupId-index"
     hash_key        = "OrgAccountId"
-    range_key       = "ModulePropagationId"
+    range_key       = "ModuleGroupId"
     projection_type = "ALL"
   }
 
@@ -380,13 +380,13 @@ resource "aws_dynamodb_table" "apply_execution_requests" {
   }
 }
 
-resource "aws_dynamodb_table" "terraform_execution_workflow_requests" {
-  name         = "${var.prefix}-terraform-execution-workflow-requests"
+resource "aws_dynamodb_table" "terraform_execution_requests" {
+  name         = "${var.prefix}-terraform-execution-requests"
   billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "TerraformExecutionWorkflowRequestId"
+  hash_key     = "TerraformExecutionRequestId"
 
   attribute {
-    name = "TerraformExecutionWorkflowRequestId"
+    name = "TerraformExecutionRequestId"
     type = "S"
   }
 
@@ -420,13 +420,13 @@ resource "aws_dynamodb_table" "terraform_execution_workflow_requests" {
   }
 }
 
-resource "aws_dynamodb_table" "terraform_drift_check_workflow_requests" {
-  name         = "${var.prefix}-terraform-drift-check-workflow-requests"
+resource "aws_dynamodb_table" "terraform_drift_check_requests" {
+  name         = "${var.prefix}-terraform-drift-check-requests"
   billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "TerraformDriftCheckWorkflowRequestId"
+  hash_key     = "TerraformDriftCheckRequestId"
 
   attribute {
-    name = "TerraformDriftCheckWorkflowRequestId"
+    name = "TerraformDriftCheckRequestId"
     type = "S"
   }
 

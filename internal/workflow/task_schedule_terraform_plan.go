@@ -26,15 +26,15 @@ func (t *TaskHandler) ScheduleTerraformPlan(ctx context.Context, input ScheduleT
 	var inputModuleAssignmentId string
 	var destroy bool
 	switch strings.Split(input.TerraformWorkflowRequestId, "-")[0] {
-	case string(identifiers.ResourceTypeTerraformExecutionWorkflowRequest):
-		tfWorkflow, err := t.apiClient.GetTerraformExecutionWorkflowRequest(ctx, input.TerraformWorkflowRequestId)
+	case string(identifiers.ResourceTypeTerraformExecutionRequest):
+		tfWorkflow, err := t.apiClient.GetTerraformExecutionRequest(ctx, input.TerraformWorkflowRequestId)
 		if err != nil {
 			return nil, err
 		}
 		inputModuleAssignmentId = tfWorkflow.ModuleAssignmentId
 		destroy = tfWorkflow.Destroy
-	case string(identifiers.ResourceTypeTerraformDriftCheckWorkflowRequest):
-		tfWorkflow, err := t.apiClient.GetTerraformDriftCheckWorkflowRequest(ctx, input.TerraformWorkflowRequestId)
+	case string(identifiers.ResourceTypeTerraformDriftCheckRequest):
+		tfWorkflow, err := t.apiClient.GetTerraformDriftCheckRequest(ctx, input.TerraformWorkflowRequestId)
 		if err != nil {
 			return nil, err
 		}
@@ -99,17 +99,17 @@ func (t *TaskHandler) ScheduleTerraformPlan(ctx context.Context, input ScheduleT
 	}
 
 	switch strings.Split(input.TerraformWorkflowRequestId, "-")[0] {
-	case string(identifiers.ResourceTypeTerraformExecutionWorkflowRequest):
+	case string(identifiers.ResourceTypeTerraformExecutionRequest):
 		// update tf workflow with plan request id
-		_, err = t.apiClient.UpdateTerraformExecutionWorkflowRequest(ctx, input.TerraformWorkflowRequestId, &models.TerraformExecutionWorkflowRequestUpdate{
+		_, err = t.apiClient.UpdateTerraformExecutionRequest(ctx, input.TerraformWorkflowRequestId, &models.TerraformExecutionRequestUpdate{
 			PlanExecutionRequestId: &planRequest.PlanExecutionRequestId,
 		})
 		if err != nil {
 			return nil, err
 		}
-	case string(identifiers.ResourceTypeTerraformDriftCheckWorkflowRequest):
+	case string(identifiers.ResourceTypeTerraformDriftCheckRequest):
 		// update tf workflow with plan request id
-		_, err = t.apiClient.UpdateTerraformDriftCheckWorkflowRequest(ctx, input.TerraformWorkflowRequestId, &models.TerraformDriftCheckWorkflowRequestUpdate{
+		_, err = t.apiClient.UpdateTerraformDriftCheckRequest(ctx, input.TerraformWorkflowRequestId, &models.TerraformDriftCheckRequestUpdate{
 			PlanExecutionRequestId: &planRequest.PlanExecutionRequestId,
 		})
 		if err != nil {

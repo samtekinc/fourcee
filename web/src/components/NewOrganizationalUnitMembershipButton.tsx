@@ -82,6 +82,7 @@ interface NewOrganizationalUnitMembershipButtonProps {
   orgDimension: OrganizationalDimension | undefined;
   orgUnit: OrganizationalUnit | undefined;
   orgAccount: OrganizationalAccount | undefined;
+  onCompleted: () => void;
 }
 
 export const NewOrganizationalUnitMembershipButton: React.VFC<
@@ -102,6 +103,7 @@ export const NewOrganizationalUnitMembershipButton: React.VFC<
           <NewOrganizationalUnitMembershipFromOrgUnitForm
             {...props}
             handleClose={handleClose}
+            onCompleted={props.onCompleted}
             key={props.orgDimension.orgDimensionId + props.orgUnit.orgUnitId}
           />
         )}
@@ -114,6 +116,7 @@ interface NewOrganizationalUnitMembershipFormFromOrgUnitProps {
   orgDimension: OrganizationalDimension | undefined;
   orgUnit: OrganizationalUnit | undefined;
   handleClose: () => void;
+  onCompleted: () => void;
 }
 
 export const NewOrganizationalUnitMembershipFromOrgUnitForm: React.VFC<
@@ -166,6 +169,7 @@ export const NewOrganizationalUnitMembershipFromOrgUnitForm: React.VFC<
     event.stopPropagation();
 
     mutation();
+    setTimeout(props.onCompleted, 1000);
 
     props.handleClose();
   };

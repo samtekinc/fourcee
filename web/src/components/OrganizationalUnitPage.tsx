@@ -33,6 +33,27 @@ const ORGANIZATIONAL_UNIT_QUERY = gql`
           parentOrgUnitId
         }
       }
+      upstreamOrgUnits {
+        items {
+          orgUnitId
+          name
+          modulePropagations {
+            items {
+              modulePropagationId
+              name
+              description
+              moduleGroup {
+                moduleGroupId
+                name
+              }
+              moduleVersion {
+                moduleVersionId
+                name
+              }
+            }
+          }
+        }
+      }
       orgUnitMemberships {
         items {
           orgDimensionId
@@ -78,14 +99,14 @@ export const OrganizationalUnitPage = () => {
     ? params.organizationalDimensionId
     : "";
 
-  const { loading, error, data } = useQuery<Response>(
+  const { loading, error, data, refetch } = useQuery<Response>(
     ORGANIZATIONAL_UNIT_QUERY,
     {
       variables: {
         orgUnitId: organizationalUnitId,
         orgDimensionId: organizationalDimensionId,
       },
-      pollInterval: 1000,
+      pollInterval: 10000,
     }
   );
 
@@ -151,6 +172,62 @@ export const OrganizationalUnitPage = () => {
         }
       )}
       <br />
+      <h2>Upstream Module Propagations</h2>
+      {data?.organizationalUnit.upstreamOrgUnits.items.map(
+        (upstreamOrgUnit) => {
+          return (
+            <>
+              {upstreamOrgUnit?.modulePropagations.items.map(
+                (modulePropagation) => {
+                  return (
+                    <>
+                      <Card>
+                        <Card.Header>
+                          <NavLink
+                            to={`/module-propagations/${modulePropagation?.modulePropagationId}`}
+                          >
+                            {modulePropagation?.name}
+                          </NavLink>
+                        </Card.Header>
+                        <Card.Body>
+                          <Card.Text>
+                            <b>Propagated from Org Unit:</b>{" "}
+                            <NavLink
+                              to={`/org-dimensions/${organizationalDimensionId}/org-units/${upstreamOrgUnit?.orgUnitId}`}
+                            >
+                              {upstreamOrgUnit?.name}
+                            </NavLink>
+                          </Card.Text>
+                          <Card.Text>
+                            <b>Module Group:</b>{" "}
+                            <NavLink
+                              to={`/module-groups/${modulePropagation?.moduleGroup.moduleGroupId}`}
+                            >
+                              {modulePropagation?.moduleGroup.name}
+                            </NavLink>
+                            <br />
+                            <b>Module Version:</b>{" "}
+                            <NavLink
+                              to={`/module-groups/${modulePropagation?.moduleGroup.moduleGroupId}/versions/${modulePropagation?.moduleVersion.moduleVersionId}`}
+                            >
+                              {modulePropagation?.moduleVersion.name}
+                            </NavLink>
+                            <br />
+                            {modulePropagation?.description}
+                          </Card.Text>
+                        </Card.Body>
+                      </Card>
+                      <br />
+                    </>
+                  );
+                }
+              )}
+            </>
+          );
+        }
+      )}
+
+      <br />
       <h2>Org Unit Memberships</h2>
       <ListGroup>
         {data?.organizationalUnit.orgUnitMemberships.items.map((membership) => {
@@ -183,6 +260,7 @@ export const OrganizationalUnitPage = () => {
         orgUnit={data?.organizationalUnit}
         orgAccount={undefined}
         key={data?.organizationalUnit.orgUnitId}
+        onCompleted={refetch}
       />
     </Container>
   );

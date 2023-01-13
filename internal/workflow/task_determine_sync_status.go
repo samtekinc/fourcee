@@ -20,7 +20,7 @@ type DetermineSyncStatusOutput struct {
 }
 
 func (t *TaskHandler) DetermineSyncStatus(ctx context.Context, input DetermineSyncStatusInput) (*DetermineSyncStatusOutput, error) {
-	tfWorkflow, err := t.apiClient.GetTerraformDriftCheckWorkflowRequest(ctx, input.TerraformWorkflowRequestId)
+	tfWorkflow, err := t.apiClient.GetTerraformDriftCheckRequest(ctx, input.TerraformWorkflowRequestId)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (t *TaskHandler) DetermineSyncStatus(ctx context.Context, input DetermineSy
 		return nil, fmt.Errorf("plan execution request id is nil")
 	}
 
-	plan, err := t.apiClient.GetPlanExecutionRequest(ctx, *tfWorkflow.PlanExecutionRequestId)
+	plan, err := t.apiClient.GetPlanExecutionRequest(ctx, *tfWorkflow.PlanExecutionRequestId, true)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (t *TaskHandler) DetermineSyncStatus(ctx context.Context, input DetermineSy
 	} else {
 		syncStatus = models.TerraformDriftCheckStatusInSync
 	}
-	_, err = t.apiClient.UpdateTerraformDriftCheckWorkflowRequest(ctx, input.TerraformWorkflowRequestId, &models.TerraformDriftCheckWorkflowRequestUpdate{
+	_, err = t.apiClient.UpdateTerraformDriftCheckRequest(ctx, input.TerraformWorkflowRequestId, &models.TerraformDriftCheckRequestUpdate{
 		SyncStatus: &syncStatus,
 	})
 	if err != nil {

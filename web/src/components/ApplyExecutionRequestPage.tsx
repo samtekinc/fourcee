@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   ApplyExecutionRequest,
   ApplyExecutionRequests,
+  RequestStatus,
 } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
@@ -10,12 +11,15 @@ import { renderStatus, renderTimeField } from "../utils/table_rendering";
 import { Container } from "react-bootstrap";
 import Accordion from "react-bootstrap/Accordion";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { dark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import Ansi from "ansi-to-react";
 
 const APPLY_EXECUTION_REQUEST_QUERY = gql`
   query applyExecutionRequest($applyExecutionRequestId: ID!) {
-    applyExecutionRequest(applyExecutionRequestId: $applyExecutionRequestId) {
+    applyExecutionRequest(
+      applyExecutionRequestId: $applyExecutionRequestId
+      withOutputs: true
+    ) {
       applyExecutionRequestId
       status
       requestTime
@@ -43,7 +47,7 @@ export const ApplyExecutionRequestPage = () => {
     ? params.applyExecutionRequestId
     : "";
 
-  const { loading, error, data } = useQuery<Response>(
+  const { loading, error, data, startPolling } = useQuery<Response>(
     APPLY_EXECUTION_REQUEST_QUERY,
     {
       variables: {
@@ -55,6 +59,15 @@ export const ApplyExecutionRequestPage = () => {
 
   if (loading) return null;
   if (error) return <div>Error</div>;
+
+  if (
+    data?.applyExecutionRequest?.status === RequestStatus.Running ||
+    data?.applyExecutionRequest?.status === RequestStatus.Pending
+  ) {
+    startPolling(1000);
+  } else {
+    startPolling(30000);
+  }
 
   let terraformConfiguration = data?.applyExecutionRequest
     .terraformConfigurationBase64
@@ -93,7 +106,7 @@ export const ApplyExecutionRequestPage = () => {
           textAlign: "left",
         }}
       >
-        <SyntaxHighlighter language="hcl" style={dark}>
+        <SyntaxHighlighter language="hcl" style={vscDarkPlus}>
           {terraformConfiguration}
         </SyntaxHighlighter>
       </Container>

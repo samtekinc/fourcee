@@ -14,7 +14,7 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-func (c *OrganizationsDatabaseClient) GetModulePropagation(ctx context.Context, modulePropagationId string) (*models.ModulePropagation, error) {
+func (c *DatabaseClient) GetModulePropagation(ctx context.Context, modulePropagationId string) (*models.ModulePropagation, error) {
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &c.propagationsTableName,
 		Key: map[string]types.AttributeValue{
@@ -35,7 +35,52 @@ func (c *OrganizationsDatabaseClient) GetModulePropagation(ctx context.Context, 
 	return &modulePropagation, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModulePropagations(ctx context.Context, limit int32, cursor string) (*models.ModulePropagations, error) {
+func (c *DatabaseClient) GetModulePropagationsByIds(ctx context.Context, ids []string) ([]models.ModulePropagation, error) {
+	fmt.Println("getting module propagations by ids", len(ids))
+	var keys []map[string]types.AttributeValue
+
+	for _, id := range ids {
+		keys = append(keys, map[string]types.AttributeValue{
+			"ModulePropagationId": &types.AttributeValueMemberS{Value: id},
+		})
+	}
+
+	bii := dynamodb.BatchGetItemInput{
+		RequestItems: map[string]types.KeysAndAttributes{
+			c.propagationsTableName: {
+				Keys: keys,
+			},
+		},
+	}
+	items := []map[string]types.AttributeValue{}
+
+	for {
+		bgo, err := c.dynamodb.BatchGetItem(ctx, &bii)
+		if err != nil {
+			return nil, err
+		}
+		if bgo.Responses != nil {
+			items = append(items, bgo.Responses[c.propagationsTableName]...)
+		}
+		requestItems := bgo.UnprocessedKeys
+		bii = dynamodb.BatchGetItemInput{RequestItems: requestItems}
+		if len(requestItems) == 0 {
+			break
+		}
+	}
+
+	items = SortDynamoDBBatchResponses(keys, items)
+
+	results := []models.ModulePropagation{}
+	err := attributevalue.UnmarshalListOfMaps(items, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (c DatabaseClient) GetModulePropagations(ctx context.Context, limit int32, cursor string) (*models.ModulePropagations, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -73,7 +118,7 @@ func (c OrganizationsDatabaseClient) GetModulePropagations(ctx context.Context, 
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModulePropagationsByModuleGroupId(ctx context.Context, moduleGroupId string, limit int32, cursor string) (*models.ModulePropagations, error) {
+func (c DatabaseClient) GetModulePropagationsByModuleGroupId(ctx context.Context, moduleGroupId string, limit int32, cursor string) (*models.ModulePropagations, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -123,7 +168,7 @@ func (c OrganizationsDatabaseClient) GetModulePropagationsByModuleGroupId(ctx co
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModulePropagationsByModuleVersionId(ctx context.Context, moduleVersionId string, limit int32, cursor string) (*models.ModulePropagations, error) {
+func (c DatabaseClient) GetModulePropagationsByModuleVersionId(ctx context.Context, moduleVersionId string, limit int32, cursor string) (*models.ModulePropagations, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -173,7 +218,7 @@ func (c OrganizationsDatabaseClient) GetModulePropagationsByModuleVersionId(ctx 
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModulePropagationsByOrgUnitId(ctx context.Context, orgUnitId string, limit int32, cursor string) (*models.ModulePropagations, error) {
+func (c DatabaseClient) GetModulePropagationsByOrgUnitId(ctx context.Context, orgUnitId string, limit int32, cursor string) (*models.ModulePropagations, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -223,7 +268,7 @@ func (c OrganizationsDatabaseClient) GetModulePropagationsByOrgUnitId(ctx contex
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModulePropagationsByOrgDimensionId(ctx context.Context, moduleVersionId string, limit int32, cursor string) (*models.ModulePropagations, error) {
+func (c DatabaseClient) GetModulePropagationsByOrgDimensionId(ctx context.Context, moduleVersionId string, limit int32, cursor string) (*models.ModulePropagations, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -273,7 +318,7 @@ func (c OrganizationsDatabaseClient) GetModulePropagationsByOrgDimensionId(ctx c
 	}, nil
 }
 
-func (c *OrganizationsDatabaseClient) PutModulePropagation(ctx context.Context, input *models.ModulePropagation) error {
+func (c *DatabaseClient) PutModulePropagation(ctx context.Context, input *models.ModulePropagation) error {
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
@@ -303,7 +348,7 @@ func (c *OrganizationsDatabaseClient) PutModulePropagation(ctx context.Context, 
 	}
 }
 
-func (c *OrganizationsDatabaseClient) DeleteModulePropagation(ctx context.Context, modulePropagationId string) error {
+func (c *DatabaseClient) DeleteModulePropagation(ctx context.Context, modulePropagationId string) error {
 	condition := expression.AttributeExists(expression.Name("ModulePropagationId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()
@@ -329,7 +374,7 @@ func (c *OrganizationsDatabaseClient) DeleteModulePropagation(ctx context.Contex
 	}
 }
 
-func (c *OrganizationsDatabaseClient) UpdateModulePropagation(ctx context.Context, modulePropagationId string, update *models.ModulePropagationUpdate) (*models.ModulePropagation, error) {
+func (c *DatabaseClient) UpdateModulePropagation(ctx context.Context, modulePropagationId string, update *models.ModulePropagationUpdate) (*models.ModulePropagation, error) {
 	condition := expression.AttributeExists(expression.Name("ModulePropagationId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()
@@ -343,6 +388,9 @@ func (c *OrganizationsDatabaseClient) UpdateModulePropagation(ctx context.Contex
 	}
 	if update.OrgUnitId != nil {
 		updateBuilder = updateBuilder.Set(expression.Name("OrgUnitId"), expression.Value(*update.OrgUnitId))
+	}
+	if update.ModuleVersionId != nil {
+		updateBuilder = updateBuilder.Set(expression.Name("ModuleVersionId"), expression.Value(*update.ModuleVersionId))
 	}
 	if update.Name != nil {
 		updateBuilder = updateBuilder.Set(expression.Name("Name"), expression.Value(*update.Name))

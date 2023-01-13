@@ -14,7 +14,7 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-func (c OrganizationsDatabaseClient) GetOrganizationalUnitMembershipsByAccount(ctx context.Context, accountId string, limit int32, cursor string) (*models.OrganizationalUnitMemberships, error) {
+func (c DatabaseClient) GetOrganizationalUnitMembershipsByAccount(ctx context.Context, accountId string, limit int32, cursor string) (*models.OrganizationalUnitMemberships, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (c OrganizationsDatabaseClient) GetOrganizationalUnitMembershipsByAccount(c
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetOrganizationalUnitMembershipsByOrgUnit(ctx context.Context, orgUnitId string, limit int32, cursor string) (*models.OrganizationalUnitMemberships, error) {
+func (c DatabaseClient) GetOrganizationalUnitMembershipsByOrgUnit(ctx context.Context, orgUnitId string, limit int32, cursor string) (*models.OrganizationalUnitMemberships, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -114,7 +114,7 @@ func (c OrganizationsDatabaseClient) GetOrganizationalUnitMembershipsByOrgUnit(c
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetOrganizationalUnitMembershipsByDimension(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.OrganizationalUnitMemberships, error) {
+func (c DatabaseClient) GetOrganizationalUnitMembershipsByDimension(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.OrganizationalUnitMemberships, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -163,7 +163,7 @@ func (c OrganizationsDatabaseClient) GetOrganizationalUnitMembershipsByDimension
 	}, nil
 }
 
-func (c *OrganizationsDatabaseClient) PutOrganizationalUnitMembership(ctx context.Context, input *models.OrganizationalUnitMembership) error {
+func (c *DatabaseClient) PutOrganizationalUnitMembership(ctx context.Context, input *models.OrganizationalUnitMembership) error {
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
@@ -193,7 +193,7 @@ func (c *OrganizationsDatabaseClient) PutOrganizationalUnitMembership(ctx contex
 	}
 }
 
-func (c *OrganizationsDatabaseClient) DeleteOrganizationalUnitMembership(ctx context.Context, orgDimensionId string, accountId string) error {
+func (c *DatabaseClient) DeleteOrganizationalUnitMembership(ctx context.Context, orgDimensionId string, accountId string) error {
 	condition := expression.AttributeExists(expression.Name("OrgDimensionId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()

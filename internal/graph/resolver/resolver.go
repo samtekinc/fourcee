@@ -9,9 +9,9 @@ import "github.com/sheacloud/tfom/internal/api"
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	apiClient api.OrganizationsAPIClientInterface
+	apiClient api.APIClientInterface
 }
 
-func NewResolver(apiClient api.OrganizationsAPIClientInterface) *Resolver {
+func NewResolver(apiClient api.APIClientInterface) *Resolver {
 	return &Resolver{apiClient: apiClient}
 }

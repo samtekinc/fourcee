@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   PlanExecutionRequest,
   PlanExecutionRequests,
+  RequestStatus,
 } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
@@ -15,7 +16,10 @@ import Ansi from "ansi-to-react";
 
 const PLAN_EXECUTION_REQUEST_QUERY = gql`
   query planExecutionRequest($planExecutionRequestId: ID!) {
-    planExecutionRequest(planExecutionRequestId: $planExecutionRequestId) {
+    planExecutionRequest(
+      planExecutionRequestId: $planExecutionRequestId
+      withOutputs: true
+    ) {
       planExecutionRequestId
       status
       requestTime
@@ -43,7 +47,7 @@ export const PlanExecutionRequestPage = () => {
     ? params.planExecutionRequestId
     : "";
 
-  const { loading, error, data } = useQuery<Response>(
+  const { loading, error, data, startPolling } = useQuery<Response>(
     PLAN_EXECUTION_REQUEST_QUERY,
     {
       variables: {
@@ -55,6 +59,15 @@ export const PlanExecutionRequestPage = () => {
 
   if (loading) return null;
   if (error) return <div>Error</div>;
+
+  if (
+    data?.planExecutionRequest?.status === RequestStatus.Running ||
+    data?.planExecutionRequest?.status === RequestStatus.Pending
+  ) {
+    startPolling(1000);
+  } else {
+    startPolling(30000);
+  }
 
   let terraformConfiguration = data?.planExecutionRequest
     .terraformConfigurationBase64

@@ -20,7 +20,13 @@ type CreateModuleGroupResponse = {
   };
 };
 
-export const NewModuleGroupButton: React.VFC = () => {
+type NewModuleGroupButtonProps = {
+  onCompleted: () => void;
+};
+
+export const NewModuleGroupButton: React.VFC<NewModuleGroupButtonProps> = (
+  props: NewModuleGroupButtonProps
+) => {
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
@@ -59,6 +65,7 @@ export const NewModuleGroupButton: React.VFC = () => {
     event.stopPropagation();
 
     mutation();
+    setTimeout(props.onCompleted, 1000);
 
     handleClose();
   };

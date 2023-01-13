@@ -9,7 +9,7 @@ export function Header() {
   return (
     <Navbar bg="light" expand="lg" sticky="top">
       <Container fluid>
-        <Navbar.Brand href="#organizations">TFOM</Navbar.Brand>
+        <Navbar.Brand>TFOM</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
@@ -21,6 +21,16 @@ export function Header() {
             </Nav.Link>
             <Nav.Link href="#modules" as={NavLink} to="/module-groups">
               Modules
+            </Nav.Link>
+            <Nav.Link
+              href="#propagations"
+              as={NavLink}
+              to="/module-propagations"
+            >
+              Propagations
+            </Nav.Link>
+            <Nav.Link href="#assignments" as={NavLink} to="/module-assignments">
+              Assignments
             </Nav.Link>
           </Nav>
         </Navbar.Collapse>

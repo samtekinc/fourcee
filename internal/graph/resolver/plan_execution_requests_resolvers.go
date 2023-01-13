@@ -19,17 +19,17 @@ func (r *planExecutionRequestResolver) ModuleAssignment(ctx context.Context, obj
 }
 
 // PlanExecutionRequest is the resolver for the planExecutionRequest field.
-func (r *queryResolver) PlanExecutionRequest(ctx context.Context, planExecutionRequestID string) (*models.PlanExecutionRequest, error) {
-	return r.apiClient.GetPlanExecutionRequest(ctx, planExecutionRequestID)
+func (r *queryResolver) PlanExecutionRequest(ctx context.Context, planExecutionRequestID string, withOutputs *bool) (*models.PlanExecutionRequest, error) {
+	return r.apiClient.GetPlanExecutionRequest(ctx, planExecutionRequestID, aws.ToBool(withOutputs))
 }
 
 // PlanExecutionRequests is the resolver for the planExecutionRequests field.
-func (r *queryResolver) PlanExecutionRequests(ctx context.Context, limit *int, nextCursor *string) (*models.PlanExecutionRequests, error) {
+func (r *queryResolver) PlanExecutionRequests(ctx context.Context, limit *int, nextCursor *string, withOutputs *bool) (*models.PlanExecutionRequests, error) {
 	if limit == nil {
 		limit = aws.Int(100)
 	}
 
-	return r.apiClient.GetPlanExecutionRequests(ctx, int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetPlanExecutionRequests(ctx, int32(*limit), aws.ToString(nextCursor), aws.ToBool(withOutputs))
 }
 
 // PlanExecutionRequest returns generated.PlanExecutionRequestResolver implementation.

@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	TaskScheduleTerraformDriftCheckWorkflow Task = "ScheduleTerraformDriftCheckWorkflow"
+	TaskScheduleTerraformDriftCheck Task = "ScheduleTerraformDriftCheck"
 )
 
-type ScheduleTerraformDriftCheckWorkflowInput struct {
+type ScheduleTerraformDriftCheckInput struct {
 	ModulePropagationDriftCheckRequestId string
 	ModulePropagationId                  string
 	ModuleAssignment                     models.ModuleAssignment
@@ -18,12 +18,12 @@ type ScheduleTerraformDriftCheckWorkflowInput struct {
 	TaskToken                            *string
 }
 
-type ScheduleTerraformDriftCheckWorkflowOutput struct {
-	TerraformDriftCheckWorkflowRequestId string
+type ScheduleTerraformDriftCheckOutput struct {
+	TerraformDriftCheckRequestId string
 }
 
-func (t *TaskHandler) ScheduleTerraformDriftCheckWorkflow(ctx context.Context, input ScheduleTerraformDriftCheckWorkflowInput) (*ScheduleTerraformDriftCheckWorkflowOutput, error) {
-	tfWorkflow, err := t.apiClient.PutTerraformDriftCheckWorkflowRequest(ctx, &models.NewTerraformDriftCheckWorkflowRequest{
+func (t *TaskHandler) ScheduleTerraformDriftCheck(ctx context.Context, input ScheduleTerraformDriftCheckInput) (*ScheduleTerraformDriftCheckOutput, error) {
+	tfWorkflow, err := t.apiClient.PutTerraformDriftCheckRequest(ctx, &models.NewTerraformDriftCheckRequest{
 		ModuleAssignmentId:                   input.ModuleAssignment.ModuleAssignmentId,
 		ModulePropagationDriftCheckRequestId: &input.ModulePropagationDriftCheckRequestId,
 		ModulePropagationId:                  &input.ModulePropagationId,
@@ -35,7 +35,7 @@ func (t *TaskHandler) ScheduleTerraformDriftCheckWorkflow(ctx context.Context, i
 		return nil, err
 	}
 
-	return &ScheduleTerraformDriftCheckWorkflowOutput{
-		TerraformDriftCheckWorkflowRequestId: tfWorkflow.TerraformDriftCheckWorkflowRequestId,
+	return &ScheduleTerraformDriftCheckOutput{
+		TerraformDriftCheckRequestId: tfWorkflow.TerraformDriftCheckRequestId,
 	}, nil
 }

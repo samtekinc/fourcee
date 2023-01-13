@@ -7,32 +7,54 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/graph-gophers/dataloader"
 	"github.com/sheacloud/tfom/internal/database"
 	"github.com/sheacloud/tfom/internal/identifiers"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-func (c *OrganizationsAPIClient) GetOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string) (*models.OrganizationalUnit, error) {
-	return c.dbClient.GetOrganizationalUnit(ctx, orgDimensionId, orgUnitId)
+func (c *APIClient) GetOrganizationalUnitsByIds(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+	output := make([]*dataloader.Result, len(keys))
+	results, err := c.dbClient.GetOrganizationalUnitsByIds(ctx, keys.Keys())
+	if err != nil {
+		for i := range keys {
+			output[i] = &dataloader.Result{Error: err}
+		}
+		return output
+	}
+
+	for i := range keys {
+		output[i] = &dataloader.Result{Data: &results[i], Error: nil}
+	}
+	return output
 }
 
-func (c *OrganizationsAPIClient) GetOrganizationalUnits(ctx context.Context, limit int32, cursor string) (*models.OrganizationalUnits, error) {
+func (c *APIClient) GetOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string) (*models.OrganizationalUnit, error) {
+	thunk := c.orgUnitsLoader.Load(ctx, dataloader.StringKey(fmt.Sprintf("%s:%s", orgDimensionId, orgUnitId)))
+	result, err := thunk()
+	if err != nil {
+		return nil, err
+	}
+	return result.(*models.OrganizationalUnit), nil
+}
+
+func (c *APIClient) GetOrganizationalUnits(ctx context.Context, limit int32, cursor string) (*models.OrganizationalUnits, error) {
 	return c.dbClient.GetOrganizationalUnits(ctx, limit, cursor)
 }
 
-func (c *OrganizationsAPIClient) GetOrganizationalUnitsByDimension(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
+func (c *APIClient) GetOrganizationalUnitsByDimension(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
 	return c.dbClient.GetOrganizationalUnitsByDimension(ctx, orgDimensionId, limit, cursor)
 }
 
-func (c *OrganizationsAPIClient) GetOrganizationalUnitsByParent(ctx context.Context, orgDimensionId string, parentOrgUnitId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
+func (c *APIClient) GetOrganizationalUnitsByParent(ctx context.Context, orgDimensionId string, parentOrgUnitId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
 	return c.dbClient.GetOrganizationalUnitsByParent(ctx, orgDimensionId, parentOrgUnitId, limit, cursor)
 }
 
-func (c *OrganizationsAPIClient) GetOrganizationalUnitsByHierarchy(ctx context.Context, orgDimensionId string, hierarchy string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
+func (c *APIClient) GetOrganizationalUnitsByHierarchy(ctx context.Context, orgDimensionId string, hierarchy string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
 	return c.dbClient.GetOrganizationalUnitsByHierarchy(ctx, orgDimensionId, hierarchy, limit, cursor)
 }
 
-func (c *OrganizationsAPIClient) PutOrganizationalUnit(ctx context.Context, input *models.NewOrganizationalUnit) (*models.OrganizationalUnit, error) {
+func (c *APIClient) PutOrganizationalUnit(ctx context.Context, input *models.NewOrganizationalUnit) (*models.OrganizationalUnit, error) {
 	parentOrgUnit, err := c.dbClient.GetOrganizationalUnit(ctx, input.OrgDimensionId, input.ParentOrgUnitId)
 	if err != nil {
 		return nil, err
@@ -64,7 +86,7 @@ func (c *OrganizationsAPIClient) PutOrganizationalUnit(ctx context.Context, inpu
 	}
 }
 
-func (c *OrganizationsAPIClient) DeleteOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string) error {
+func (c *APIClient) DeleteOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string) error {
 	children, err := c.dbClient.GetOrganizationalUnitsByParent(ctx, orgDimensionId, orgUnitId, 1, "")
 	if err != nil {
 		return err
@@ -76,7 +98,7 @@ func (c *OrganizationsAPIClient) DeleteOrganizationalUnit(ctx context.Context, o
 	return c.dbClient.DeleteOrganizationalUnit(ctx, orgDimensionId, orgUnitId)
 }
 
-func (c *OrganizationsAPIClient) UpdateOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string, update *models.OrganizationalUnitUpdate) (*models.OrganizationalUnit, error) {
+func (c *APIClient) UpdateOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string, update *models.OrganizationalUnitUpdate) (*models.OrganizationalUnit, error) {
 	originalOrgUnit, err := c.dbClient.GetOrganizationalUnit(ctx, orgDimensionId, orgUnitId)
 	if err != nil {
 		return nil, err
@@ -139,7 +161,7 @@ func (c *OrganizationsAPIClient) UpdateOrganizationalUnit(ctx context.Context, o
 	return newOrgUnit, nil
 }
 
-func (c *OrganizationsAPIClient) UpdateOrganizationalUnitHierarchies(ctx context.Context, orgDimensionId string) error {
+func (c *APIClient) UpdateOrganizationalUnitHierarchies(ctx context.Context, orgDimensionId string) error {
 	dimension, err := c.dbClient.GetOrganizationalDimension(ctx, orgDimensionId)
 	if err != nil {
 		return err
@@ -153,7 +175,7 @@ func (c *OrganizationsAPIClient) UpdateOrganizationalUnitHierarchies(ctx context
 	return updateHierarchy(ctx, c.dbClient, rootOu, nil)
 }
 
-func updateHierarchy(ctx context.Context, dbClient database.OrganizationsDatabaseClientInterface, ou *models.OrganizationalUnit, parentOu *models.OrganizationalUnit) error {
+func updateHierarchy(ctx context.Context, dbClient database.DatabaseClientInterface, ou *models.OrganizationalUnit, parentOu *models.OrganizationalUnit) error {
 	ouUpdate := database.OrganizationalUnitUpdate{}
 	if parentOu != nil {
 		ouUpdate.Hierarchy = aws.String(parentOu.Hierarchy + parentOu.OrgUnitId + "/")

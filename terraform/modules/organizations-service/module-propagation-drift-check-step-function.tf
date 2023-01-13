@@ -67,8 +67,39 @@ resource "aws_sfn_state_machine" "module_propagation_drift_check" {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id"
                 }
               },
-              "Next": "ClassifyModuleAssignments",
+              "Next": "UpdateModuleAssignments",
               "OutputPath": "$.Output"
+            },
+            "UpdateModuleAssignments": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "OutputPath": "$.Payload",
+              "Parameters": {
+                "Payload": {
+                  "Payload": {
+                    "ModulePropagationId.$": "$$.Execution.Input.ModulePropagationId",
+                    "OrgAccountsPerOrgUnit.$": "$.OrgAccountsPerOrgUnit",
+                    "ActiveModuleAssignments.$": "$.ActiveModuleAssignments"
+                  },
+                  "Task": "UpdateModuleAssignments",
+                  "Workflow.$": "$$.StateMachine.Name"
+                },
+                "FunctionName": "arn:aws:lambda:us-east-1:306526781466:function:tfom-workflow-handler"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2
+                }
+              ],
+              "Next": "ClassifyModuleAssignments"
             },
             "ClassifyModuleAssignments": {
               "Type": "Task",
@@ -140,9 +171,9 @@ resource "aws_sfn_state_machine" "module_propagation_drift_check" {
                         "ProcessorConfig": {
                           "Mode": "INLINE"
                         },
-                        "StartAt": "ScheduleTerraformDriftCheckWorkflow",
+                        "StartAt": "ScheduleTerraformDriftCheck",
                         "States": {
-                          "ScheduleTerraformDriftCheckWorkflow": {
+                          "ScheduleTerraformDriftCheck": {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
                             "OutputPath": "$.Payload",
@@ -155,7 +186,7 @@ resource "aws_sfn_state_machine" "module_propagation_drift_check" {
                                   "Destroy": false,
                                   "TaskToken.$": "$$.Task.Token"
                                 },
-                                "Task": "ScheduleTerraformDriftCheckWorkflow",
+                                "Task": "ScheduleTerraformDriftCheck",
                                 "Workflow.$": "$$.StateMachine.Name"
                               },
                               "FunctionName": "${aws_lambda_function.workflow_handler.arn}"
@@ -191,9 +222,9 @@ resource "aws_sfn_state_machine" "module_propagation_drift_check" {
                         "ProcessorConfig": {
                           "Mode": "INLINE"
                         },
-                        "StartAt": "ScheduleTerraformDriftCheckWorkflowDestroy",
+                        "StartAt": "ScheduleTerraformDriftCheckDestroy",
                         "States": {
-                          "ScheduleTerraformDriftCheckWorkflowDestroy": {
+                          "ScheduleTerraformDriftCheckDestroy": {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
                             "OutputPath": "$.Payload",
@@ -206,7 +237,7 @@ resource "aws_sfn_state_machine" "module_propagation_drift_check" {
                                   "Destroy": false,
                                   "TaskToken.$": "$$.Task.Token"
                                 },
-                                "Task": "ScheduleTerraformDriftCheckWorkflowDestroy",
+                                "Task": "ScheduleTerraformDriftCheckDestroy",
                                 "Workflow.$": "$$.StateMachine.Name"
                               },
                               "FunctionName": "${aws_lambda_function.workflow_handler.arn}"

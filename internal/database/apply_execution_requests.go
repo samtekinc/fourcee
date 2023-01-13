@@ -17,7 +17,8 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-func (c *OrganizationsDatabaseClient) GetApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string) (*models.ApplyExecutionRequest, error) {
+func (c *DatabaseClient) GetApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string) (*models.ApplyExecutionRequest, error) {
+	fmt.Println("getting apply execution request")
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &c.applyExecutionsTableName,
 		Key: map[string]types.AttributeValue{
@@ -38,7 +39,52 @@ func (c *OrganizationsDatabaseClient) GetApplyExecutionRequest(ctx context.Conte
 	return &applyExecutionRequest, nil
 }
 
-func (c OrganizationsDatabaseClient) GetApplyExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
+func (c *DatabaseClient) GetApplyExecutionRequestsByIds(ctx context.Context, ids []string) ([]models.ApplyExecutionRequest, error) {
+	fmt.Println("getting apply execution requests by ids", len(ids))
+	var keys []map[string]types.AttributeValue
+
+	for _, id := range ids {
+		keys = append(keys, map[string]types.AttributeValue{
+			"ApplyExecutionRequestId": &types.AttributeValueMemberS{Value: id},
+		})
+	}
+
+	bii := dynamodb.BatchGetItemInput{
+		RequestItems: map[string]types.KeysAndAttributes{
+			c.applyExecutionsTableName: {
+				Keys: keys,
+			},
+		},
+	}
+	items := []map[string]types.AttributeValue{}
+
+	for {
+		bgo, err := c.dynamodb.BatchGetItem(ctx, &bii)
+		if err != nil {
+			return nil, err
+		}
+		if bgo.Responses != nil {
+			items = append(items, bgo.Responses[c.applyExecutionsTableName]...)
+		}
+		requestItems := bgo.UnprocessedKeys
+		bii = dynamodb.BatchGetItemInput{RequestItems: requestItems}
+		if len(requestItems) == 0 {
+			break
+		}
+	}
+
+	items = SortDynamoDBBatchResponses(keys, items)
+
+	results := []models.ApplyExecutionRequest{}
+	err := attributevalue.UnmarshalListOfMaps(items, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (c DatabaseClient) GetApplyExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -76,7 +122,7 @@ func (c OrganizationsDatabaseClient) GetApplyExecutionRequests(ctx context.Conte
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetApplyExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
+func (c DatabaseClient) GetApplyExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -127,7 +173,7 @@ func (c OrganizationsDatabaseClient) GetApplyExecutionRequestsByModuleAssignment
 	}, nil
 }
 
-func (c *OrganizationsDatabaseClient) PutApplyExecutionRequest(ctx context.Context, input *models.ApplyExecutionRequest) error {
+func (c *DatabaseClient) PutApplyExecutionRequest(ctx context.Context, input *models.ApplyExecutionRequest) error {
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
@@ -157,7 +203,7 @@ func (c *OrganizationsDatabaseClient) PutApplyExecutionRequest(ctx context.Conte
 	}
 }
 
-func (c *OrganizationsDatabaseClient) DeleteApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string) error {
+func (c *DatabaseClient) DeleteApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string) error {
 	condition := expression.AttributeExists(expression.Name("ApplyExecutionRequestId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()
@@ -183,7 +229,7 @@ func (c *OrganizationsDatabaseClient) DeleteApplyExecutionRequest(ctx context.Co
 	}
 }
 
-func (c *OrganizationsDatabaseClient) UpdateApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string, update *models.ApplyExecutionRequestUpdate) (*models.ApplyExecutionRequest, error) {
+func (c *DatabaseClient) UpdateApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string, update *models.ApplyExecutionRequestUpdate) (*models.ApplyExecutionRequest, error) {
 	condition := expression.AttributeExists(expression.Name("ApplyExecutionRequestId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()
@@ -237,7 +283,7 @@ func (c *OrganizationsDatabaseClient) UpdateApplyExecutionRequest(ctx context.Co
 	return &applyExecutionRequest, nil
 }
 
-func (c *OrganizationsDatabaseClient) UploadTerraformApplyInitResults(ctx context.Context, applyExecutionRequestId string, initResults *models.TerraformInitOutput) (string, error) {
+func (c *DatabaseClient) UploadTerraformApplyInitResults(ctx context.Context, applyExecutionRequestId string, initResults *models.TerraformInitOutput) (string, error) {
 	outputKey := fmt.Sprintf("applies/%s/init-results.json", applyExecutionRequestId)
 
 	initResultsBytes, err := json.Marshal(initResults)
@@ -254,7 +300,7 @@ func (c *OrganizationsDatabaseClient) UploadTerraformApplyInitResults(ctx contex
 	return outputKey, err
 }
 
-func (c *OrganizationsDatabaseClient) UploadTerraformApplyResults(ctx context.Context, applyExecutionRequestId string, applyResults *models.TerraformApplyOutput) (string, error) {
+func (c *DatabaseClient) UploadTerraformApplyResults(ctx context.Context, applyExecutionRequestId string, applyResults *models.TerraformApplyOutput) (string, error) {
 	outputKey := fmt.Sprintf("applies/%s/apply-results.json", applyExecutionRequestId)
 
 	applyResultsBytes, err := json.Marshal(applyResults)
@@ -271,7 +317,7 @@ func (c *OrganizationsDatabaseClient) UploadTerraformApplyResults(ctx context.Co
 	return outputKey, err
 }
 
-func (c *OrganizationsDatabaseClient) DownloadTerraformApplyInitResults(ctx context.Context, initResultsObjectKey string) (*models.TerraformInitOutput, error) {
+func (c *DatabaseClient) DownloadTerraformApplyInitResults(ctx context.Context, initResultsObjectKey string) (*models.TerraformInitOutput, error) {
 	result, err := c.s3.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: &c.resultsBucketName,
 		Key:    &initResultsObjectKey,
@@ -289,7 +335,7 @@ func (c *OrganizationsDatabaseClient) DownloadTerraformApplyInitResults(ctx cont
 	return &initResults, nil
 }
 
-func (c *OrganizationsDatabaseClient) DownloadTerraformApplyResults(ctx context.Context, applyResultsObjectKey string) (*models.TerraformApplyOutput, error) {
+func (c *DatabaseClient) DownloadTerraformApplyResults(ctx context.Context, applyResultsObjectKey string) (*models.TerraformApplyOutput, error) {
 	result, err := c.s3.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: &c.resultsBucketName,
 		Key:    &applyResultsObjectKey,

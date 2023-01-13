@@ -2,8 +2,8 @@ package models
 
 import "time"
 
-type TerraformExecutionWorkflowRequest struct {
-	TerraformExecutionWorkflowRequestId string
+type TerraformExecutionRequest struct {
+	TerraformExecutionRequestId         string
 	ModuleAssignmentId                  string
 	PlanExecutionRequestId              *string
 	ApplyExecutionRequestId             *string
@@ -15,12 +15,12 @@ type TerraformExecutionWorkflowRequest struct {
 	ModulePropagationExecutionRequestId *string `dynamodbav:",omitempty"`
 }
 
-type TerraformExecutionWorkflowRequests struct {
-	Items      []TerraformExecutionWorkflowRequest
+type TerraformExecutionRequests struct {
+	Items      []TerraformExecutionRequest
 	NextCursor string
 }
 
-type NewTerraformExecutionWorkflowRequest struct {
+type NewTerraformExecutionRequest struct {
 	ModuleAssignmentId                  string
 	Destroy                             bool
 	CallbackTaskToken                   *string
@@ -28,7 +28,7 @@ type NewTerraformExecutionWorkflowRequest struct {
 	ModulePropagationExecutionRequestId *string
 }
 
-type TerraformExecutionWorkflowRequestUpdate struct {
+type TerraformExecutionRequestUpdate struct {
 	Status                  *RequestStatus
 	PlanExecutionRequestId  *string
 	ApplyExecutionRequestId *string

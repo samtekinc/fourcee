@@ -67,8 +67,39 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id"
                 }
               },
-              "Next": "ClassifyModuleAssignments",
+              "Next": "UpdateModuleAssignments",
               "OutputPath": "$.Output"
+            },
+            "UpdateModuleAssignments": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "OutputPath": "$.Payload",
+              "Parameters": {
+                "Payload": {
+                  "Payload": {
+                    "ModulePropagationId.$": "$$.Execution.Input.ModulePropagationId",
+                    "OrgAccountsPerOrgUnit.$": "$.OrgAccountsPerOrgUnit",
+                    "ActiveModuleAssignments.$": "$.ActiveModuleAssignments"
+                  },
+                  "Task": "UpdateModuleAssignments",
+                  "Workflow.$": "$$.StateMachine.Name"
+                },
+                "FunctionName": "arn:aws:lambda:us-east-1:306526781466:function:tfom-workflow-handler"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2
+                }
+              ],
+              "Next": "ClassifyModuleAssignments"
             },
             "ClassifyModuleAssignments": {
               "Type": "Task",
@@ -140,9 +171,9 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
                         "ProcessorConfig": {
                           "Mode": "INLINE"
                         },
-                        "StartAt": "ScheduleTerraformExecutionWorkflow",
+                        "StartAt": "ScheduleTerraformExecution",
                         "States": {
-                          "ScheduleTerraformExecutionWorkflow": {
+                          "ScheduleTerraformExecution": {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
                             "OutputPath": "$.Payload",
@@ -155,7 +186,7 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
                                   "Destroy": false,
                                   "TaskToken.$": "$$.Task.Token"
                                 },
-                                "Task": "ScheduleTerraformExecutionWorkflow",
+                                "Task": "ScheduleTerraformExecution",
                                 "Workflow.$": "$$.StateMachine.Name"
                               },
                               "FunctionName": "arn:aws:lambda:us-east-1:306526781466:function:tfom-workflow-handler"
@@ -199,9 +230,9 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
                         "ProcessorConfig": {
                           "Mode": "INLINE"
                         },
-                        "StartAt": "ScheduleTerraformExecutionWorkflowDestroy",
+                        "StartAt": "ScheduleTerraformExecutionDestroy",
                         "States": {
-                          "ScheduleTerraformExecutionWorkflowDestroy": {
+                          "ScheduleTerraformExecutionDestroy": {
                             "Type": "Task",
                             "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
                             "Parameters": {
@@ -213,7 +244,7 @@ resource "aws_sfn_state_machine" "module_propagation_execution" {
                                   "Destroy": true,
                                   "TaskToken.$": "$$.Task.Token"
                                 },
-                                "Task": "ScheduleTerraformExecutionWorkflow",
+                                "Task": "ScheduleTerraformExecution",
                                 "Workflow.$": "$$.StateMachine.Name"
                               },
                               "FunctionName": "arn:aws:lambda:us-east-1:306526781466:function:tfom-workflow-handler"

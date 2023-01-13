@@ -8,13 +8,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 )
 
-type TerraformExecutionWorkflowInput struct {
+type TerraformExecutionInput struct {
 	RequestType string
 	RequestId   string
 	TaskToken   string
 }
 
-func (c *OrganizationsAPIClient) startTerraformCommandWorkflow(ctx context.Context, input *TerraformExecutionWorkflowInput) error {
+func (c *APIClient) startTerraformCommandWorkflow(ctx context.Context, input *TerraformExecutionInput) error {
 	workflowExecutionInput, err := json.Marshal(input)
 	if err != nil {
 		return err

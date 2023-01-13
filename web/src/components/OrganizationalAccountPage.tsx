@@ -7,12 +7,18 @@ import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
 import { Container } from "react-bootstrap";
+import {
+  renderCloudPlatform,
+  renderModuleAssignmentStatus,
+} from "../utils/rendering";
 
 const ORGANIZATIONAL_ACCOUNT_QUERY = gql`
   query organizationalAccount($orgAccountId: ID!) {
     organizationalAccount(orgAccountId: $orgAccountId) {
       orgAccountId
       name
+      cloudPlatform
+      cloudIdentifier
       orgUnitMemberships {
         items {
           orgUnit {
@@ -40,7 +46,16 @@ const ORGANIZATIONAL_ACCOUNT_QUERY = gql`
             name
           }
           modulePropagation {
+            modulePropagationId
             name
+            orgUnit {
+              orgUnitId
+              name
+            }
+            orgDimension {
+              orgDimensionId
+              name
+            }
           }
         }
       }
@@ -59,14 +74,13 @@ export const OrganizationalAccountPage = () => {
     ? params.organizationalAccountId
     : "";
 
-  console.log("test");
-
   const { loading, error, data } = useQuery<Response>(
     ORGANIZATIONAL_ACCOUNT_QUERY,
     {
       variables: {
         orgAccountId: organizationalAccountId,
       },
+      pollInterval: 5000,
     }
   );
 
@@ -76,11 +90,13 @@ export const OrganizationalAccountPage = () => {
   return (
     <Container>
       <h1>
-        <b>
-          <u>{data?.organizationalAccount.name}</u>
-        </b>{" "}
-        ({data?.organizationalAccount.orgAccountId})<h2></h2>
+        {renderCloudPlatform(data?.organizationalAccount.cloudPlatform)}{" "}
+        <i>{data?.organizationalAccount.name}</i> (
+        {data?.organizationalAccount.orgAccountId})<h2></h2>
       </h1>
+      <p>
+        <b>Cloud Identifier:</b> {data?.organizationalAccount.cloudIdentifier}
+      </p>
       <h2>Org Unit Memberships</h2>
       <Table striped bordered hover>
         <thead>
@@ -98,16 +114,14 @@ export const OrganizationalAccountPage = () => {
                     <NavLink
                       to={`/org-dimensions/${orgUnitMembership?.orgDimension.orgDimensionId}`}
                     >
-                      {orgUnitMembership?.orgDimension.name} (
-                      {orgUnitMembership?.orgDimension.orgDimensionId})
+                      {orgUnitMembership?.orgDimension.name}
                     </NavLink>
                   </td>
                   <td>
                     <NavLink
                       to={`/org-dimensions/${orgUnitMembership?.orgDimension.orgDimensionId}/org-units/${orgUnitMembership?.orgUnit.orgUnitId}`}
                     >
-                      {orgUnitMembership?.orgUnit.name} (
-                      {orgUnitMembership?.orgUnit.orgUnitId})
+                      {orgUnitMembership?.orgUnit.name}
                     </NavLink>
                   </td>
                 </tr>
@@ -116,14 +130,15 @@ export const OrganizationalAccountPage = () => {
           )}
         </tbody>
       </Table>
-      <h2>Module Propagations</h2>
+      <h2>Module Assignments</h2>
       <Table striped bordered hover>
         <thead>
           <tr>
-            <th>Module Propagation</th>
+            <th>Status</th>
+            <th>Assignment Id</th>
             <th>Module Group</th>
             <th>Module Version</th>
-            <th>Status</th>
+            <th>Propagated By</th>
           </tr>
         </thead>
         <tbody>
@@ -132,35 +147,57 @@ export const OrganizationalAccountPage = () => {
               return (
                 <tr>
                   <td>
+                    {renderModuleAssignmentStatus(moduleAssignment?.status)}
+                  </td>
+                  <td>
                     <NavLink
-                      to={`/module-propagations/${moduleAssignment?.modulePropagationId}`}
+                      to={`/module-assignments/${moduleAssignment?.moduleAssignmentId}`}
                     >
-                      {moduleAssignment?.modulePropagation?.name} (
-                      {moduleAssignment?.modulePropagationId})
+                      {moduleAssignment?.moduleAssignmentId}
                     </NavLink>
                   </td>
                   <td>
                     <NavLink
                       to={`/module-groups/${moduleAssignment?.moduleGroup.moduleGroupId}`}
                     >
-                      {moduleAssignment?.moduleGroup.name} (
-                      {moduleAssignment?.moduleGroup.moduleGroupId})
+                      {moduleAssignment?.moduleGroup.name}
                     </NavLink>
                   </td>
                   <td>
                     <NavLink
                       to={`/module-groups/${moduleAssignment?.moduleGroup.moduleGroupId}/module-versions/${moduleAssignment?.moduleVersion.moduleVersionId}`}
                     >
-                      {moduleAssignment?.moduleVersion.name} (
-                      {moduleAssignment?.moduleVersion.moduleVersionId})
+                      {moduleAssignment?.moduleVersion.name}
                     </NavLink>
                   </td>
                   <td>
-                    <NavLink
-                      to={`/module-assignments/${moduleAssignment?.moduleAssignmentId}`}
-                    >
-                      {moduleAssignment?.status}
-                    </NavLink>
+                    {moduleAssignment?.modulePropagation ? (
+                      <>
+                        <NavLink
+                          to={`/module-propagations/${moduleAssignment?.modulePropagation.modulePropagationId}`}
+                        >
+                          {moduleAssignment?.modulePropagation?.name}
+                        </NavLink>
+                        {" ("}
+                        <NavLink
+                          to={`/org-dimensions/${moduleAssignment?.modulePropagation?.orgDimension.orgDimensionId}`}
+                        >
+                          {
+                            moduleAssignment?.modulePropagation?.orgDimension
+                              .name
+                          }
+                        </NavLink>
+                        {" / "}
+                        <NavLink
+                          to={`/org-dimensions/${moduleAssignment?.modulePropagation?.orgDimension.orgDimensionId}/org-units/${moduleAssignment?.modulePropagation?.orgUnit.orgUnitId}`}
+                        >
+                          {moduleAssignment?.modulePropagation?.orgUnit.name}
+                        </NavLink>
+                        {")"}
+                      </>
+                    ) : (
+                      <div>Direct Assignment</div>
+                    )}
                   </td>
                 </tr>
               );

@@ -39,9 +39,9 @@ const MODULE_ACCOUNT_ASSOCIATION_QUERY = gql`
       }
       status
       terraformConfiguration
-      terraformExecutionWorkflowRequests(limit: 5) {
+      terraformExecutionRequests(limit: 5) {
         items {
-          terraformExecutionWorkflowRequestId
+          terraformExecutionRequestId
           status
           requestTime
           destroy
@@ -64,9 +64,9 @@ const MODULE_ACCOUNT_ASSOCIATION_QUERY = gql`
           }
         }
       }
-      terraformDriftCheckWorkflowRequests(limit: 5) {
+      terraformDriftCheckRequests(limit: 5) {
         items {
-          terraformDriftCheckWorkflowRequestId
+          terraformDriftCheckRequestId
           status
           requestTime
           destroy
@@ -106,7 +106,7 @@ export const ModuleAssignmentPage = () => {
       variables: {
         moduleAssignmentId: moduleAssignmentId,
       },
-      pollInterval: 1000,
+      pollInterval: 3000,
     }
   );
 
@@ -203,74 +203,64 @@ export const ModuleAssignmentPage = () => {
           </tr>
         </thead>
         <tbody>
-          {data?.moduleAssignment.terraformExecutionWorkflowRequests.items.map(
-            (terraformExecutionWorkflowRequest) => {
+          {data?.moduleAssignment.terraformExecutionRequests.items.map(
+            (terraformExecutionRequest) => {
               return (
                 <tr>
                   <td>
-                    {
-                      terraformExecutionWorkflowRequest?.terraformExecutionWorkflowRequestId
-                    }
+                    {terraformExecutionRequest?.terraformExecutionRequestId}
                   </td>
                   <td>
-                    {terraformExecutionWorkflowRequest?.destroy
-                      ? "Destroy"
-                      : "Apply"}
+                    {terraformExecutionRequest?.destroy ? "Destroy" : "Apply"}
                   </td>
                   <td>
                     <NavLink
-                      to={`/org-accounts/${terraformExecutionWorkflowRequest?.moduleAssignment.orgAccount.orgAccountId}`}
+                      to={`/org-accounts/${terraformExecutionRequest?.moduleAssignment.orgAccount.orgAccountId}`}
                     >
                       {
-                        terraformExecutionWorkflowRequest?.moduleAssignment
-                          .orgAccount.name
+                        terraformExecutionRequest?.moduleAssignment.orgAccount
+                          .name
                       }{" "}
                       (
                       {
-                        terraformExecutionWorkflowRequest?.moduleAssignment
-                          .orgAccount.orgAccountId
+                        terraformExecutionRequest?.moduleAssignment.orgAccount
+                          .orgAccountId
                       }
                       )
                     </NavLink>
                   </td>
-                  <td>
-                    {renderStatus(terraformExecutionWorkflowRequest?.status)}
-                  </td>
+                  <td>{renderStatus(terraformExecutionRequest?.status)}</td>
                   <td>
                     <NavLink
-                      to={`/plan-execution-requests/${terraformExecutionWorkflowRequest?.planExecutionRequest?.planExecutionRequestId}`}
+                      to={`/plan-execution-requests/${terraformExecutionRequest?.planExecutionRequest?.planExecutionRequestId}`}
                     >
                       {
-                        terraformExecutionWorkflowRequest?.planExecutionRequest
+                        terraformExecutionRequest?.planExecutionRequest
                           ?.planExecutionRequestId
                       }
                     </NavLink>{" "}
                     (
                     {renderStatus(
-                      terraformExecutionWorkflowRequest?.planExecutionRequest
-                        ?.status
+                      terraformExecutionRequest?.planExecutionRequest?.status
                     )}
                     )
                   </td>
                   <td>
                     <NavLink
-                      to={`/apply-execution-requests/${terraformExecutionWorkflowRequest?.applyExecutionRequest?.applyExecutionRequestId}`}
+                      to={`/apply-execution-requests/${terraformExecutionRequest?.applyExecutionRequest?.applyExecutionRequestId}`}
                     >
                       {
-                        terraformExecutionWorkflowRequest?.applyExecutionRequest
+                        terraformExecutionRequest?.applyExecutionRequest
                           ?.applyExecutionRequestId
                       }
                     </NavLink>{" "}
                     (
                     {renderStatus(
-                      terraformExecutionWorkflowRequest?.applyExecutionRequest
-                        ?.status
+                      terraformExecutionRequest?.applyExecutionRequest?.status
                     )}
                     )
                   </td>
-                  {renderTimeField(
-                    terraformExecutionWorkflowRequest?.requestTime
-                  )}
+                  {renderTimeField(terraformExecutionRequest?.requestTime)}
                 </tr>
               );
             }
@@ -294,59 +284,50 @@ export const ModuleAssignmentPage = () => {
           </tr>
         </thead>
         <tbody>
-          {data?.moduleAssignment.terraformDriftCheckWorkflowRequests.items.map(
-            (terraformDriftCheckWorkflowRequest) => {
+          {data?.moduleAssignment.terraformDriftCheckRequests.items.map(
+            (terraformDriftCheckRequest) => {
               return (
                 <tr>
                   <td>
-                    {
-                      terraformDriftCheckWorkflowRequest?.terraformDriftCheckWorkflowRequestId
-                    }
+                    {terraformDriftCheckRequest?.terraformDriftCheckRequestId}
                   </td>
                   <td>
-                    {terraformDriftCheckWorkflowRequest?.destroy
-                      ? "Destroy"
-                      : "Apply"}
+                    {terraformDriftCheckRequest?.destroy ? "Destroy" : "Apply"}
                   </td>
                   <td>
                     <NavLink
-                      to={`/org-accounts/${terraformDriftCheckWorkflowRequest?.moduleAssignment.orgAccount.orgAccountId}`}
+                      to={`/org-accounts/${terraformDriftCheckRequest?.moduleAssignment.orgAccount.orgAccountId}`}
                     >
                       {
-                        terraformDriftCheckWorkflowRequest?.moduleAssignment
-                          .orgAccount.name
+                        terraformDriftCheckRequest?.moduleAssignment.orgAccount
+                          .name
                       }{" "}
                       (
                       {
-                        terraformDriftCheckWorkflowRequest?.moduleAssignment
-                          .orgAccount.orgAccountId
+                        terraformDriftCheckRequest?.moduleAssignment.orgAccount
+                          .orgAccountId
                       }
                       )
                     </NavLink>
                   </td>
-                  <td>
-                    {renderStatus(terraformDriftCheckWorkflowRequest?.status)}
-                  </td>
+                  <td>{renderStatus(terraformDriftCheckRequest?.status)}</td>
                   <td>
                     <NavLink
-                      to={`/plan-execution-requests/${terraformDriftCheckWorkflowRequest?.planExecutionRequest?.planExecutionRequestId}`}
+                      to={`/plan-execution-requests/${terraformDriftCheckRequest?.planExecutionRequest?.planExecutionRequestId}`}
                     >
                       {
-                        terraformDriftCheckWorkflowRequest?.planExecutionRequest
+                        terraformDriftCheckRequest?.planExecutionRequest
                           ?.planExecutionRequestId
                       }
                     </NavLink>{" "}
                     (
                     {renderStatus(
-                      terraformDriftCheckWorkflowRequest?.planExecutionRequest
-                        ?.status
+                      terraformDriftCheckRequest?.planExecutionRequest?.status
                     )}
                     )
                   </td>
-                  <td>{terraformDriftCheckWorkflowRequest?.syncStatus}</td>
-                  {renderTimeField(
-                    terraformDriftCheckWorkflowRequest?.requestTime
-                  )}
+                  <td>{terraformDriftCheckRequest?.syncStatus}</td>
+                  {renderTimeField(terraformDriftCheckRequest?.requestTime)}
                 </tr>
               );
             }

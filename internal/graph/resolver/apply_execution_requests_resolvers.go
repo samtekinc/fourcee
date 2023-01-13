@@ -19,17 +19,17 @@ func (r *applyExecutionRequestResolver) ModuleAssignment(ctx context.Context, ob
 }
 
 // ApplyExecutionRequest is the resolver for the applyExecutionRequest field.
-func (r *queryResolver) ApplyExecutionRequest(ctx context.Context, applyExecutionRequestID string) (*models.ApplyExecutionRequest, error) {
-	return r.apiClient.GetApplyExecutionRequest(ctx, applyExecutionRequestID)
+func (r *queryResolver) ApplyExecutionRequest(ctx context.Context, applyExecutionRequestID string, withOutputs *bool) (*models.ApplyExecutionRequest, error) {
+	return r.apiClient.GetApplyExecutionRequest(ctx, applyExecutionRequestID, aws.ToBool(withOutputs))
 }
 
 // ApplyExecutionRequests is the resolver for the applyExecutionRequests field.
-func (r *queryResolver) ApplyExecutionRequests(ctx context.Context, limit *int, nextCursor *string) (*models.ApplyExecutionRequests, error) {
+func (r *queryResolver) ApplyExecutionRequests(ctx context.Context, limit *int, nextCursor *string, withOutputs *bool) (*models.ApplyExecutionRequests, error) {
 	if limit == nil {
 		limit = aws.Int(100)
 	}
 
-	return r.apiClient.GetApplyExecutionRequests(ctx, int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetApplyExecutionRequests(ctx, int32(*limit), aws.ToString(nextCursor), aws.ToBool(withOutputs))
 }
 
 // ApplyExecutionRequest returns generated.ApplyExecutionRequestResolver implementation.

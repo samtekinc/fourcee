@@ -12,13 +12,13 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-// TerraformDriftCheckWorkflowRequests is the resolver for the terraformDriftCheckWorkflowRequests field.
-func (r *modulePropagationDriftCheckRequestResolver) TerraformDriftCheckWorkflowRequests(ctx context.Context, obj *models.ModulePropagationDriftCheckRequest, limit *int, nextCursor *string) (*models.TerraformDriftCheckWorkflowRequests, error) {
+// TerraformDriftCheckRequests is the resolver for the terraformDriftCheckRequests field.
+func (r *modulePropagationDriftCheckRequestResolver) TerraformDriftCheckRequests(ctx context.Context, obj *models.ModulePropagationDriftCheckRequest, limit *int, nextCursor *string) (*models.TerraformDriftCheckRequests, error) {
 	if limit == nil {
 		limit = aws.Int(100)
 	}
 
-	return r.apiClient.GetTerraformDriftCheckWorkflowRequestsByModulePropagationDriftCheckRequestId(ctx, obj.ModulePropagationDriftCheckRequestId, int32(*limit), aws.ToString(nextCursor))
+	return r.apiClient.GetTerraformDriftCheckRequestsByModulePropagationDriftCheckRequestId(ctx, obj.ModulePropagationDriftCheckRequestId, int32(*limit), aws.ToString(nextCursor))
 }
 
 // CreateModulePropagationDriftCheckRequest is the resolver for the createModulePropagationDriftCheckRequest field.

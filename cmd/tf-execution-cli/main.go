@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -41,7 +42,7 @@ func main() {
 	s3Client := s3.NewFromConfig(cfg)
 	sfnClient := sfn.NewFromConfig(cfg)
 
-	dbInput := database.OrganizationsDatabaseClientInput{
+	dbInput := database.DatabaseClientInput{
 		DynamoDB:              dynamodbClient,
 		S3:                    s3Client,
 		DimensionsTableName:   "tfom-organizational-dimensions",
@@ -55,24 +56,25 @@ func main() {
 		ModulePropagationDriftCheckRequestsTableName: "tfom-module-propagation-drift-check-requests",
 		ModuleAssignmentsTableName:                   "tfom-module-assignments",
 		ModulePropagationAssignmentsTableName:        "tfom-module-propagation-assignments",
-		TerraformExecutionWorkflowRequestsTableName:  "tfom-terraform-execution-workflow-requests",
-		TerraformDriftCheckWorkflowRequestsTableName: "tfom-terraform-drift-check-workflow-requests",
+		TerraformExecutionRequestsTableName:          "tfom-terraform-execution-requests",
+		TerraformDriftCheckRequestsTableName:         "tfom-terraform-drift-check-requests",
 		PlanExecutionsTableName:                      "tfom-plan-execution-requests",
 		ApplyExecutionsTableName:                     "tfom-apply-execution-requests",
 		ResultsBucketName:                            "tfom-execution-results",
 	}
-	dbClient := database.NewOrganizationsDatabaseClient(&dbInput)
-	apiInput := api.OrganizationsAPIClientInput{
-		DBClient:                               dbClient,
-		WorkingDirectory:                       "./tmp",
-		SfnClient:                              sfnClient,
-		ModulePropagationExecutionWorkflowArn:  "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-execution",
-		ModulePropagationDriftCheckWorkflowArn: "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-drift-check",
-		TerraformExecutionWorkflowArn:          "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-execution",
-		RemoteStateBucket:                      "tfom-backend-states",
-		RemoteStateRegion:                      "us-east-1",
+	dbClient := database.NewDatabaseClient(&dbInput)
+	apiInput := api.APIClientInput{
+		DBClient:                       dbClient,
+		WorkingDirectory:               "./tmp/",
+		SfnClient:                      sfnClient,
+		ModulePropagationExecutionArn:  "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-execution",
+		ModulePropagationDriftCheckArn: "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-drift-check",
+		TerraformExecutionArn:          "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-execution",
+		RemoteStateBucket:              "tfom-backend-states",
+		RemoteStateRegion:              "us-east-1",
+		DataLoaderWaitTime:             time.Millisecond * 16,
 	}
-	apiClient := api.NewOrganizationsAPIClient(&apiInput)
+	apiClient := api.NewAPIClient(&apiInput)
 
 	installationDirectory, err := terraform.NewTerraformInstallationDirectory(TF_INSTALLATION_DIRECTORY)
 	if err != nil {
@@ -88,7 +90,7 @@ func main() {
 	// get the request from the database
 	switch requestType {
 	case "plan":
-		planRequest, err := apiClient.GetPlanExecutionRequest(ctx, requestID)
+		planRequest, err := apiClient.GetPlanExecutionRequest(ctx, requestID, false)
 		if err != nil {
 			zap.L().Panic("unable to get plan execution request", zap.Error(err))
 		}
@@ -98,7 +100,7 @@ func main() {
 			zap.L().Panic("unable to run plan", zap.Error(err))
 		}
 	case "apply":
-		applyRequest, err := apiClient.GetApplyExecutionRequest(ctx, requestID)
+		applyRequest, err := apiClient.GetApplyExecutionRequest(ctx, requestID, false)
 		if err != nil {
 			zap.L().Panic("unable to get apply execution request", zap.Error(err))
 		}
@@ -112,7 +114,7 @@ func main() {
 	}
 }
 
-func runPlan(ctx context.Context, request *models.PlanExecutionRequest, apiClient *api.OrganizationsAPIClient, installDirectory *terraform.TerraformInstallationDirectory) error {
+func runPlan(ctx context.Context, request *models.PlanExecutionRequest, apiClient *api.APIClient, installDirectory *terraform.TerraformInstallationDirectory) error {
 	workingDirectory, err := terraform.NewWorkingDirectory(filepath.Join(TF_WORKING_DIRECTORY, request.PlanExecutionRequestId))
 	if err != nil {
 		return err
@@ -174,7 +176,7 @@ func runPlan(ctx context.Context, request *models.PlanExecutionRequest, apiClien
 	return nil
 }
 
-func runApply(ctx context.Context, request *models.ApplyExecutionRequest, apiClient *api.OrganizationsAPIClient, installDirectory *terraform.TerraformInstallationDirectory) error {
+func runApply(ctx context.Context, request *models.ApplyExecutionRequest, apiClient *api.APIClient, installDirectory *terraform.TerraformInstallationDirectory) error {
 	workingDirectory, err := terraform.NewWorkingDirectory(filepath.Join(TF_WORKING_DIRECTORY, request.ApplyExecutionRequestId))
 	if err != nil {
 		return err

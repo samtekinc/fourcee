@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -13,7 +14,7 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-func (c *OrganizationsDatabaseClient) GetModuleVersion(ctx context.Context, moduleGroupId string, moduleVersionId string) (*models.ModuleVersion, error) {
+func (c *DatabaseClient) GetModuleVersion(ctx context.Context, moduleGroupId string, moduleVersionId string) (*models.ModuleVersion, error) {
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &c.versionsTableName,
 		Key: map[string]types.AttributeValue{
@@ -35,7 +36,54 @@ func (c *OrganizationsDatabaseClient) GetModuleVersion(ctx context.Context, modu
 	return &moduleVersion, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModuleVersions(ctx context.Context, moduleGroupId string, limit int32, cursor string) (*models.ModuleVersions, error) {
+func (c *DatabaseClient) GetModuleVersionsByIds(ctx context.Context, ids []string) ([]models.ModuleVersion, error) {
+	fmt.Println("getting module versions by ids", len(ids))
+	var keys []map[string]types.AttributeValue
+
+	for _, id := range ids {
+		parts := strings.Split(id, ":")
+		keys = append(keys, map[string]types.AttributeValue{
+			"ModuleGroupId":   &types.AttributeValueMemberS{Value: parts[0]},
+			"ModuleVersionId": &types.AttributeValueMemberS{Value: parts[1]},
+		})
+	}
+
+	bii := dynamodb.BatchGetItemInput{
+		RequestItems: map[string]types.KeysAndAttributes{
+			c.versionsTableName: {
+				Keys: keys,
+			},
+		},
+	}
+	items := []map[string]types.AttributeValue{}
+
+	for {
+		bgo, err := c.dynamodb.BatchGetItem(ctx, &bii)
+		if err != nil {
+			return nil, err
+		}
+		if bgo.Responses != nil {
+			items = append(items, bgo.Responses[c.versionsTableName]...)
+		}
+		requestItems := bgo.UnprocessedKeys
+		bii = dynamodb.BatchGetItemInput{RequestItems: requestItems}
+		if len(requestItems) == 0 {
+			break
+		}
+	}
+
+	items = SortDynamoDBBatchResponses(keys, items)
+
+	results := []models.ModuleVersion{}
+	err := attributevalue.UnmarshalListOfMaps(items, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (c DatabaseClient) GetModuleVersions(ctx context.Context, moduleGroupId string, limit int32, cursor string) (*models.ModuleVersions, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -84,7 +132,7 @@ func (c OrganizationsDatabaseClient) GetModuleVersions(ctx context.Context, modu
 	}, nil
 }
 
-func (c *OrganizationsDatabaseClient) PutModuleVersion(ctx context.Context, input *models.ModuleVersion) error {
+func (c *DatabaseClient) PutModuleVersion(ctx context.Context, input *models.ModuleVersion) error {
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
@@ -114,7 +162,7 @@ func (c *OrganizationsDatabaseClient) PutModuleVersion(ctx context.Context, inpu
 	}
 }
 
-func (c *OrganizationsDatabaseClient) DeleteModuleVersion(ctx context.Context, moduleGroupId string, moduleVersionId string) error {
+func (c *DatabaseClient) DeleteModuleVersion(ctx context.Context, moduleGroupId string, moduleVersionId string) error {
 	condition := expression.AttributeExists(expression.Name("ModuleVersionId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()

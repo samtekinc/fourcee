@@ -2,13 +2,15 @@ package api
 
 import (
 	"context"
+	"time"
 
+	"github.com/graph-gophers/dataloader"
 	"github.com/sheacloud/tfom/internal/awsclients"
 	"github.com/sheacloud/tfom/internal/database"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-type OrganizationsAPIClientInterface interface {
+type APIClientInterface interface {
 	GetOrganizationalDimension(ctx context.Context, dimensionId string) (*models.OrganizationalDimension, error)
 	GetOrganizationalDimensions(ctx context.Context, limit int32, cursor string) (*models.OrganizationalDimensions, error)
 	PutOrganizationalDimension(ctx context.Context, input *models.NewOrganizationalDimension) (*models.OrganizationalDimension, error)
@@ -85,29 +87,29 @@ type OrganizationsAPIClientInterface interface {
 
 	// Execution Methods
 
-	GetTerraformExecutionWorkflowRequest(ctx context.Context, terraformExecutionRequestId string) (*models.TerraformExecutionWorkflowRequest, error)
-	GetTerraformExecutionWorkflowRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error)
-	GetTerraformExecutionWorkflowRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error)
-	GetTerraformExecutionWorkflowRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error)
-	PutTerraformExecutionWorkflowRequest(ctx context.Context, input *models.NewTerraformExecutionWorkflowRequest) (*models.TerraformExecutionWorkflowRequest, error)
-	UpdateTerraformExecutionWorkflowRequest(ctx context.Context, terraformExecutionRequestId string, update *models.TerraformExecutionWorkflowRequestUpdate) (*models.TerraformExecutionWorkflowRequest, error)
+	GetTerraformExecutionRequest(ctx context.Context, terraformExecutionRequestId string) (*models.TerraformExecutionRequest, error)
+	GetTerraformExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformExecutionRequests, error)
+	GetTerraformExecutionRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.TerraformExecutionRequests, error)
+	GetTerraformExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.TerraformExecutionRequests, error)
+	PutTerraformExecutionRequest(ctx context.Context, input *models.NewTerraformExecutionRequest) (*models.TerraformExecutionRequest, error)
+	UpdateTerraformExecutionRequest(ctx context.Context, terraformExecutionRequestId string, update *models.TerraformExecutionRequestUpdate) (*models.TerraformExecutionRequest, error)
 
-	GetTerraformDriftCheckWorkflowRequest(ctx context.Context, terraformDriftCheckRequestId string) (*models.TerraformDriftCheckWorkflowRequest, error)
-	GetTerraformDriftCheckWorkflowRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformDriftCheckWorkflowRequests, error)
-	GetTerraformDriftCheckWorkflowRequestsByModulePropagationDriftCheckRequestId(ctx context.Context, modulePropagationDriftCheckRequestId string, limit int32, cursor string) (*models.TerraformDriftCheckWorkflowRequests, error)
-	GetTerraformDriftCheckWorkflowRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.TerraformDriftCheckWorkflowRequests, error)
-	PutTerraformDriftCheckWorkflowRequest(ctx context.Context, input *models.NewTerraformDriftCheckWorkflowRequest) (*models.TerraformDriftCheckWorkflowRequest, error)
-	UpdateTerraformDriftCheckWorkflowRequest(ctx context.Context, terraformDriftCheckRequestId string, update *models.TerraformDriftCheckWorkflowRequestUpdate) (*models.TerraformDriftCheckWorkflowRequest, error)
+	GetTerraformDriftCheckRequest(ctx context.Context, terraformDriftCheckRequestId string) (*models.TerraformDriftCheckRequest, error)
+	GetTerraformDriftCheckRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformDriftCheckRequests, error)
+	GetTerraformDriftCheckRequestsByModulePropagationDriftCheckRequestId(ctx context.Context, modulePropagationDriftCheckRequestId string, limit int32, cursor string) (*models.TerraformDriftCheckRequests, error)
+	GetTerraformDriftCheckRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.TerraformDriftCheckRequests, error)
+	PutTerraformDriftCheckRequest(ctx context.Context, input *models.NewTerraformDriftCheckRequest) (*models.TerraformDriftCheckRequest, error)
+	UpdateTerraformDriftCheckRequest(ctx context.Context, terraformDriftCheckRequestId string, update *models.TerraformDriftCheckRequestUpdate) (*models.TerraformDriftCheckRequest, error)
 
-	GetPlanExecutionRequest(ctx context.Context, planExecutionRequestId string) (*models.PlanExecutionRequest, error)
-	GetPlanExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.PlanExecutionRequests, error)
-	GetPlanExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.PlanExecutionRequests, error)
+	GetPlanExecutionRequest(ctx context.Context, planExecutionRequestId string, withOutputs bool) (*models.PlanExecutionRequest, error)
+	GetPlanExecutionRequests(ctx context.Context, limit int32, cursor string, withOutputs bool) (*models.PlanExecutionRequests, error)
+	GetPlanExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string, withOutputs bool) (*models.PlanExecutionRequests, error)
 	PutPlanExecutionRequest(ctx context.Context, input *models.NewPlanExecutionRequest) (*models.PlanExecutionRequest, error)
 	UpdatePlanExecutionRequest(ctx context.Context, planExecutionRequestId string, input *models.PlanExecutionRequestUpdate) (*models.PlanExecutionRequest, error)
 
-	GetApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string) (*models.ApplyExecutionRequest, error)
-	GetApplyExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
-	GetApplyExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
+	GetApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string, withOutputs bool) (*models.ApplyExecutionRequest, error)
+	GetApplyExecutionRequests(ctx context.Context, limit int32, cursor string, withOutputs bool) (*models.ApplyExecutionRequests, error)
+	GetApplyExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string, withOutputs bool) (*models.ApplyExecutionRequests, error)
 	PutApplyExecutionRequest(ctx context.Context, input *models.NewApplyExecutionRequest) (*models.ApplyExecutionRequest, error)
 	UpdateApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string, input *models.ApplyExecutionRequestUpdate) (*models.ApplyExecutionRequest, error)
 
@@ -122,43 +124,82 @@ type OrganizationsAPIClientInterface interface {
 	DownloadTerraformApplyResults(ctx context.Context, applyResultsObjectKey string) (*models.TerraformApplyOutput, error)
 }
 
-type OrganizationsAPIClient struct {
-	dbClient                               database.OrganizationsDatabaseClientInterface
-	workingDirectory                       string
-	sfnClient                              awsclients.StepFunctionsInterface
-	modulePropagationExecutionWorkflowArn  string
-	modulePropagationDriftCheckWorkflowArn string
-	terraformCommandWorkflowArn            string
-	terraformExecutionWorkflowArn          string
-	terraformDriftCheckWorkflowArn         string
-	remoteStateBucket                      string
-	remoteStateRegion                      string
+type APIClient struct {
+	dbClient                       database.DatabaseClientInterface
+	workingDirectory               string
+	sfnClient                      awsclients.StepFunctionsInterface
+	modulePropagationExecutionArn  string
+	modulePropagationDriftCheckArn string
+	terraformCommandWorkflowArn    string
+	terraformExecutionArn          string
+	terraformDriftCheckArn         string
+	remoteStateBucket              string
+	remoteStateRegion              string
+
+	applyExecutionRequestsLoader              *dataloader.Loader
+	moduleAssignmentsLoader                   *dataloader.Loader
+	moduleGroupsLoader                        *dataloader.Loader
+	modulePropagationAssignmentsLoader        *dataloader.Loader
+	modulePropagationDriftCheckRequestsLoader *dataloader.Loader
+	modulePropagationExecutionRequestsLoader  *dataloader.Loader
+	modulePropagationsLoader                  *dataloader.Loader
+	moduleVersionsLoader                      *dataloader.Loader
+	orgAccountsLoader                         *dataloader.Loader
+	orgDimensionsLoader                       *dataloader.Loader
+	orgUnitsLoader                            *dataloader.Loader
+	planExecutionRequestsLoader               *dataloader.Loader
+	terraformDriftCheckRequestsLoader         *dataloader.Loader
+	terraformExecutionRequestsLoader          *dataloader.Loader
 }
 
-type OrganizationsAPIClientInput struct {
-	DBClient                               database.OrganizationsDatabaseClientInterface
-	WorkingDirectory                       string
-	SfnClient                              awsclients.StepFunctionsInterface
-	ModulePropagationExecutionWorkflowArn  string
-	ModulePropagationDriftCheckWorkflowArn string
-	TerraformCommandWorkflowArn            string
-	TerraformExecutionWorkflowArn          string
-	TerraformDriftCheckWorkflowArn         string
-	RemoteStateBucket                      string
-	RemoteStateRegion                      string
+type APIClientInput struct {
+	DBClient                       database.DatabaseClientInterface
+	WorkingDirectory               string
+	SfnClient                      awsclients.StepFunctionsInterface
+	ModulePropagationExecutionArn  string
+	ModulePropagationDriftCheckArn string
+	TerraformCommandWorkflowArn    string
+	TerraformExecutionArn          string
+	TerraformDriftCheckArn         string
+	RemoteStateBucket              string
+	RemoteStateRegion              string
+	DataLoaderWaitTime             time.Duration
 }
 
-func NewOrganizationsAPIClient(input *OrganizationsAPIClientInput) *OrganizationsAPIClient {
-	return &OrganizationsAPIClient{
-		dbClient:                               input.DBClient,
-		workingDirectory:                       input.WorkingDirectory,
-		sfnClient:                              input.SfnClient,
-		modulePropagationExecutionWorkflowArn:  input.ModulePropagationExecutionWorkflowArn,
-		modulePropagationDriftCheckWorkflowArn: input.ModulePropagationDriftCheckWorkflowArn,
-		terraformCommandWorkflowArn:            input.TerraformCommandWorkflowArn,
-		terraformExecutionWorkflowArn:          input.TerraformExecutionWorkflowArn,
-		terraformDriftCheckWorkflowArn:         input.TerraformDriftCheckWorkflowArn,
-		remoteStateBucket:                      input.RemoteStateBucket,
-		remoteStateRegion:                      input.RemoteStateRegion,
+func NewAPIClient(input *APIClientInput) *APIClient {
+	apiClient := &APIClient{
+		dbClient:                       input.DBClient,
+		workingDirectory:               input.WorkingDirectory,
+		sfnClient:                      input.SfnClient,
+		modulePropagationExecutionArn:  input.ModulePropagationExecutionArn,
+		modulePropagationDriftCheckArn: input.ModulePropagationDriftCheckArn,
+		terraformCommandWorkflowArn:    input.TerraformCommandWorkflowArn,
+		terraformExecutionArn:          input.TerraformExecutionArn,
+		terraformDriftCheckArn:         input.TerraformDriftCheckArn,
+		remoteStateBucket:              input.RemoteStateBucket,
+		remoteStateRegion:              input.RemoteStateRegion,
 	}
+
+	dataLoaderOptions := []dataloader.Option{
+		dataloader.WithClearCacheOnBatch(), // don't cache responses long-term, only within a single batch request
+		dataloader.WithWait(input.DataLoaderWaitTime),
+		dataloader.WithBatchCapacity(100), // limit of BatchGetItems in DynamoDB
+	}
+
+	apiClient.applyExecutionRequestsLoader = dataloader.NewBatchedLoader(apiClient.GetApplyExecutionRequestsByIds, dataLoaderOptions...)
+	apiClient.moduleAssignmentsLoader = dataloader.NewBatchedLoader(apiClient.GetModuleAssignmentsByIds, dataLoaderOptions...)
+	apiClient.moduleGroupsLoader = dataloader.NewBatchedLoader(apiClient.GetModuleGroupsByIds, dataLoaderOptions...)
+	apiClient.modulePropagationAssignmentsLoader = dataloader.NewBatchedLoader(apiClient.GetModulePropagationAssignmentsByIds, dataLoaderOptions...)
+	apiClient.modulePropagationDriftCheckRequestsLoader = dataloader.NewBatchedLoader(apiClient.GetModulePropagationDriftCheckRequestsByIds, dataLoaderOptions...)
+	apiClient.modulePropagationExecutionRequestsLoader = dataloader.NewBatchedLoader(apiClient.GetModulePropagationExecutionRequestsByIds, dataLoaderOptions...)
+	apiClient.modulePropagationsLoader = dataloader.NewBatchedLoader(apiClient.GetModulePropagationsByIds, dataLoaderOptions...)
+	apiClient.moduleVersionsLoader = dataloader.NewBatchedLoader(apiClient.GetModuleVersionsByIds, dataLoaderOptions...)
+	apiClient.orgAccountsLoader = dataloader.NewBatchedLoader(apiClient.GetOrganizationalAccountsByIds, dataLoaderOptions...)
+	apiClient.orgDimensionsLoader = dataloader.NewBatchedLoader(apiClient.GetOrganizationalDimensionsByIds, dataLoaderOptions...)
+	apiClient.orgUnitsLoader = dataloader.NewBatchedLoader(apiClient.GetOrganizationalUnitsByIds, dataLoaderOptions...)
+	apiClient.planExecutionRequestsLoader = dataloader.NewBatchedLoader(apiClient.GetPlanExecutionRequestsByIds, dataLoaderOptions...)
+	apiClient.terraformDriftCheckRequestsLoader = dataloader.NewBatchedLoader(apiClient.GetTerraformDriftCheckRequestsByIds, dataLoaderOptions...)
+	apiClient.terraformExecutionRequestsLoader = dataloader.NewBatchedLoader(apiClient.GetTerraformExecutionRequestsByIds, dataLoaderOptions...)
+
+	return apiClient
 }

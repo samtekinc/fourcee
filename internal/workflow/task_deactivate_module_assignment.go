@@ -18,7 +18,7 @@ type DeactivateModuleAssignmentOutput struct{}
 
 func (t *TaskHandler) DeactivateModuleAssignment(ctx context.Context, input DeactivateModuleAssignmentInput) (*DeactivateModuleAssignmentOutput, error) {
 	// get workflow details
-	terraformWorkflow, err := t.apiClient.GetTerraformExecutionWorkflowRequest(ctx, input.TerraformWorkflowRequestId)
+	terraformWorkflow, err := t.apiClient.GetTerraformExecutionRequest(ctx, input.TerraformWorkflowRequestId)
 	if err != nil {
 		return nil, err
 	}

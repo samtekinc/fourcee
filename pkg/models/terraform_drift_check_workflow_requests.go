@@ -2,8 +2,8 @@ package models
 
 import "time"
 
-type TerraformDriftCheckWorkflowRequest struct {
-	TerraformDriftCheckWorkflowRequestId string
+type TerraformDriftCheckRequest struct {
+	TerraformDriftCheckRequestId         string
 	ModuleAssignmentId                   string
 	PlanExecutionRequestId               *string
 	RequestTime                          time.Time
@@ -15,12 +15,12 @@ type TerraformDriftCheckWorkflowRequest struct {
 	ModulePropagationDriftCheckRequestId *string `dynamodbav:",omitempty"`
 }
 
-type TerraformDriftCheckWorkflowRequests struct {
-	Items      []TerraformDriftCheckWorkflowRequest
+type TerraformDriftCheckRequests struct {
+	Items      []TerraformDriftCheckRequest
 	NextCursor string
 }
 
-type NewTerraformDriftCheckWorkflowRequest struct {
+type NewTerraformDriftCheckRequest struct {
 	ModuleAssignmentId                   string
 	Destroy                              bool
 	CallbackTaskToken                    *string
@@ -28,7 +28,7 @@ type NewTerraformDriftCheckWorkflowRequest struct {
 	ModulePropagationDriftCheckRequestId *string
 }
 
-type TerraformDriftCheckWorkflowRequestUpdate struct {
+type TerraformDriftCheckRequestUpdate struct {
 	Status                 *RequestStatus
 	PlanExecutionRequestId *string
 	SyncStatus             *TerraformDriftCheckStatus

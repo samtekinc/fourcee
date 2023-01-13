@@ -16,24 +16,13 @@ import { ModuleGroupsList } from "./components/ModuleGroupList";
 import { ModuleGroupPage } from "./components/ModuleGroupPage";
 import { ModuleVersionPage } from "./components/ModuleVersionPage";
 import { ModulePropagationDriftCheckRequestPage } from "./components/ModulePropagationDriftCheckPage";
+import { ModulePropagationsList } from "./components/ModulePropagationsList";
 
 function App() {
   return (
     <PageWrapper>
       <Routes>
         <Route path="/" element={<OrganizationalDimensionsList />} />
-        <Route
-          path="/module-propagations/:modulePropagationId"
-          element={<ModulePropagationPage />}
-        />
-        <Route
-          path="/module-propagations/:modulePropagationId/executions/:modulePropagationExecutionRequestId"
-          element={<ModulePropagationExecutionRequestPage />}
-        />
-        <Route
-          path="/module-propagations/:modulePropagationId/drift-checks/:modulePropagationDriftCheckRequestId"
-          element={<ModulePropagationDriftCheckRequestPage />}
-        />
         <Route
           path="/module-assignments/:moduleAssignmentId"
           element={<ModuleAssignmentPage />}
@@ -59,12 +48,12 @@ function App() {
             element={<OrganizationalUnitPage />}
           />
         </Route>
-
-        <Route path="/org-accounts" element={<OrganizationalAccountsList />} />
-        <Route
-          path="/org-accounts/:organizationalAccountId"
-          element={<OrganizationalAccountPage />}
-        />
+        <Route path="/org-accounts" element={<OrganizationalAccountsList />}>
+          <Route
+            path="/org-accounts/:organizationalAccountId"
+            element={<OrganizationalAccountPage />}
+          />
+        </Route>
         <Route path="/module-groups" element={<ModuleGroupsList />}>
           <Route
             path="/module-groups/:moduleGroupId"
@@ -73,6 +62,20 @@ function App() {
           <Route
             path="/module-groups/:moduleGroupId/versions/:moduleVersionId"
             element={<ModuleVersionPage />}
+          />
+        </Route>
+        <Route path="/module-propagations" element={<ModulePropagationsList />}>
+          <Route
+            path="/module-propagations/:modulePropagationId"
+            element={<ModulePropagationPage />}
+          />
+          <Route
+            path="/module-propagations/:modulePropagationId/executions/:modulePropagationExecutionRequestId"
+            element={<ModulePropagationExecutionRequestPage />}
+          />
+          <Route
+            path="/module-propagations/:modulePropagationId/drift-checks/:modulePropagationDriftCheckRequestId"
+            element={<ModulePropagationDriftCheckRequestPage />}
           />
         </Route>
       </Routes>

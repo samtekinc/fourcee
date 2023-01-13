@@ -1,9 +1,9 @@
-type TerraformDriftCheckWorkflowRequest {
-  terraformDriftCheckWorkflowRequestId: ID!
+type TerraformDriftCheckRequest {
+  terraformDriftCheckRequestId: ID!
   moduleAssignmentId: ID!
   moduleAssignment: ModuleAssignment!
   planExecutionRequestId: ID
-  planExecutionRequest: PlanExecutionRequest
+  planExecutionRequest(withOutputs: Boolean = false): PlanExecutionRequest
   requestTime: Time!
   status: RequestStatus!
   syncStatus: TerraformDriftCheckStatus!
@@ -14,8 +14,8 @@ type TerraformDriftCheckWorkflowRequest {
   modulePropagationDriftCheckRequest: ModulePropagationDriftCheckRequest
 }
 
-type TerraformDriftCheckWorkflowRequests {
-  items: [TerraformDriftCheckWorkflowRequest]!
+type TerraformDriftCheckRequests {
+  items: [TerraformDriftCheckRequest]!
   nextCursor: String
 }
 
@@ -25,12 +25,12 @@ enum TerraformDriftCheckStatus {
   OUT_OF_SYNC
 }
 
-input NewTerraformDriftCheckWorkflowRequest {
+input NewTerraformDriftCheckRequest {
   moduleAssignmentId: ID!
 }
 
 extend type Mutation {
-  createTerraformDriftCheckWorkflowRequest(
-    terraformDriftCheckWorkflowRequest: NewTerraformDriftCheckWorkflowRequest!
-  ): TerraformDriftCheckWorkflowRequest!
+  createTerraformDriftCheckRequest(
+    terraformDriftCheckRequest: NewTerraformDriftCheckRequest!
+  ): TerraformDriftCheckRequest!
 }

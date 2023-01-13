@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   ModulePropagationDriftCheckRequest,
   ModulePropagationDriftCheckRequests,
+  RequestStatus,
 } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
@@ -22,9 +23,9 @@ const MODULE_PROPAGATION_DRIFT_CHECK_QUERY = gql`
       modulePropagationDriftCheckRequestId
       requestTime
       status
-      terraformDriftCheckWorkflowRequests {
+      terraformDriftCheckRequests {
         items {
-          terraformDriftCheckWorkflowRequestId
+          terraformDriftCheckRequestId
           status
           requestTime
           destroy
@@ -62,7 +63,7 @@ export const ModulePropagationDriftCheckRequestPage = () => {
     ? params.modulePropagationId
     : "";
 
-  const { loading, error, data } = useQuery<Response>(
+  const { loading, error, data, startPolling } = useQuery<Response>(
     MODULE_PROPAGATION_DRIFT_CHECK_QUERY,
     {
       variables: {
@@ -76,6 +77,16 @@ export const ModulePropagationDriftCheckRequestPage = () => {
 
   if (loading) return null;
   if (error) return <div>Error</div>;
+
+  if (
+    data?.modulePropagationDriftCheckRequest?.status ===
+      RequestStatus.Running ||
+    data?.modulePropagationDriftCheckRequest?.status === RequestStatus.Pending
+  ) {
+    startPolling(1000);
+  } else {
+    startPolling(30000);
+  }
 
   return (
     <Container>
@@ -102,56 +113,49 @@ export const ModulePropagationDriftCheckRequestPage = () => {
           </tr>
         </thead>
         <tbody>
-          {data?.modulePropagationDriftCheckRequest.terraformDriftCheckWorkflowRequests.items.map(
-            (terraformDriftCheckWorkflowRequest) => {
+          {data?.modulePropagationDriftCheckRequest.terraformDriftCheckRequests.items.map(
+            (terraformDriftCheckRequest) => {
               return (
                 <tr>
                   <td>
-                    {
-                      terraformDriftCheckWorkflowRequest?.terraformDriftCheckWorkflowRequestId
-                    }
+                    {terraformDriftCheckRequest?.terraformDriftCheckRequestId}
                   </td>
                   <td>
-                    {terraformDriftCheckWorkflowRequest?.destroy
-                      ? "Destroy"
-                      : "Apply"}
+                    {terraformDriftCheckRequest?.destroy ? "Destroy" : "Apply"}
                   </td>
                   <td>
                     <NavLink
-                      to={`/org-accounts/${terraformDriftCheckWorkflowRequest?.moduleAssignment.orgAccount.orgAccountId}`}
+                      to={`/org-accounts/${terraformDriftCheckRequest?.moduleAssignment.orgAccount.orgAccountId}`}
                     >
                       {
-                        terraformDriftCheckWorkflowRequest?.moduleAssignment
-                          .orgAccount.name
+                        terraformDriftCheckRequest?.moduleAssignment.orgAccount
+                          .name
                       }{" "}
                       (
                       {
-                        terraformDriftCheckWorkflowRequest?.moduleAssignment
-                          .orgAccount.orgAccountId
+                        terraformDriftCheckRequest?.moduleAssignment.orgAccount
+                          .orgAccountId
                       }
                       )
                     </NavLink>
                   </td>
-                  <td>
-                    {renderStatus(terraformDriftCheckWorkflowRequest?.status)}
-                  </td>
+                  <td>{renderStatus(terraformDriftCheckRequest?.status)}</td>
                   <td>
                     <NavLink
-                      to={`/plan-execution-requests/${terraformDriftCheckWorkflowRequest?.planExecutionRequest?.planExecutionRequestId}`}
+                      to={`/plan-execution-requests/${terraformDriftCheckRequest?.planExecutionRequest?.planExecutionRequestId}`}
                     >
                       {
-                        terraformDriftCheckWorkflowRequest?.planExecutionRequest
+                        terraformDriftCheckRequest?.planExecutionRequest
                           ?.planExecutionRequestId
                       }
                     </NavLink>{" "}
                     (
                     {renderStatus(
-                      terraformDriftCheckWorkflowRequest?.planExecutionRequest
-                        ?.status
+                      terraformDriftCheckRequest?.planExecutionRequest?.status
                     )}
                     )
                   </td>
-                  <td>{terraformDriftCheckWorkflowRequest?.syncStatus}</td>
+                  <td>{terraformDriftCheckRequest?.syncStatus}</td>
                 </tr>
               );
             }

@@ -33,9 +33,12 @@ export const ModuleGroupsList = () => {
 
   const moduleGroupId = params.moduleGroupId ? params.moduleGroupId : "";
 
-  const { loading, error, data } = useQuery<Response>(MODULE_GROUPS_QUERY, {
-    pollInterval: 1000,
-  });
+  const { loading, error, data, refetch } = useQuery<Response>(
+    MODULE_GROUPS_QUERY,
+    {
+      pollInterval: 30000,
+    }
+  );
 
   if (loading) return null;
   if (error) return <div>Error</div>;
@@ -110,7 +113,7 @@ export const ModuleGroupsList = () => {
                 </Accordion>
               );
             })}
-            <NewModuleGroupButton />
+            <NewModuleGroupButton onCompleted={refetch} />
           </Nav>
         </Col>
         <Col md={"auto"}>

@@ -4,27 +4,49 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/graph-gophers/dataloader"
 	"github.com/sheacloud/tfom/internal/identifiers"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-func (c *OrganizationsAPIClient) GetModulePropagationAssignment(ctx context.Context, modulePropagationId string, orgAccountId string) (*models.ModulePropagationAssignment, error) {
-	return c.dbClient.GetModulePropagationAssignment(ctx, modulePropagationId, orgAccountId)
+func (c *APIClient) GetModulePropagationAssignmentsByIds(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+	output := make([]*dataloader.Result, len(keys))
+	results, err := c.dbClient.GetModulePropagationAssignmentsByIds(ctx, keys.Keys())
+	if err != nil {
+		for i := range keys {
+			output[i] = &dataloader.Result{Error: err}
+		}
+		return output
+	}
+
+	for i := range keys {
+		output[i] = &dataloader.Result{Data: &results[i], Error: nil}
+	}
+	return output
 }
 
-func (c *OrganizationsAPIClient) GetModulePropagationAssignments(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationAssignments, error) {
+func (c *APIClient) GetModulePropagationAssignment(ctx context.Context, modulePropagationId string, orgAccountId string) (*models.ModulePropagationAssignment, error) {
+	thunk := c.modulePropagationAssignmentsLoader.Load(ctx, dataloader.StringKey(fmt.Sprintf("%s:%s", modulePropagationId, orgAccountId)))
+	result, err := thunk()
+	if err != nil {
+		return nil, err
+	}
+	return result.(*models.ModulePropagationAssignment), nil
+}
+
+func (c *APIClient) GetModulePropagationAssignments(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationAssignments, error) {
 	return c.dbClient.GetModulePropagationAssignments(ctx, limit, cursor)
 }
 
-func (c *OrganizationsAPIClient) GetModulePropagationAssignmentsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationAssignments, error) {
+func (c *APIClient) GetModulePropagationAssignmentsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationAssignments, error) {
 	return c.dbClient.GetModulePropagationAssignmentsByModulePropagationId(ctx, modulePropagationId, limit, cursor)
 }
 
-func (c *OrganizationsAPIClient) GetModulePropagationAssignmentsByOrgAccountId(ctx context.Context, orgAccountId string, limit int32, cursor string) (*models.ModulePropagationAssignments, error) {
+func (c *APIClient) GetModulePropagationAssignmentsByOrgAccountId(ctx context.Context, orgAccountId string, limit int32, cursor string) (*models.ModulePropagationAssignments, error) {
 	return c.dbClient.GetModulePropagationAssignmentsByOrgAccountId(ctx, orgAccountId, limit, cursor)
 }
 
-func (c *OrganizationsAPIClient) PutModulePropagationAssignment(ctx context.Context, input *models.NewModulePropagationAssignment) (*models.ModulePropagationAssignment, *models.ModuleAssignment, error) {
+func (c *APIClient) PutModulePropagationAssignment(ctx context.Context, input *models.NewModulePropagationAssignment) (*models.ModulePropagationAssignment, *models.ModuleAssignment, error) {
 	moduleAssignmentId, err := identifiers.NewIdentifier(identifiers.ResourceTypeModuleAssignment)
 	if err != nil {
 		return nil, nil, err

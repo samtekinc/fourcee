@@ -14,6 +14,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.16.2
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.1
+	github.com/graph-gophers/dataloader v5.0.0+incompatible
 	github.com/hashicorp/go-getter v1.6.2
 	github.com/hashicorp/hcl/v2 v2.15.0
 	github.com/mitchellh/mapstructure v1.5.0
@@ -69,6 +70,7 @@ require (
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect

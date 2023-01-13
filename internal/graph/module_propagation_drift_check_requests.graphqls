@@ -3,10 +3,10 @@ type ModulePropagationDriftCheckRequest {
   modulePropagationId: ID!
   requestTime: Time!
   status: RequestStatus!
-  terraformDriftCheckWorkflowRequests(
+  terraformDriftCheckRequests(
     limit: Int
     nextCursor: String
-  ): TerraformDriftCheckWorkflowRequests!
+  ): TerraformDriftCheckRequests!
 }
 
 type ModulePropagationDriftCheckRequests {

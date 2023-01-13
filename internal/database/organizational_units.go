@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -20,7 +21,7 @@ type OrganizationalUnitUpdate struct {
 	Hierarchy       *string
 }
 
-func (c *OrganizationsDatabaseClient) GetOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string) (*models.OrganizationalUnit, error) {
+func (c *DatabaseClient) GetOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string) (*models.OrganizationalUnit, error) {
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &c.unitsTableName,
 		Key: map[string]types.AttributeValue{
@@ -42,7 +43,54 @@ func (c *OrganizationsDatabaseClient) GetOrganizationalUnit(ctx context.Context,
 	return &orgUnit, nil
 }
 
-func (c OrganizationsDatabaseClient) GetOrganizationalUnits(ctx context.Context, limit int32, cursor string) (*models.OrganizationalUnits, error) {
+func (c *DatabaseClient) GetOrganizationalUnitsByIds(ctx context.Context, ids []string) ([]models.OrganizationalUnit, error) {
+	fmt.Println("getting org units by ids", len(ids))
+	var keys []map[string]types.AttributeValue
+
+	for _, id := range ids {
+		parts := strings.Split(id, ":")
+		keys = append(keys, map[string]types.AttributeValue{
+			"OrgDimensionId": &types.AttributeValueMemberS{Value: parts[0]},
+			"OrgUnitId":      &types.AttributeValueMemberS{Value: parts[1]},
+		})
+	}
+
+	bii := dynamodb.BatchGetItemInput{
+		RequestItems: map[string]types.KeysAndAttributes{
+			c.unitsTableName: {
+				Keys: keys,
+			},
+		},
+	}
+	items := []map[string]types.AttributeValue{}
+
+	for {
+		bgo, err := c.dynamodb.BatchGetItem(ctx, &bii)
+		if err != nil {
+			return nil, err
+		}
+		if bgo.Responses != nil {
+			items = append(items, bgo.Responses[c.unitsTableName]...)
+		}
+		requestItems := bgo.UnprocessedKeys
+		bii = dynamodb.BatchGetItemInput{RequestItems: requestItems}
+		if len(requestItems) == 0 {
+			break
+		}
+	}
+
+	items = SortDynamoDBBatchResponses(keys, items)
+
+	results := []models.OrganizationalUnit{}
+	err := attributevalue.UnmarshalListOfMaps(items, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (c DatabaseClient) GetOrganizationalUnits(ctx context.Context, limit int32, cursor string) (*models.OrganizationalUnits, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -80,7 +128,7 @@ func (c OrganizationsDatabaseClient) GetOrganizationalUnits(ctx context.Context,
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByDimension(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
+func (c DatabaseClient) GetOrganizationalUnitsByDimension(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -129,7 +177,7 @@ func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByDimension(ctx conte
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByParent(ctx context.Context, orgDimensionId string, parentOrgUnitId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
+func (c DatabaseClient) GetOrganizationalUnitsByParent(ctx context.Context, orgDimensionId string, parentOrgUnitId string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -179,7 +227,7 @@ func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByParent(ctx context.
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByHierarchy(ctx context.Context, orgDimensionId string, hierarchy string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
+func (c DatabaseClient) GetOrganizationalUnitsByHierarchy(ctx context.Context, orgDimensionId string, hierarchy string, limit int32, cursor string) (*models.OrganizationalUnits, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -229,7 +277,7 @@ func (c OrganizationsDatabaseClient) GetOrganizationalUnitsByHierarchy(ctx conte
 	}, nil
 }
 
-func (c *OrganizationsDatabaseClient) PutOrganizationalUnit(ctx context.Context, input *models.OrganizationalUnit) error {
+func (c *DatabaseClient) PutOrganizationalUnit(ctx context.Context, input *models.OrganizationalUnit) error {
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
@@ -259,7 +307,7 @@ func (c *OrganizationsDatabaseClient) PutOrganizationalUnit(ctx context.Context,
 	}
 }
 
-func (c *OrganizationsDatabaseClient) DeleteOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string) error {
+func (c *DatabaseClient) DeleteOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string) error {
 	condition := expression.AttributeExists(expression.Name("OrgUnitId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()
@@ -286,7 +334,7 @@ func (c *OrganizationsDatabaseClient) DeleteOrganizationalUnit(ctx context.Conte
 	}
 }
 
-func (c *OrganizationsDatabaseClient) UpdateOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string, update *OrganizationalUnitUpdate) (*models.OrganizationalUnit, error) {
+func (c *DatabaseClient) UpdateOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string, update *OrganizationalUnitUpdate) (*models.OrganizationalUnit, error) {
 	condition := expression.AttributeExists(expression.Name("OrgUnitId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   ModulePropagationExecutionRequest,
   ModulePropagationExecutionRequests,
+  RequestStatus,
 } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
@@ -22,9 +23,9 @@ const MODULE_PROPAGATION_EXECUTION_QUERY = gql`
       modulePropagationExecutionRequestId
       requestTime
       status
-      terraformExecutionWorkflowRequests {
+      terraformExecutionRequests {
         items {
-          terraformExecutionWorkflowRequestId
+          terraformExecutionRequestId
           status
           requestTime
           destroy
@@ -66,7 +67,7 @@ export const ModulePropagationExecutionRequestPage = () => {
     ? params.modulePropagationId
     : "";
 
-  const { loading, error, data } = useQuery<Response>(
+  const { loading, error, data, startPolling } = useQuery<Response>(
     MODULE_PROPAGATION_EXECUTION_QUERY,
     {
       variables: {
@@ -80,6 +81,15 @@ export const ModulePropagationExecutionRequestPage = () => {
 
   if (loading) return null;
   if (error) return <div>Error</div>;
+
+  if (
+    data?.modulePropagationExecutionRequest?.status === RequestStatus.Running ||
+    data?.modulePropagationExecutionRequest?.status === RequestStatus.Pending
+  ) {
+    startPolling(1000);
+  } else {
+    startPolling(30000);
+  }
 
   return (
     <Container>
@@ -106,68 +116,60 @@ export const ModulePropagationExecutionRequestPage = () => {
           </tr>
         </thead>
         <tbody>
-          {data?.modulePropagationExecutionRequest.terraformExecutionWorkflowRequests.items.map(
-            (terraformExecutionWorkflowRequest) => {
+          {data?.modulePropagationExecutionRequest.terraformExecutionRequests.items.map(
+            (terraformExecutionRequest) => {
               return (
                 <tr>
                   <td>
-                    {
-                      terraformExecutionWorkflowRequest?.terraformExecutionWorkflowRequestId
-                    }
+                    {terraformExecutionRequest?.terraformExecutionRequestId}
                   </td>
                   <td>
-                    {terraformExecutionWorkflowRequest?.destroy
-                      ? "Destroy"
-                      : "Apply"}
+                    {terraformExecutionRequest?.destroy ? "Destroy" : "Apply"}
                   </td>
                   <td>
                     <NavLink
-                      to={`/org-accounts/${terraformExecutionWorkflowRequest?.moduleAssignment.orgAccount.orgAccountId}`}
+                      to={`/org-accounts/${terraformExecutionRequest?.moduleAssignment.orgAccount.orgAccountId}`}
                     >
                       {
-                        terraformExecutionWorkflowRequest?.moduleAssignment
-                          .orgAccount.name
+                        terraformExecutionRequest?.moduleAssignment.orgAccount
+                          .name
                       }{" "}
                       (
                       {
-                        terraformExecutionWorkflowRequest?.moduleAssignment
-                          .orgAccount.orgAccountId
+                        terraformExecutionRequest?.moduleAssignment.orgAccount
+                          .orgAccountId
                       }
                       )
                     </NavLink>
                   </td>
-                  <td>
-                    {renderStatus(terraformExecutionWorkflowRequest?.status)}
-                  </td>
+                  <td>{renderStatus(terraformExecutionRequest?.status)}</td>
                   <td>
                     <NavLink
-                      to={`/plan-execution-requests/${terraformExecutionWorkflowRequest?.planExecutionRequest?.planExecutionRequestId}`}
+                      to={`/plan-execution-requests/${terraformExecutionRequest?.planExecutionRequest?.planExecutionRequestId}`}
                     >
                       {
-                        terraformExecutionWorkflowRequest?.planExecutionRequest
+                        terraformExecutionRequest?.planExecutionRequest
                           ?.planExecutionRequestId
                       }
                     </NavLink>{" "}
                     (
                     {renderStatus(
-                      terraformExecutionWorkflowRequest?.planExecutionRequest
-                        ?.status
+                      terraformExecutionRequest?.planExecutionRequest?.status
                     )}
                     )
                   </td>
                   <td>
                     <NavLink
-                      to={`/apply-execution-requests/${terraformExecutionWorkflowRequest?.applyExecutionRequest?.applyExecutionRequestId}`}
+                      to={`/apply-execution-requests/${terraformExecutionRequest?.applyExecutionRequest?.applyExecutionRequestId}`}
                     >
                       {
-                        terraformExecutionWorkflowRequest?.applyExecutionRequest
+                        terraformExecutionRequest?.applyExecutionRequest
                           ?.applyExecutionRequestId
                       }
                     </NavLink>{" "}
                     (
                     {renderStatus(
-                      terraformExecutionWorkflowRequest?.applyExecutionRequest
-                        ?.status
+                      terraformExecutionRequest?.applyExecutionRequest?.status
                     )}
                     )
                   </td>

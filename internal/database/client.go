@@ -7,13 +7,15 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-type OrganizationsDatabaseClientInterface interface {
+type DatabaseClientInterface interface {
 	GetOrganizationalDimension(ctx context.Context, orgDimensionId string) (*models.OrganizationalDimension, error)
+	GetOrganizationalDimensionsByIds(ctx context.Context, ids []string) ([]models.OrganizationalDimension, error)
 	GetOrganizationalDimensions(ctx context.Context, limit int32, cursor string) (*models.OrganizationalDimensions, error)
 	PutOrganizationalDimension(ctx context.Context, input *models.OrganizationalDimension) error
 	DeleteOrganizationalDimension(ctx context.Context, orgDimensionId string) error
 
 	GetOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string) (*models.OrganizationalUnit, error)
+	GetOrganizationalUnitsByIds(ctx context.Context, ids []string) ([]models.OrganizationalUnit, error)
 	GetOrganizationalUnits(ctx context.Context, limit int32, cursor string) (*models.OrganizationalUnits, error)
 	GetOrganizationalUnitsByDimension(ctx context.Context, orgDimensionId string, limit int32, cursor string) (*models.OrganizationalUnits, error)
 	GetOrganizationalUnitsByParent(ctx context.Context, orgDimensionId string, parentOrgUnitId string, limit int32, cursor string) (*models.OrganizationalUnits, error)
@@ -23,6 +25,7 @@ type OrganizationsDatabaseClientInterface interface {
 	UpdateOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string, update *OrganizationalUnitUpdate) (*models.OrganizationalUnit, error)
 
 	GetOrganizationalAccount(ctx context.Context, orgAccountId string) (*models.OrganizationalAccount, error)
+	GetOrganizationalAccountsByIds(ctx context.Context, ids []string) ([]models.OrganizationalAccount, error)
 	GetOrganizationalAccounts(ctx context.Context, limit int32, cursor string) (*models.OrganizationalAccounts, error)
 	PutOrganizationalAccount(ctx context.Context, input *models.OrganizationalAccount) error
 	DeleteOrganizationalAccount(ctx context.Context, orgAccountId string) error
@@ -35,16 +38,19 @@ type OrganizationsDatabaseClientInterface interface {
 	DeleteOrganizationalUnitMembership(ctx context.Context, orgDimensionId string, accountId string) error
 
 	GetModuleGroup(ctx context.Context, moduleGroupId string) (*models.ModuleGroup, error)
+	GetModuleGroupsByIds(ctx context.Context, ids []string) ([]models.ModuleGroup, error)
 	GetModuleGroups(ctx context.Context, limit int32, cursor string) (*models.ModuleGroups, error)
 	PutModuleGroup(ctx context.Context, input *models.ModuleGroup) error
 	DeleteModuleGroup(ctx context.Context, moduleGroupId string) error
 
 	GetModuleVersion(ctx context.Context, moduleGroupId string, moduleVersionId string) (*models.ModuleVersion, error)
+	GetModuleVersionsByIds(ctx context.Context, ids []string) ([]models.ModuleVersion, error)
 	GetModuleVersions(ctx context.Context, moduleGroupId string, limit int32, cursor string) (*models.ModuleVersions, error)
 	PutModuleVersion(ctx context.Context, input *models.ModuleVersion) error
 	DeleteModuleVersion(ctx context.Context, moduleGroupId string, moduleVersionId string) error
 
 	GetModulePropagation(ctx context.Context, modulePropagationId string) (*models.ModulePropagation, error)
+	GetModulePropagationsByIds(ctx context.Context, ids []string) ([]models.ModulePropagation, error)
 	GetModulePropagations(ctx context.Context, limit int32, cursor string) (*models.ModulePropagations, error)
 	GetModulePropagationsByModuleGroupId(ctx context.Context, moduleGroupId string, limit int32, cursor string) (*models.ModulePropagations, error)
 	GetModulePropagationsByModuleVersionId(ctx context.Context, moduleVersionId string, limit int32, cursor string) (*models.ModulePropagations, error)
@@ -55,18 +61,21 @@ type OrganizationsDatabaseClientInterface interface {
 	UpdateModulePropagation(ctx context.Context, modulePropagationId string, update *models.ModulePropagationUpdate) (*models.ModulePropagation, error)
 
 	GetModulePropagationExecutionRequest(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string) (*models.ModulePropagationExecutionRequest, error)
+	GetModulePropagationExecutionRequestsByIds(ctx context.Context, ids []string) ([]models.ModulePropagationExecutionRequest, error)
 	GetModulePropagationExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationExecutionRequests, error)
 	GetModulePropagationExecutionRequestsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationExecutionRequests, error)
 	PutModulePropagationExecutionRequest(ctx context.Context, input *models.ModulePropagationExecutionRequest) error
 	UpdateModulePropagationExecutionRequest(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string, update *models.ModulePropagationExecutionRequestUpdate) (*models.ModulePropagationExecutionRequest, error)
 
 	GetModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationId string, modulePropagationDriftCheckRequestId string) (*models.ModulePropagationDriftCheckRequest, error)
+	GetModulePropagationDriftCheckRequestsByIds(ctx context.Context, ids []string) ([]models.ModulePropagationDriftCheckRequest, error)
 	GetModulePropagationDriftCheckRequests(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationDriftCheckRequests, error)
 	GetModulePropagationDriftCheckRequestsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationDriftCheckRequests, error)
 	PutModulePropagationDriftCheckRequest(ctx context.Context, input *models.ModulePropagationDriftCheckRequest) error
 	UpdateModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationId string, modulePropagationDriftCheckRequestId string, update *models.ModulePropagationDriftCheckRequestUpdate) (*models.ModulePropagationDriftCheckRequest, error)
 
 	GetModuleAssignment(ctx context.Context, moduleAssignmentId string) (*models.ModuleAssignment, error)
+	GetModuleAssignmentsByIds(ctx context.Context, ids []string) ([]models.ModuleAssignment, error)
 	GetModuleAssignments(ctx context.Context, limit int32, cursor string) (*models.ModuleAssignments, error)
 	GetModuleAssignmentsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModuleAssignments, error)
 	GetModuleAssignmentsByOrgAccountId(ctx context.Context, orgAccountId string, limit int32, cursor string) (*models.ModuleAssignments, error)
@@ -76,6 +85,7 @@ type OrganizationsDatabaseClientInterface interface {
 	UpdateModuleAssignment(ctx context.Context, moduleAssignmentId string, update *models.ModuleAssignmentUpdate) (*models.ModuleAssignment, error)
 
 	GetModulePropagationAssignment(ctx context.Context, modulePropagationId string, orgAccountId string) (*models.ModulePropagationAssignment, error)
+	GetModulePropagationAssignmentsByIds(ctx context.Context, ids []string) ([]models.ModulePropagationAssignment, error)
 	GetModulePropagationAssignments(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationAssignments, error)
 	GetModulePropagationAssignmentsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationAssignments, error)
 	GetModulePropagationAssignmentsByOrgAccountId(ctx context.Context, orgAccountId string, limit int32, cursor string) (*models.ModulePropagationAssignments, error)
@@ -83,27 +93,31 @@ type OrganizationsDatabaseClientInterface interface {
 
 	// Execution Related Methods
 
-	GetTerraformExecutionWorkflowRequest(ctx context.Context, terraformExecutionRequestId string) (*models.TerraformExecutionWorkflowRequest, error)
-	GetTerraformExecutionWorkflowRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error)
-	GetTerraformExecutionWorkflowRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error)
-	GetTerraformExecutionWorkflowRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.TerraformExecutionWorkflowRequests, error)
-	PutTerraformExecutionWorkflowRequest(ctx context.Context, input *models.TerraformExecutionWorkflowRequest) error
-	UpdateTerraformExecutionWorkflowRequest(ctx context.Context, terraformExecutionRequestId string, update *models.TerraformExecutionWorkflowRequestUpdate) (*models.TerraformExecutionWorkflowRequest, error)
+	GetTerraformExecutionRequest(ctx context.Context, terraformExecutionRequestId string) (*models.TerraformExecutionRequest, error)
+	GetTerraformExecutionRequestsByIds(ctx context.Context, ids []string) ([]models.TerraformExecutionRequest, error)
+	GetTerraformExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformExecutionRequests, error)
+	GetTerraformExecutionRequestsByModulePropagationExecutionRequestId(ctx context.Context, modulePropagationExecutionRequestId string, limit int32, cursor string) (*models.TerraformExecutionRequests, error)
+	GetTerraformExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.TerraformExecutionRequests, error)
+	PutTerraformExecutionRequest(ctx context.Context, input *models.TerraformExecutionRequest) error
+	UpdateTerraformExecutionRequest(ctx context.Context, terraformExecutionRequestId string, update *models.TerraformExecutionRequestUpdate) (*models.TerraformExecutionRequest, error)
 
-	GetTerraformDriftCheckWorkflowRequest(ctx context.Context, terraformDriftCheckRequestId string) (*models.TerraformDriftCheckWorkflowRequest, error)
-	GetTerraformDriftCheckWorkflowRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformDriftCheckWorkflowRequests, error)
-	GetTerraformDriftCheckWorkflowRequestsByModulePropagationDriftCheckRequestId(ctx context.Context, modulePropagationDriftCheckRequestId string, limit int32, cursor string) (*models.TerraformDriftCheckWorkflowRequests, error)
-	GetTerraformDriftCheckWorkflowRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.TerraformDriftCheckWorkflowRequests, error)
-	PutTerraformDriftCheckWorkflowRequest(ctx context.Context, input *models.TerraformDriftCheckWorkflowRequest) error
-	UpdateTerraformDriftCheckWorkflowRequest(ctx context.Context, terraformDriftCheckRequestId string, update *models.TerraformDriftCheckWorkflowRequestUpdate) (*models.TerraformDriftCheckWorkflowRequest, error)
+	GetTerraformDriftCheckRequest(ctx context.Context, terraformDriftCheckRequestId string) (*models.TerraformDriftCheckRequest, error)
+	GetTerraformDriftCheckRequestsByIds(ctx context.Context, ids []string) ([]models.TerraformDriftCheckRequest, error)
+	GetTerraformDriftCheckRequests(ctx context.Context, limit int32, cursor string) (*models.TerraformDriftCheckRequests, error)
+	GetTerraformDriftCheckRequestsByModulePropagationDriftCheckRequestId(ctx context.Context, modulePropagationDriftCheckRequestId string, limit int32, cursor string) (*models.TerraformDriftCheckRequests, error)
+	GetTerraformDriftCheckRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.TerraformDriftCheckRequests, error)
+	PutTerraformDriftCheckRequest(ctx context.Context, input *models.TerraformDriftCheckRequest) error
+	UpdateTerraformDriftCheckRequest(ctx context.Context, terraformDriftCheckRequestId string, update *models.TerraformDriftCheckRequestUpdate) (*models.TerraformDriftCheckRequest, error)
 
 	GetPlanExecutionRequest(ctx context.Context, planExecutionRequestId string) (*models.PlanExecutionRequest, error)
+	GetPlanExecutionRequestsByIds(ctx context.Context, ids []string) ([]models.PlanExecutionRequest, error)
 	GetPlanExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.PlanExecutionRequests, error)
 	GetPlanExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.PlanExecutionRequests, error)
 	PutPlanExecutionRequest(ctx context.Context, input *models.PlanExecutionRequest) error
 	UpdatePlanExecutionRequest(ctx context.Context, planExecutionRequestId string, input *models.PlanExecutionRequestUpdate) (*models.PlanExecutionRequest, error)
 
 	GetApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string) (*models.ApplyExecutionRequest, error)
+	GetApplyExecutionRequestsByIds(ctx context.Context, ids []string) ([]models.ApplyExecutionRequest, error)
 	GetApplyExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
 	GetApplyExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error)
 	PutApplyExecutionRequest(ctx context.Context, input *models.ApplyExecutionRequest) error
@@ -120,7 +134,7 @@ type OrganizationsDatabaseClientInterface interface {
 	DownloadTerraformApplyResults(ctx context.Context, applyResultsObjectKey string) (*models.TerraformApplyOutput, error)
 }
 
-type OrganizationsDatabaseClient struct {
+type DatabaseClient struct {
 	dynamodb awsclients.DynamoDBInterface
 	s3       awsclients.S3Interface
 
@@ -136,14 +150,14 @@ type OrganizationsDatabaseClient struct {
 	moduleAssignmentsTableName                   string
 	modulePropagationAssignmentsTableName        string
 
-	terraformExecutionWorkflowRequestsTableName  string
-	terraformDriftCheckWorkflowRequestsTableName string
-	planExecutionsTableName                      string
-	applyExecutionsTableName                     string
-	resultsBucketName                            string
+	terraformExecutionRequestsTableName  string
+	terraformDriftCheckRequestsTableName string
+	planExecutionsTableName              string
+	applyExecutionsTableName             string
+	resultsBucketName                    string
 }
 
-type OrganizationsDatabaseClientInput struct {
+type DatabaseClientInput struct {
 	DynamoDB awsclients.DynamoDBInterface
 	S3       awsclients.S3Interface
 
@@ -159,15 +173,15 @@ type OrganizationsDatabaseClientInput struct {
 	ModuleAssignmentsTableName                   string
 	ModulePropagationAssignmentsTableName        string
 
-	TerraformExecutionWorkflowRequestsTableName  string
-	TerraformDriftCheckWorkflowRequestsTableName string
-	PlanExecutionsTableName                      string
-	ApplyExecutionsTableName                     string
-	ResultsBucketName                            string
+	TerraformExecutionRequestsTableName  string
+	TerraformDriftCheckRequestsTableName string
+	PlanExecutionsTableName              string
+	ApplyExecutionsTableName             string
+	ResultsBucketName                    string
 }
 
-func NewOrganizationsDatabaseClient(input *OrganizationsDatabaseClientInput) *OrganizationsDatabaseClient {
-	return &OrganizationsDatabaseClient{
+func NewDatabaseClient(input *DatabaseClientInput) *DatabaseClient {
+	return &DatabaseClient{
 		dynamodb:              input.DynamoDB,
 		s3:                    input.S3,
 		dimensionsTableName:   input.DimensionsTableName,
@@ -181,8 +195,8 @@ func NewOrganizationsDatabaseClient(input *OrganizationsDatabaseClientInput) *Or
 		modulePropagationDriftCheckRequestsTableName: input.ModulePropagationDriftCheckRequestsTableName,
 		moduleAssignmentsTableName:                   input.ModuleAssignmentsTableName,
 		modulePropagationAssignmentsTableName:        input.ModulePropagationAssignmentsTableName,
-		terraformExecutionWorkflowRequestsTableName:  input.TerraformExecutionWorkflowRequestsTableName,
-		terraformDriftCheckWorkflowRequestsTableName: input.TerraformDriftCheckWorkflowRequestsTableName,
+		terraformExecutionRequestsTableName:          input.TerraformExecutionRequestsTableName,
+		terraformDriftCheckRequestsTableName:         input.TerraformDriftCheckRequestsTableName,
 		planExecutionsTableName:                      input.PlanExecutionsTableName,
 		applyExecutionsTableName:                     input.ApplyExecutionsTableName,
 		resultsBucketName:                            input.ResultsBucketName,

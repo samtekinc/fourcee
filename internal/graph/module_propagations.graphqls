@@ -69,6 +69,7 @@ input GcpProviderConfigurationInput {
 input ModulePropagationUpdate {
   orgDimensionId: ID
   orgUnitId: ID
+  moduleVersionId: ID
   name: String
   description: String
   arguments: [ArgumentInput!]

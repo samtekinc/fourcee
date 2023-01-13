@@ -5,17 +5,17 @@ import { NotificationManager } from "react-notifications";
 import { Button } from "react-bootstrap";
 
 const TERRAFORM_EXECUTION_MUTATION = gql`
-  mutation createTerraformExecutionWorkflowRequest(
+  mutation createTerraformExecutionRequest(
     $moduleAssignmentId: ID!
     $destroy: Boolean!
   ) {
-    createTerraformExecutionWorkflowRequest(
-      terraformExecutionWorkflowRequest: {
+    createTerraformExecutionRequest(
+      terraformExecutionRequest: {
         moduleAssignmentId: $moduleAssignmentId
         destroy: $destroy
       }
     ) {
-      terraformExecutionWorkflowRequestId
+      terraformExecutionRequestId
     }
   }
 `;
@@ -26,8 +26,8 @@ interface TriggerTerraformExecutionButtonProps {
 }
 
 type TriggerTerraformExecutionResponse = {
-  createTerraformExecutionWorkflowRequest: {
-    terraformExecutionWorkflowRequestId: string;
+  createTerraformExecutionRequest: {
+    terraformExecutionRequestId: string;
   };
 };
 
@@ -52,7 +52,7 @@ export const TriggerTerraformExecutionButton: React.VFC<
         },
         onCompleted: (data) => {
           NotificationManager.success(
-            `Initiated ${data.createTerraformExecutionWorkflowRequest.terraformExecutionWorkflowRequestId}`,
+            `Initiated ${data.createTerraformExecutionRequest.terraformExecutionRequestId}`,
             "",
             5000
           );

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -14,7 +15,7 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-func (c *OrganizationsDatabaseClient) GetModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationId string, modulePropagationDriftCheckRequestId string) (*models.ModulePropagationDriftCheckRequest, error) {
+func (c *DatabaseClient) GetModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationId string, modulePropagationDriftCheckRequestId string) (*models.ModulePropagationDriftCheckRequest, error) {
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &c.modulePropagationDriftCheckRequestsTableName,
 		Key: map[string]types.AttributeValue{
@@ -36,7 +37,54 @@ func (c *OrganizationsDatabaseClient) GetModulePropagationDriftCheckRequest(ctx 
 	return &modulePropagationDriftCheckRequest, nil
 }
 
-func (c *OrganizationsDatabaseClient) GetModulePropagationDriftCheckRequests(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationDriftCheckRequests, error) {
+func (c *DatabaseClient) GetModulePropagationDriftCheckRequestsByIds(ctx context.Context, ids []string) ([]models.ModulePropagationDriftCheckRequest, error) {
+	fmt.Println("getting module propagation drift check requests by ids", len(ids))
+	var keys []map[string]types.AttributeValue
+
+	for _, id := range ids {
+		parts := strings.Split(id, ":")
+		keys = append(keys, map[string]types.AttributeValue{
+			"ModulePropagationId":                  &types.AttributeValueMemberS{Value: parts[0]},
+			"ModulePropagationDriftCheckRequestId": &types.AttributeValueMemberS{Value: parts[1]},
+		})
+	}
+
+	bii := dynamodb.BatchGetItemInput{
+		RequestItems: map[string]types.KeysAndAttributes{
+			c.modulePropagationDriftCheckRequestsTableName: {
+				Keys: keys,
+			},
+		},
+	}
+	items := []map[string]types.AttributeValue{}
+
+	for {
+		bgo, err := c.dynamodb.BatchGetItem(ctx, &bii)
+		if err != nil {
+			return nil, err
+		}
+		if bgo.Responses != nil {
+			items = append(items, bgo.Responses[c.modulePropagationDriftCheckRequestsTableName]...)
+		}
+		requestItems := bgo.UnprocessedKeys
+		bii = dynamodb.BatchGetItemInput{RequestItems: requestItems}
+		if len(requestItems) == 0 {
+			break
+		}
+	}
+
+	items = SortDynamoDBBatchResponses(keys, items)
+
+	results := []models.ModulePropagationDriftCheckRequest{}
+	err := attributevalue.UnmarshalListOfMaps(items, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (c *DatabaseClient) GetModulePropagationDriftCheckRequests(ctx context.Context, limit int32, cursor string) (*models.ModulePropagationDriftCheckRequests, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -74,7 +122,7 @@ func (c *OrganizationsDatabaseClient) GetModulePropagationDriftCheckRequests(ctx
 	}, nil
 }
 
-func (c OrganizationsDatabaseClient) GetModulePropagationDriftCheckRequestsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationDriftCheckRequests, error) {
+func (c DatabaseClient) GetModulePropagationDriftCheckRequestsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModulePropagationDriftCheckRequests, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -125,7 +173,7 @@ func (c OrganizationsDatabaseClient) GetModulePropagationDriftCheckRequestsByMod
 	}, nil
 }
 
-func (c *OrganizationsDatabaseClient) PutModulePropagationDriftCheckRequest(ctx context.Context, input *models.ModulePropagationDriftCheckRequest) error {
+func (c *DatabaseClient) PutModulePropagationDriftCheckRequest(ctx context.Context, input *models.ModulePropagationDriftCheckRequest) error {
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
@@ -155,7 +203,7 @@ func (c *OrganizationsDatabaseClient) PutModulePropagationDriftCheckRequest(ctx 
 	}
 }
 
-func (c *OrganizationsDatabaseClient) UpdateModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationId string, modulePropagationDriftCheckRequestId string, update *models.ModulePropagationDriftCheckRequestUpdate) (*models.ModulePropagationDriftCheckRequest, error) {
+func (c *DatabaseClient) UpdateModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationId string, modulePropagationDriftCheckRequestId string, update *models.ModulePropagationDriftCheckRequestUpdate) (*models.ModulePropagationDriftCheckRequest, error) {
 	condition := expression.AttributeExists(expression.Name("ModulePropagationDriftCheckRequestId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()

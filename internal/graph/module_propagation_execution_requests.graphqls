@@ -3,10 +3,10 @@ type ModulePropagationExecutionRequest {
   modulePropagationId: ID!
   requestTime: Time!
   status: RequestStatus!
-  terraformExecutionWorkflowRequests(
+  terraformExecutionRequests(
     limit: Int
     nextCursor: String
-  ): TerraformExecutionWorkflowRequests!
+  ): TerraformExecutionRequests!
 }
 
 type ModulePropagationExecutionRequests {
