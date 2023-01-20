@@ -7,7 +7,6 @@ package resolver
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/pkg/models"
 )
@@ -19,23 +18,23 @@ func (r *mutationResolver) CreateTerraformExecutionRequest(ctx context.Context, 
 
 // ModuleAssignment is the resolver for the moduleAssignment field.
 func (r *terraformExecutionRequestResolver) ModuleAssignment(ctx context.Context, obj *models.TerraformExecutionRequest) (*models.ModuleAssignment, error) {
-	return r.apiClient.GetModuleAssignment(ctx, obj.ModuleAssignmentId)
+	return r.apiClient.GetModuleAssignmentBatched(ctx, obj.ModuleAssignmentId)
 }
 
 // PlanExecutionRequest is the resolver for the planExecutionRequest field.
-func (r *terraformExecutionRequestResolver) PlanExecutionRequest(ctx context.Context, obj *models.TerraformExecutionRequest, withOutputs *bool) (*models.PlanExecutionRequest, error) {
+func (r *terraformExecutionRequestResolver) PlanExecutionRequest(ctx context.Context, obj *models.TerraformExecutionRequest) (*models.PlanExecutionRequest, error) {
 	if obj.PlanExecutionRequestId == nil {
 		return nil, nil
 	}
-	return r.apiClient.GetPlanExecutionRequest(ctx, *obj.PlanExecutionRequestId, aws.ToBool(withOutputs))
+	return r.apiClient.GetPlanExecutionRequestBatched(ctx, *obj.PlanExecutionRequestId)
 }
 
 // ApplyExecutionRequest is the resolver for the applyExecutionRequest field.
-func (r *terraformExecutionRequestResolver) ApplyExecutionRequest(ctx context.Context, obj *models.TerraformExecutionRequest, withOutputs *bool) (*models.ApplyExecutionRequest, error) {
+func (r *terraformExecutionRequestResolver) ApplyExecutionRequest(ctx context.Context, obj *models.TerraformExecutionRequest) (*models.ApplyExecutionRequest, error) {
 	if obj.ApplyExecutionRequestId == nil {
 		return nil, nil
 	}
-	return r.apiClient.GetApplyExecutionRequest(ctx, *obj.ApplyExecutionRequestId, aws.ToBool(withOutputs))
+	return r.apiClient.GetApplyExecutionRequestBatched(ctx, *obj.ApplyExecutionRequestId)
 }
 
 // ModulePropagation is the resolver for the modulePropagation field.
@@ -43,7 +42,7 @@ func (r *terraformExecutionRequestResolver) ModulePropagation(ctx context.Contex
 	if obj.ModulePropagationId == nil {
 		return nil, nil
 	}
-	return r.apiClient.GetModulePropagation(ctx, *obj.ModulePropagationId)
+	return r.apiClient.GetModulePropagationBatched(ctx, *obj.ModulePropagationId)
 }
 
 // ModulePropagationExecutionRequest is the resolver for the modulePropagationExecutionRequest field.

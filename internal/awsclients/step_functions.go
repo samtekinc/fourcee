@@ -9,6 +9,8 @@ import (
 type StepFunctionsInterface interface {
 	StartExecutionInterface
 	DescribeExecutionInterface
+	SendTaskSuccessInterface
+	SendTaskFailureInterface
 }
 
 type StartExecutionInterface interface {
@@ -17,4 +19,12 @@ type StartExecutionInterface interface {
 
 type DescribeExecutionInterface interface {
 	DescribeExecution(ctx context.Context, params *sfn.DescribeExecutionInput, options ...func(*sfn.Options)) (*sfn.DescribeExecutionOutput, error)
+}
+
+type SendTaskSuccessInterface interface {
+	SendTaskSuccess(ctx context.Context, params *sfn.SendTaskSuccessInput, options ...func(*sfn.Options)) (*sfn.SendTaskSuccessOutput, error)
+}
+
+type SendTaskFailureInterface interface {
+	SendTaskFailure(ctx context.Context, params *sfn.SendTaskFailureInput, options ...func(*sfn.Options)) (*sfn.SendTaskFailureOutput, error)
 }

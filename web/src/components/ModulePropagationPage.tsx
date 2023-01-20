@@ -8,16 +8,27 @@ import {
   ModulePropagationUpdate,
   ModuleGroup,
 } from "../__generated__/graphql";
-import { NavLink, useParams } from "react-router-dom";
+import { NavLink, Outlet, useParams } from "react-router-dom";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
 import { renderStatus, renderTimeField } from "../utils/table_rendering";
-import { Container, Form, ListGroup, Modal } from "react-bootstrap";
+import {
+  Breadcrumb,
+  Col,
+  Container,
+  Form,
+  ListGroup,
+  Modal,
+  Row,
+} from "react-bootstrap";
 import { NotificationManager } from "react-notifications";
 import { Button } from "react-bootstrap";
 import { DriftCheckModulePropagationButton } from "./TriggerModulePropagationDriftCheckButton";
 import { ExecuteModulePropagationButton } from "./TriggerModulePropagationExecutionButton";
-import { renderModuleAssignmentStatus } from "../utils/rendering";
+import {
+  renderModuleAssignmentStatus,
+  renderSyncStatus,
+} from "../utils/rendering";
 
 const MODULE_PROPAGATION_QUERY = gql`
   query modulePropagation($modulePropagationId: ID!) {
@@ -34,13 +45,19 @@ const MODULE_PROPAGATION_QUERY = gql`
       orgUnitId
       orgUnit {
         orgUnitId
-        orgDimensionId
         name
+        orgDimension {
+          orgDimensionId
+          name
+        }
         downstreamOrgUnits {
           items {
             orgUnitId
-            orgDimensionId
             name
+            orgDimension {
+              orgDimensionId
+              name
+            }
           }
         }
       }
@@ -61,6 +78,7 @@ const MODULE_PROPAGATION_QUERY = gql`
           modulePropagationDriftCheckRequestId
           requestTime
           status
+          syncStatus
         }
       }
       moduleAssignments {
@@ -104,174 +122,238 @@ export const ModulePropagationPage = () => {
   if (!data?.modulePropagation) return <div>Not found</div>;
 
   return (
-    <Container>
-      <h1>
-        Module Propagation{" "}
-        <b>
-          <u>{data?.modulePropagation.name}</u>
-        </b>{" "}
-        ({data?.modulePropagation.modulePropagationId})
-      </h1>
-      <p>
-        <b>Module Group:</b>{" "}
+    <Container style={{ paddingTop: "2rem" }} fluid>
+      <Breadcrumb>
+        <Breadcrumb.Item linkAs={NavLink} linkProps={{ to: "/" }}>
+          Home
+        </Breadcrumb.Item>
+        <Breadcrumb.Item
+          linkAs={NavLink}
+          linkProps={{ to: "/module-propagations" }}
+        >
+          Propagations
+        </Breadcrumb.Item>
+        <Breadcrumb.Item active>
+          {data?.modulePropagation.name} (
+          {data?.modulePropagation.modulePropagationId})
+        </Breadcrumb.Item>
+      </Breadcrumb>
+
+      <Row>
+        <Col md={"auto"}>
+          <h1>{data?.modulePropagation.name}</h1>
+        </Col>
+        <Col md={"auto"}>
+          <Container fluid style={{ paddingTop: "0.7rem" }}>
+            <UpdateModulePropagationButton
+              modulePropagation={data.modulePropagation}
+              key={data.modulePropagation.modulePropagationId}
+            />
+          </Container>
+        </Col>
+      </Row>
+      <h5>
+        Module:{" "}
         <NavLink
           to={`/module-groups/${data?.modulePropagation.moduleGroup.moduleGroupId}`}
         >
           {data?.modulePropagation.moduleGroup.name}
-        </NavLink>
-        <br />
-        <b>Module Version:</b>{" "}
+        </NavLink>{" "}
+        /{" "}
         <NavLink
           to={`/module-groups/${data?.modulePropagation.moduleGroup.moduleGroupId}/versions/${data?.modulePropagation.moduleVersion.moduleVersionId}`}
         >
           {data?.modulePropagation.moduleVersion.name}
         </NavLink>
-      </p>
-      <UpdateModulePropagationButton
-        modulePropagation={data.modulePropagation}
-        key={data.modulePropagation.modulePropagationId}
-      />
-      <h2>
-        Execution Requests{" "}
-        <ExecuteModulePropagationButton
-          modulePropagationId={modulePropagationId}
-        />
-      </h2>
+      </h5>
+      <br />
 
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Request ID</th>
-            <th>Status</th>
-            <th>Request Time</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.modulePropagation.executionRequests.items.map(
-            (executionRequest) => {
-              return (
-                <tr>
-                  <td>
-                    <NavLink
-                      to={`/module-propagations/${executionRequest?.modulePropagationId}/executions/${executionRequest?.modulePropagationExecutionRequestId}`}
-                    >
-                      {executionRequest?.modulePropagationExecutionRequestId}
-                    </NavLink>
-                  </td>
-                  <td>{renderStatus(executionRequest?.status)}</td>
-                  {renderTimeField(executionRequest?.requestTime)}
-                </tr>
-              );
-            }
-          )}
-        </tbody>
-      </Table>
-      <h2>
-        Drift Check Requests{" "}
-        <DriftCheckModulePropagationButton
-          modulePropagationId={modulePropagationId}
-        />
-      </h2>
-
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Request ID</th>
-            <th>Status</th>
-            <th>Request Time</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.modulePropagation.driftCheckRequests.items.map(
-            (driftCheckRequest) => {
-              return (
-                <tr>
-                  <td>
-                    <NavLink
-                      to={`/module-propagations/${driftCheckRequest?.modulePropagationId}/drift-checks/${driftCheckRequest?.modulePropagationDriftCheckRequestId}`}
-                    >
-                      {driftCheckRequest?.modulePropagationDriftCheckRequestId}
-                    </NavLink>
-                  </td>
-                  <td>{renderStatus(driftCheckRequest?.status)}</td>
-                  {renderTimeField(driftCheckRequest?.requestTime)}
-                </tr>
-              );
-            }
-          )}
-        </tbody>
-      </Table>
-      <h2>Associated Org Units</h2>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Org Dimension Id</th>
-            <th>Name</th>
-            <th>Association Type</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.modulePropagation.orgUnit.downstreamOrgUnits.items
-            .concat([data?.modulePropagation.orgUnit])
-            .map((orgUnit) => {
-              return (
-                <tr>
-                  <td>
-                    <NavLink
-                      to={`/org-dimensions/${orgUnit?.orgDimensionId}/org-units/${orgUnit?.orgUnitId}`}
-                    >
-                      {orgUnit?.orgUnitId}
-                    </NavLink>
-                  </td>
-                  <td>{orgUnit?.name}</td>
-                  <td>
-                    {data?.modulePropagation.orgUnit.orgUnitId ==
-                    orgUnit?.orgUnitId
-                      ? "Direct"
-                      : "Propagated"}
-                  </td>
-                </tr>
-              );
-            })}
-        </tbody>
-      </Table>
-      <h2>Account Assignments</h2>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Status</th>
-            <th>Account</th>
-            <th>Assignment Id</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.modulePropagation.moduleAssignments.items.map(
-            (moduleAssignment) => {
-              return (
-                <tr>
-                  <td>
-                    {renderModuleAssignmentStatus(moduleAssignment?.status)}
-                  </td>
-                  <td>
-                    <NavLink
-                      to={`/org-accounts/${moduleAssignment?.orgAccount.orgAccountId}`}
-                    >
-                      {moduleAssignment?.orgAccount.name}
-                    </NavLink>
-                  </td>
-                  <td>
-                    <NavLink
-                      to={`/module-assignments/${moduleAssignment?.moduleAssignmentId}`}
-                    >
-                      {moduleAssignment?.moduleAssignmentId}
-                    </NavLink>
-                  </td>
-                </tr>
-              );
-            }
-          )}
-        </tbody>
-      </Table>
+      <Row>
+        <Col md={"auto"}>
+          <h2>
+            Recent Executions{" "}
+            <ExecuteModulePropagationButton
+              modulePropagationId={modulePropagationId}
+            />
+          </h2>
+          <Table hover>
+            <thead>
+              <tr>
+                <th>Request ID</th>
+                <th>Status</th>
+                <th>Request Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data?.modulePropagation.executionRequests.items.map(
+                (executionRequest) => {
+                  return (
+                    <tr>
+                      <td>
+                        <NavLink
+                          to={`/module-propagations/${executionRequest?.modulePropagationId}/executions/${executionRequest?.modulePropagationExecutionRequestId}`}
+                          style={({ isActive }) =>
+                            isActive
+                              ? {
+                                  color: "blue",
+                                }
+                              : {
+                                  color: "inherit",
+                                }
+                          }
+                        >
+                          {
+                            executionRequest?.modulePropagationExecutionRequestId
+                          }
+                        </NavLink>
+                      </td>
+                      <td>{renderStatus(executionRequest?.status)}</td>
+                      {renderTimeField(executionRequest?.requestTime)}
+                    </tr>
+                  );
+                }
+              )}
+            </tbody>
+          </Table>
+          <h2>
+            Recent Drift Checks{" "}
+            <DriftCheckModulePropagationButton
+              modulePropagationId={modulePropagationId}
+            />
+          </h2>
+          <Table hover>
+            <thead>
+              <tr>
+                <th>Request ID</th>
+                <th>Status</th>
+                <th>Sync Status</th>
+                <th>Request Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data?.modulePropagation.driftCheckRequests.items.map(
+                (driftCheckRequest) => {
+                  return (
+                    <tr>
+                      <td>
+                        <NavLink
+                          to={`/module-propagations/${driftCheckRequest?.modulePropagationId}/drift-checks/${driftCheckRequest?.modulePropagationDriftCheckRequestId}`}
+                          style={({ isActive }) =>
+                            isActive
+                              ? {
+                                  color: "blue",
+                                }
+                              : {
+                                  color: "inherit",
+                                }
+                          }
+                        >
+                          {
+                            driftCheckRequest?.modulePropagationDriftCheckRequestId
+                          }
+                        </NavLink>
+                      </td>
+                      <td>{renderStatus(driftCheckRequest?.status)}</td>
+                      <td>{renderSyncStatus(driftCheckRequest?.syncStatus)}</td>
+                      {renderTimeField(driftCheckRequest?.requestTime)}
+                    </tr>
+                  );
+                }
+              )}
+            </tbody>
+          </Table>
+        </Col>
+        <Col md={"auto"} style={{ borderRight: "3px solid gray" }} />
+        <Col md={"auto"}>
+          <h2>Selected Request</h2>
+          <Outlet />
+        </Col>
+      </Row>
+      <br />
+      <Row>
+        <Col md={"auto"}>
+          <h2>Associated Org Units</h2>
+          <Table hover>
+            <thead>
+              <tr>
+                <th>Org Dimension</th>
+                <th>Org Unit</th>
+                <th>Association Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data?.modulePropagation.orgUnit.downstreamOrgUnits.items
+                .concat([data?.modulePropagation.orgUnit])
+                .map((orgUnit) => {
+                  return (
+                    <tr>
+                      <td>
+                        <NavLink
+                          to={`/org-dimensions/${orgUnit?.orgDimension.orgDimensionId}`}
+                        >
+                          {orgUnit?.orgDimension.name}
+                        </NavLink>
+                      </td>
+                      <td>
+                        <NavLink
+                          to={`/org-dimensions/${orgUnit?.orgDimension.orgDimensionId}/org-units/${orgUnit?.orgUnitId}`}
+                        >
+                          {orgUnit?.name}
+                        </NavLink>
+                      </td>
+                      <td>
+                        {data?.modulePropagation.orgUnit.orgUnitId ==
+                        orgUnit?.orgUnitId
+                          ? "Direct"
+                          : "Propagated"}
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </Table>
+        </Col>
+        <Col md={"auto"}></Col>
+        <Col md={"auto"}>
+          <h2>Account Assignments</h2>
+          <Table hover>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Account</th>
+                <th>Assignment Id</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data?.modulePropagation.moduleAssignments.items.map(
+                (moduleAssignment) => {
+                  return (
+                    <tr>
+                      <td>
+                        {renderModuleAssignmentStatus(moduleAssignment?.status)}
+                      </td>
+                      <td>
+                        <NavLink
+                          to={`/org-accounts/${moduleAssignment?.orgAccount.orgAccountId}`}
+                        >
+                          {moduleAssignment?.orgAccount.name}
+                        </NavLink>
+                      </td>
+                      <td>
+                        <NavLink
+                          to={`/module-assignments/${moduleAssignment?.moduleAssignmentId}`}
+                        >
+                          {moduleAssignment?.moduleAssignmentId}
+                        </NavLink>
+                      </td>
+                    </tr>
+                  );
+                }
+              )}
+            </tbody>
+          </Table>
+        </Col>
+      </Row>
     </Container>
   );
 };
@@ -290,8 +372,8 @@ const UpdateModulePropagationButton: React.VFC<
 
   return (
     <>
-      <Button variant="primary" onClick={handleShow}>
-        Update Module Propagation
+      <Button variant="outline-primary" size="sm" onClick={handleShow}>
+        Modify
       </Button>
       <Modal show={show} onHide={handleClose}>
         <UpdateModulePropagationForm

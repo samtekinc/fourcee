@@ -25,17 +25,17 @@ func (r *mutationResolver) DeleteOrganizationalUnitMembership(ctx context.Contex
 
 // OrgAccount is the resolver for the orgAccount field.
 func (r *organizationalUnitMembershipResolver) OrgAccount(ctx context.Context, obj *models.OrganizationalUnitMembership) (*models.OrganizationalAccount, error) {
-	return r.apiClient.GetOrganizationalAccount(ctx, obj.OrgAccountId)
+	return r.apiClient.GetOrganizationalAccountBatched(ctx, obj.OrgAccountId)
 }
 
 // OrgUnit is the resolver for the orgUnit field.
 func (r *organizationalUnitMembershipResolver) OrgUnit(ctx context.Context, obj *models.OrganizationalUnitMembership) (*models.OrganizationalUnit, error) {
-	return r.apiClient.GetOrganizationalUnit(ctx, obj.OrgDimensionId, obj.OrgUnitId)
+	return r.apiClient.GetOrganizationalUnitBatched(ctx, obj.OrgDimensionId, obj.OrgUnitId)
 }
 
 // OrgDimension is the resolver for the orgDimension field.
 func (r *organizationalUnitMembershipResolver) OrgDimension(ctx context.Context, obj *models.OrganizationalUnitMembership) (*models.OrganizationalDimension, error) {
-	return r.apiClient.GetOrganizationalDimension(ctx, obj.OrgDimensionId)
+	return r.apiClient.GetOrganizationalDimensionBatched(ctx, obj.OrgDimensionId)
 }
 
 // OrganizationalUnitMembershipsByOrgDimension is the resolver for the organizationalUnitMembershipsByOrgDimension field.

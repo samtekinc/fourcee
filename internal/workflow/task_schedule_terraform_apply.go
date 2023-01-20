@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 
 	"github.com/sheacloud/tfom/pkg/models"
 )
@@ -40,17 +41,23 @@ func (t *TaskHandler) ScheduleTerraformApply(ctx context.Context, input Schedule
 	}
 
 	// get plan request details
-	planRequest, err := t.apiClient.GetPlanExecutionRequest(ctx, *tfWorkflow.PlanExecutionRequestId, true)
+	planRequest, err := t.apiClient.GetPlanExecutionRequest(ctx, *tfWorkflow.PlanExecutionRequestId)
 	if err != nil {
 		return nil, err
 	}
 
-	planBase64 := base64.StdEncoding.EncodeToString(planRequest.PlanOutput.PlanFile)
-
-	additionalArguments := []string{}
-	if tfWorkflow.Destroy {
-		additionalArguments = append(additionalArguments, "-destroy")
+	if planRequest.PlanFileKey == nil {
+		return nil, fmt.Errorf("plan file key is nil")
 	}
+
+	planFile, err := t.apiClient.DownloadResultObject(ctx, *planRequest.PlanFileKey)
+	if err != nil {
+		return nil, err
+	}
+
+	planBase64 := base64.StdEncoding.EncodeToString(planFile)
+
+	additionalArguments := []string{} // no need to add the destroy flag here, it's already in the plan
 
 	applyRequest, err := t.apiClient.PutApplyExecutionRequest(ctx, &models.NewApplyExecutionRequest{
 		ModuleAssignmentId:           moduleAssignment.ModuleAssignmentId,

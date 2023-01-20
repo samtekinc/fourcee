@@ -62,3 +62,4 @@ yarn-debug.log*
 yarn-error.log*
 
 tmp/
+dev.env

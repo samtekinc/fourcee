@@ -6,7 +6,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sheacloud/tfom/internal/graph/generated"
@@ -15,21 +14,47 @@ import (
 
 // ModuleAssignment is the resolver for the moduleAssignment field.
 func (r *applyExecutionRequestResolver) ModuleAssignment(ctx context.Context, obj *models.ApplyExecutionRequest) (*models.ModuleAssignment, error) {
-	panic(fmt.Errorf("not implemented: ModuleAssignment - moduleAssignment"))
+	return r.apiClient.GetModuleAssignmentBatched(ctx, obj.ModuleAssignmentId)
+}
+
+// InitOutput is the resolver for the initOutput field.
+func (r *applyExecutionRequestResolver) InitOutput(ctx context.Context, obj *models.ApplyExecutionRequest) (*string, error) {
+	if obj.InitOutputKey == nil {
+		return nil, nil
+	}
+	output, err := r.apiClient.DownloadResultObject(ctx, *obj.InitOutputKey)
+	if err != nil {
+		return nil, err
+	}
+	outputString := string(output)
+	return &outputString, nil
+}
+
+// ApplyOutput is the resolver for the applyOutput field.
+func (r *applyExecutionRequestResolver) ApplyOutput(ctx context.Context, obj *models.ApplyExecutionRequest) (*string, error) {
+	if obj.ApplyOutputKey == nil {
+		return nil, nil
+	}
+	output, err := r.apiClient.DownloadResultObject(ctx, *obj.ApplyOutputKey)
+	if err != nil {
+		return nil, err
+	}
+	outputString := string(output)
+	return &outputString, nil
 }
 
 // ApplyExecutionRequest is the resolver for the applyExecutionRequest field.
-func (r *queryResolver) ApplyExecutionRequest(ctx context.Context, applyExecutionRequestID string, withOutputs *bool) (*models.ApplyExecutionRequest, error) {
-	return r.apiClient.GetApplyExecutionRequest(ctx, applyExecutionRequestID, aws.ToBool(withOutputs))
+func (r *queryResolver) ApplyExecutionRequest(ctx context.Context, applyExecutionRequestID string) (*models.ApplyExecutionRequest, error) {
+	return r.apiClient.GetApplyExecutionRequest(ctx, applyExecutionRequestID)
 }
 
 // ApplyExecutionRequests is the resolver for the applyExecutionRequests field.
-func (r *queryResolver) ApplyExecutionRequests(ctx context.Context, limit *int, nextCursor *string, withOutputs *bool) (*models.ApplyExecutionRequests, error) {
+func (r *queryResolver) ApplyExecutionRequests(ctx context.Context, limit *int, nextCursor *string) (*models.ApplyExecutionRequests, error) {
 	if limit == nil {
 		limit = aws.Int(100)
 	}
 
-	return r.apiClient.GetApplyExecutionRequests(ctx, int32(*limit), aws.ToString(nextCursor), aws.ToBool(withOutputs))
+	return r.apiClient.GetApplyExecutionRequests(ctx, int32(*limit), aws.ToString(nextCursor))
 }
 
 // ApplyExecutionRequest returns generated.ApplyExecutionRequestResolver implementation.

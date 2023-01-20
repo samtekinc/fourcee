@@ -27,6 +27,7 @@ type CreateOrgUnitResponse = {
 interface NewOrganizationalUnitButtonProps {
   orgDimensionId: string;
   existingOrgUnits: Maybe<OrganizationalUnit>[];
+  onCompleted: () => void;
 }
 
 export const NewOrganizationalUnitButton: React.VFC<
@@ -65,6 +66,7 @@ export const NewOrganizationalUnitButton: React.VFC<
     formState.orgDimensionId = props.orgDimensionId;
 
     mutation();
+    setTimeout(props.onCompleted, 1000);
 
     handleClose();
   };

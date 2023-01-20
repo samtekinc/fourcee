@@ -1,6 +1,9 @@
 package resolver
 
-import "github.com/sheacloud/tfom/internal/api"
+import (
+	"github.com/sheacloud/tfom/internal/api"
+	"github.com/sheacloud/tfom/internal/config"
+)
 
 //go:generate go run github.com/99designs/gqlgen generate
 
@@ -10,8 +13,9 @@ import "github.com/sheacloud/tfom/internal/api"
 
 type Resolver struct {
 	apiClient api.APIClientInterface
+	config    *config.Config
 }
 
-func NewResolver(apiClient api.APIClientInterface) *Resolver {
-	return &Resolver{apiClient: apiClient}
+func NewResolver(apiClient api.APIClientInterface, config *config.Config) *Resolver {
+	return &Resolver{apiClient: apiClient, config: config}
 }

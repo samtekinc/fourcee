@@ -8,30 +8,44 @@ import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
 import { renderStatus, renderTimeField } from "../utils/table_rendering";
-import { Container } from "react-bootstrap";
+import { Col, Container, Row } from "react-bootstrap";
 import Accordion from "react-bootstrap/Accordion";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import Ansi from "ansi-to-react";
+import { encode, decode, labels } from "windows-1252";
+import { b64DecodeUnicode } from "../utils/decoding";
 
 const APPLY_EXECUTION_REQUEST_QUERY = gql`
   query applyExecutionRequest($applyExecutionRequestId: ID!) {
-    applyExecutionRequest(
-      applyExecutionRequestId: $applyExecutionRequestId
-      withOutputs: true
-    ) {
+    applyExecutionRequest(applyExecutionRequestId: $applyExecutionRequestId) {
       applyExecutionRequestId
       status
       requestTime
       terraformConfigurationBase64
-      initOutput {
-        Stdout
-        Stderr
+      moduleAssignment {
+        name
+        moduleAssignmentId
+        modulePropagation {
+          modulePropagationId
+          name
+        }
+        orgAccount {
+          orgAccountId
+          name
+          cloudPlatform
+        }
+        moduleGroup {
+          moduleGroupId
+          name
+        }
+        moduleVersion {
+          moduleVersionId
+          name
+        }
       }
-      applyOutput {
-        Stdout
-        Stderr
-      }
+      initOutput
+      applyOutput
     }
   }
 `;
@@ -71,38 +85,57 @@ export const ApplyExecutionRequestPage = () => {
 
   let terraformConfiguration = data?.applyExecutionRequest
     .terraformConfigurationBase64
-    ? atob(data?.applyExecutionRequest.terraformConfigurationBase64)
-    : "...";
-  let initStdout = data?.applyExecutionRequest.initOutput?.Stdout
-    ? atob(data?.applyExecutionRequest.initOutput?.Stdout)
-    : "...";
-  let initStderr = data?.applyExecutionRequest.initOutput?.Stderr
-    ? atob(data?.applyExecutionRequest.initOutput?.Stderr)
+    ? b64DecodeUnicode(data?.applyExecutionRequest.terraformConfigurationBase64)
     : "...";
 
-  let applyStdout = data?.applyExecutionRequest.applyOutput?.Stdout
-    ? atob(data?.applyExecutionRequest.applyOutput?.Stdout)
-    : "...";
-  let applyStderr = data?.applyExecutionRequest.applyOutput?.Stderr
-    ? atob(data?.applyExecutionRequest.applyOutput?.Stderr)
-    : "...";
-
+  let initOutput = data?.applyExecutionRequest.initOutput ?? "...";
+  let applyOutput = data?.applyExecutionRequest.applyOutput ?? "...";
   return (
-    <Container>
+    <Container
+      fluid
+      style={{
+        paddingTop: "2rem",
+        paddingBottom: "2rem",
+        paddingLeft: "5rem",
+        paddingRight: "5rem",
+      }}
+    >
       <h1>
-        Apply Execution Request{" "}
         <b>{data?.applyExecutionRequest.applyExecutionRequestId}</b>
       </h1>
       <p>
-        Status: <b>{renderStatus(data?.applyExecutionRequest.status)}</b>
+        <b>Org Account: </b>
+        <NavLink
+          to={`/org-accounts/${data?.applyExecutionRequest.moduleAssignment.orgAccount.orgAccountId}`}
+        >
+          {data?.applyExecutionRequest.moduleAssignment.orgAccount.name}
+        </NavLink>
+        <br />
+        <b>Module: </b>
+        <NavLink
+          to={`/module-groups/${data?.applyExecutionRequest.moduleAssignment.moduleGroup.moduleGroupId}`}
+        >
+          {data?.applyExecutionRequest.moduleAssignment.moduleGroup.name}
+        </NavLink>
+        {" / "}
+        <NavLink
+          to={`/module-groups/${data?.applyExecutionRequest.moduleAssignment.moduleGroup.moduleGroupId}/versions/${data?.applyExecutionRequest.moduleAssignment.moduleVersion.moduleVersionId}`}
+        >
+          {data?.applyExecutionRequest.moduleAssignment.moduleVersion.name}
+        </NavLink>
+        <br />
+        <b>Apply Status: </b>
+        {renderStatus(data?.applyExecutionRequest.status)}
+        <br />
       </p>
       <h2>Terraform Configuration</h2>
       <Container
+        fluid
         className="bg-dark"
         style={{
           overflow: "auto",
           maxHeight: "60vh",
-          whiteSpace: "pre-wrap",
+          whiteSpace: "pre",
           textAlign: "left",
         }}
       >
@@ -110,56 +143,38 @@ export const ApplyExecutionRequestPage = () => {
           {terraformConfiguration}
         </SyntaxHighlighter>
       </Container>
-      <h2>Init Output</h2>
-      Stdout
-      <Container
-        className="bg-dark"
-        style={{
-          overflow: "auto",
-          maxHeight: "60vh",
-          whiteSpace: "pre-wrap",
-          textAlign: "left",
-        }}
-      >
-        <Ansi className="ansi-black-bg">{initStdout}</Ansi>
-      </Container>
-      Stderr
-      <Container
-        className="bg-dark"
-        style={{
-          overflow: "auto",
-          maxHeight: "60vh",
-          whiteSpace: "pre-wrap",
-          textAlign: "left",
-        }}
-      >
-        <Ansi className="ansi-black-bg">{initStderr}</Ansi>
-      </Container>
-      <h2>Apply Output</h2>
-      Stdout
-      <Container
-        className="bg-dark"
-        style={{
-          overflow: "auto",
-          maxHeight: "60vh",
-          whiteSpace: "pre-wrap",
-          textAlign: "left",
-        }}
-      >
-        <Ansi className="ansi-black-bg">{applyStdout}</Ansi>
-      </Container>
-      Stderr
-      <Container
-        className="bg-dark"
-        style={{
-          overflow: "auto",
-          maxHeight: "60vh",
-          whiteSpace: "pre-wrap",
-          textAlign: "left",
-        }}
-      >
-        <Ansi className="ansi-black-bg">{applyStderr}</Ansi>
-      </Container>
+      <br />
+      <Row>
+        <Col md={6}>
+          <h2>Init Output</h2>
+          <Container
+            className="bg-dark"
+            style={{
+              overflow: "auto",
+              maxHeight: "80vh",
+              whiteSpace: "pre",
+              textAlign: "left",
+              color: "white",
+            }}
+          >
+            <Ansi className="ansi-black-bg">{initOutput}</Ansi>
+          </Container>
+        </Col>
+        <Col md={6}>
+          <h2>Apply Output</h2>
+          <Container
+            className="bg-dark"
+            style={{
+              overflow: "auto",
+              maxHeight: "60vh",
+              whiteSpace: "pre",
+              textAlign: "left",
+            }}
+          >
+            <Ansi className="ansi-black-bg">{applyOutput}</Ansi>
+          </Container>
+        </Col>
+      </Row>
     </Container>
   );
 };

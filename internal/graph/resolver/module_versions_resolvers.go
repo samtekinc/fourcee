@@ -14,7 +14,7 @@ import (
 
 // ModuleGroup is the resolver for the moduleGroup field.
 func (r *moduleVersionResolver) ModuleGroup(ctx context.Context, obj *models.ModuleVersion) (*models.ModuleGroup, error) {
-	return r.apiClient.GetModuleGroup(ctx, obj.ModuleGroupId)
+	return r.apiClient.GetModuleGroupBatched(ctx, obj.ModuleGroupId)
 }
 
 // ModulePropagations is the resolver for the modulePropagations field.

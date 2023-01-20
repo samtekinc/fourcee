@@ -15,6 +15,7 @@ type TerraformConfigurationInput struct {
 	ModulePropagation *models.ModulePropagation
 	ModuleVersion     *models.ModuleVersion
 	OrgAccount        *models.OrganizationalAccount
+	LockTableName     string
 }
 
 func GetTerraformConfigurationBase64(input *TerraformConfigurationInput) (string, error) {
@@ -65,6 +66,7 @@ func GetTerraformConfigurationBase64(input *TerraformConfigurationInput) (string
 		BackendBucket:         input.ModuleAssignment.RemoteStateBucket,
 		BackendKey:            input.ModuleAssignment.RemoteStateKey,
 		BackendRegion:         input.ModuleAssignment.RemoteStateRegion,
+		LockTableName:         input.LockTableName,
 		Providers:             providers,
 		AccountMetadata:       append(input.OrgAccount.Metadata, input.OrgAccount.GetInternalMetadata()...),
 		ModuleVersionMetadata: input.ModuleVersion.GetInternalMetadata(),
@@ -91,6 +93,7 @@ type TemplateInput struct {
 	BackendBucket             string
 	BackendKey                string
 	BackendRegion             string
+	LockTableName             string
 	Providers                 []ProviderTemplate
 	AccountMetadata           []models.Metadata
 	ModuleVersionMetadata     []models.Metadata
@@ -106,6 +109,7 @@ terraform {
     bucket = "{{.BackendBucket}}"
     key    = "{{.BackendKey}}"
     region = "{{.BackendRegion}}"
+	dynamodb_table = "{{.LockTableName}}"
   }
 }
 

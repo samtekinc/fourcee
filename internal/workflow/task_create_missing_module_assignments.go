@@ -6,6 +6,7 @@ import (
 
 	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/pkg/models"
+	"go.uber.org/zap"
 )
 
 const (
@@ -27,6 +28,7 @@ func (t *TaskHandler) CreateMissingModuleAssignments(ctx context.Context, input 
 		// check if there is an existing, but inactive module propagation assignment
 		modulePropagationAssignment, err := t.apiClient.GetModulePropagationAssignment(ctx, input.ModulePropagationId, orgAccount.OrgAccountId)
 		if errors.As(err, &helpers.NotFoundError{}) {
+			zap.L().Sugar().Debugw("no existing module propagation assignment, creating one", "modulePropagationId", input.ModulePropagationId, "orgAccountId", orgAccount.OrgAccountId)
 			// no existing module propagation assignment, create one
 			_, moduleAssignment, err := t.apiClient.PutModulePropagationAssignment(ctx, &models.NewModulePropagationAssignment{
 				ModulePropagationId: input.ModulePropagationId,
@@ -37,6 +39,7 @@ func (t *TaskHandler) CreateMissingModuleAssignments(ctx context.Context, input 
 			}
 			input.ActiveModuleAssignments = append(input.ActiveModuleAssignments, *moduleAssignment)
 		} else if err == nil {
+			zap.L().Sugar().Debugw("existing module propagation assignment, activating module assignment", "modulePropagationId", input.ModulePropagationId, "orgAccountId", orgAccount.OrgAccountId, "modulePropagationAssignment", modulePropagationAssignment)
 			// there is an existing module propagation assignment, get the matching module assignment
 			moduleAssignment, err := t.apiClient.GetModuleAssignment(ctx, modulePropagationAssignment.ModuleAssignmentId)
 			if err != nil {

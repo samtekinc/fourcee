@@ -13,17 +13,17 @@ import (
 
 // ModulePropagation is the resolver for the modulePropagation field.
 func (r *modulePropagationAssignmentResolver) ModulePropagation(ctx context.Context, obj *models.ModulePropagationAssignment) (*models.ModulePropagation, error) {
-	return r.apiClient.GetModulePropagation(ctx, obj.ModulePropagationId)
+	return r.apiClient.GetModulePropagationBatched(ctx, obj.ModulePropagationId)
 }
 
 // OrgAccount is the resolver for the orgAccount field.
 func (r *modulePropagationAssignmentResolver) OrgAccount(ctx context.Context, obj *models.ModulePropagationAssignment) (*models.OrganizationalAccount, error) {
-	return r.apiClient.GetOrganizationalAccount(ctx, obj.OrgAccountId)
+	return r.apiClient.GetOrganizationalAccountBatched(ctx, obj.OrgAccountId)
 }
 
 // ModuleAssignment is the resolver for the moduleAssignment field.
 func (r *modulePropagationAssignmentResolver) ModuleAssignment(ctx context.Context, obj *models.ModulePropagationAssignment) (*models.ModuleAssignment, error) {
-	return r.apiClient.GetModuleAssignment(ctx, obj.ModuleAssignmentId)
+	return r.apiClient.GetModuleAssignmentBatched(ctx, obj.ModuleAssignmentId)
 }
 
 // ModulePropagationAssignment returns generated.ModulePropagationAssignmentResolver implementation.

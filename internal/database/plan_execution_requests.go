@@ -1,9 +1,7 @@
 package database
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -12,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/pkg/models"
 )
@@ -218,6 +215,12 @@ func (c *DatabaseClient) UpdatePlanExecutionRequest(ctx context.Context, planExe
 	if update.PlanOutputKey != nil {
 		updateBuilder = updateBuilder.Set(expression.Name("PlanOutputKey"), expression.Value(*update.PlanOutputKey))
 	}
+	if update.PlanFileKey != nil {
+		updateBuilder = updateBuilder.Set(expression.Name("PlanFileKey"), expression.Value(*update.PlanFileKey))
+	}
+	if update.PlanJSONKey != nil {
+		updateBuilder = updateBuilder.Set(expression.Name("PlanJSONKey"), expression.Value(*update.PlanJSONKey))
+	}
 	if update.Status != nil {
 		updateBuilder = updateBuilder.Set(expression.Name("Status"), expression.Value(*update.Status))
 	}
@@ -255,74 +258,4 @@ func (c *DatabaseClient) UpdatePlanExecutionRequest(ctx context.Context, planExe
 	}
 
 	return &planExecutionRequest, nil
-}
-
-func (c *DatabaseClient) UploadTerraformPlanInitResults(ctx context.Context, planExecutionRequestId string, initResults *models.TerraformInitOutput) (string, error) {
-	outputKey := fmt.Sprintf("plans/%s/init-results.json", planExecutionRequestId)
-
-	initResultsBytes, err := json.Marshal(initResults)
-	if err != nil {
-		return "", err
-	}
-
-	_, err = c.s3.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: &c.resultsBucketName,
-		Key:    &outputKey,
-		Body:   bytes.NewReader(initResultsBytes),
-	})
-
-	return outputKey, err
-}
-
-func (c *DatabaseClient) UploadTerraformPlanResults(ctx context.Context, planExecutionRequestId string, planResults *models.TerraformPlanOutput) (string, error) {
-	outputKey := fmt.Sprintf("plans/%s/plan-results.json", planExecutionRequestId)
-
-	planResultsBytes, err := json.Marshal(planResults)
-	if err != nil {
-		return "", err
-	}
-
-	_, err = c.s3.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: &c.resultsBucketName,
-		Key:    &outputKey,
-		Body:   bytes.NewReader(planResultsBytes),
-	})
-
-	return outputKey, err
-}
-
-func (c *DatabaseClient) DownloadTerraformPlanInitResults(ctx context.Context, initResultsObjectKey string) (*models.TerraformInitOutput, error) {
-	result, err := c.s3.GetObject(ctx, &s3.GetObjectInput{
-		Bucket: &c.resultsBucketName,
-		Key:    &initResultsObjectKey,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	initResults := models.TerraformInitOutput{}
-	err = json.NewDecoder(result.Body).Decode(&initResults)
-	if err != nil {
-		return nil, err
-	}
-
-	return &initResults, nil
-}
-
-func (c *DatabaseClient) DownloadTerraformPlanResults(ctx context.Context, planResultsObjectKey string) (*models.TerraformPlanOutput, error) {
-	result, err := c.s3.GetObject(ctx, &s3.GetObjectInput{
-		Bucket: &c.resultsBucketName,
-		Key:    &planResultsObjectKey,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	planResults := models.TerraformPlanOutput{}
-	err = json.NewDecoder(result.Body).Decode(&planResults)
-	if err != nil {
-		return nil, err
-	}
-
-	return &planResults, nil
 }

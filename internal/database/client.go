@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"io"
 
 	"github.com/sheacloud/tfom/internal/awsclients"
 	"github.com/sheacloud/tfom/pkg/models"
@@ -76,7 +77,7 @@ type DatabaseClientInterface interface {
 
 	GetModuleAssignment(ctx context.Context, moduleAssignmentId string) (*models.ModuleAssignment, error)
 	GetModuleAssignmentsByIds(ctx context.Context, ids []string) ([]models.ModuleAssignment, error)
-	GetModuleAssignments(ctx context.Context, limit int32, cursor string) (*models.ModuleAssignments, error)
+	GetModuleAssignments(ctx context.Context, filters *models.ModuleAssignmentFilters, limit int32, cursor string) (*models.ModuleAssignments, error)
 	GetModuleAssignmentsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModuleAssignments, error)
 	GetModuleAssignmentsByOrgAccountId(ctx context.Context, orgAccountId string, limit int32, cursor string) (*models.ModuleAssignments, error)
 	GetModuleAssignmentsByModuleVersionId(ctx context.Context, moduleVersionId string, limit int32, cursor string) (*models.ModuleAssignments, error)
@@ -123,15 +124,8 @@ type DatabaseClientInterface interface {
 	PutApplyExecutionRequest(ctx context.Context, input *models.ApplyExecutionRequest) error
 	UpdateApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string, input *models.ApplyExecutionRequestUpdate) (*models.ApplyExecutionRequest, error)
 
-	UploadTerraformPlanInitResults(ctx context.Context, planExecutionRequestId string, initResults *models.TerraformInitOutput) (string, error)
-	UploadTerraformPlanResults(ctx context.Context, planExecutionRequestId string, planResults *models.TerraformPlanOutput) (string, error)
-	UploadTerraformApplyInitResults(ctx context.Context, applyExecutionRequestId string, initResults *models.TerraformInitOutput) (string, error)
-	UploadTerraformApplyResults(ctx context.Context, applyExecutionRequestId string, applyResults *models.TerraformApplyOutput) (string, error)
-
-	DownloadTerraformPlanInitResults(ctx context.Context, initResultsObjectKey string) (*models.TerraformInitOutput, error)
-	DownloadTerraformPlanResults(ctx context.Context, planResultsObjectKey string) (*models.TerraformPlanOutput, error)
-	DownloadTerraformApplyInitResults(ctx context.Context, initResultsObjectKey string) (*models.TerraformInitOutput, error)
-	DownloadTerraformApplyResults(ctx context.Context, applyResultsObjectKey string) (*models.TerraformApplyOutput, error)
+	DownloadResultObject(ctx context.Context, objectKey string) ([]byte, error)
+	GetResultObjectWriter(ctx context.Context, objectKey string, withLiveUploads bool) (io.WriteCloser, error)
 }
 
 type DatabaseClient struct {

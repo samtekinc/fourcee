@@ -25,15 +25,10 @@ type ModuleAssignment {
     limit: Int
     nextCursor: String
   ): TerraformExecutionRequests!
-  planExecutionRequests(
-    limit: Int
-    nextCursor: String
-    withOutputs: Boolean = false
-  ): PlanExecutionRequests!
+  planExecutionRequests(limit: Int, nextCursor: String): PlanExecutionRequests!
   applyExecutionRequests(
     limit: Int
     nextCursor: String
-    withOutputs: Boolean = false
   ): ApplyExecutionRequests!
   terraformConfiguration: String!
 }
@@ -63,6 +58,10 @@ input ModuleAssignmentUpdate {
   gcpProviderConfigurations: [GcpProviderConfigurationInput!]
 }
 
+input ModuleAssignmentFiltersInput {
+  isPropagated: Boolean
+}
+
 enum ModuleAssignmentStatus {
   ACTIVE
   INACTIVE
@@ -70,12 +69,16 @@ enum ModuleAssignmentStatus {
 
 extend type Query {
   moduleAssignment(moduleAssignmentId: ID!): ModuleAssignment!
-  moduleAssignments(limit: Int, nextCursor: String): ModuleAssignments!
+  moduleAssignments(
+    filters: ModuleAssignmentFiltersInput
+    limit: Int
+    nextCursor: String
+  ): ModuleAssignments!
 }
 
 extend type Mutation {
   createModuleAssignment(
-    newModuleAssignment: NewModuleAssignment!
+    moduleAssignment: NewModuleAssignment!
   ): ModuleAssignment!
   updateModuleAssignment(
     moduleAssignmentId: ID!

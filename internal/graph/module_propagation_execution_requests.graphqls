@@ -1,6 +1,7 @@
 type ModulePropagationExecutionRequest {
   modulePropagationExecutionRequestId: ID!
   modulePropagationId: ID!
+  modulePropagation: ModulePropagation!
   requestTime: Time!
   status: RequestStatus!
   terraformExecutionRequests(

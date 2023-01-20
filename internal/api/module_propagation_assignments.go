@@ -26,6 +26,10 @@ func (c *APIClient) GetModulePropagationAssignmentsByIds(ctx context.Context, ke
 }
 
 func (c *APIClient) GetModulePropagationAssignment(ctx context.Context, modulePropagationId string, orgAccountId string) (*models.ModulePropagationAssignment, error) {
+	return c.dbClient.GetModulePropagationAssignment(ctx, modulePropagationId, orgAccountId)
+}
+
+func (c *APIClient) GetModulePropagationAssignmentBatched(ctx context.Context, modulePropagationId string, orgAccountId string) (*models.ModulePropagationAssignment, error) {
 	thunk := c.modulePropagationAssignmentsLoader.Load(ctx, dataloader.StringKey(fmt.Sprintf("%s:%s", modulePropagationId, orgAccountId)))
 	result, err := thunk()
 	if err != nil {

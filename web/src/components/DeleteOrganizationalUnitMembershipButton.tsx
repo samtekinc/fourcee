@@ -23,6 +23,7 @@ type DeleteOrganizationalUnitMembershipResposne = {
 interface DeleteOrganizationalUnitMembershipButtonProps {
   orgDimensionId: string | undefined;
   orgAccountId: string | undefined;
+  onCompleted: () => void;
 }
 
 export const DeleteOrganizationalUnitMembershipButton: React.VFC<
@@ -45,7 +46,7 @@ export const DeleteOrganizationalUnitMembershipButton: React.VFC<
           );
         },
         onCompleted: (data) => {
-          NotificationManager.success(`Deleted org unit membership`, "", 5000);
+          NotificationManager.success(`Removed org unit membership`, "", 5000);
         },
       }
     );
@@ -56,10 +57,11 @@ export const DeleteOrganizationalUnitMembershipButton: React.VFC<
         disabled={loading}
         onClick={() => {
           mutation();
+          setTimeout(props.onCompleted, 1000);
         }}
         variant={"danger"}
       >
-        {loading ? "Submitting..." : "Delete"}
+        {loading ? "Submitting..." : "Remove"}
       </Button>
     </>
   );

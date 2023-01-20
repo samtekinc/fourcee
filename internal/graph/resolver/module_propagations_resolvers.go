@@ -14,22 +14,22 @@ import (
 
 // ModuleVersion is the resolver for the moduleVersion field.
 func (r *modulePropagationResolver) ModuleVersion(ctx context.Context, obj *models.ModulePropagation) (*models.ModuleVersion, error) {
-	return r.apiClient.GetModuleVersion(ctx, obj.ModuleGroupId, obj.ModuleVersionId)
+	return r.apiClient.GetModuleVersionBatched(ctx, obj.ModuleGroupId, obj.ModuleVersionId)
 }
 
 // ModuleGroup is the resolver for the moduleGroup field.
 func (r *modulePropagationResolver) ModuleGroup(ctx context.Context, obj *models.ModulePropagation) (*models.ModuleGroup, error) {
-	return r.apiClient.GetModuleGroup(ctx, obj.ModuleGroupId)
+	return r.apiClient.GetModuleGroupBatched(ctx, obj.ModuleGroupId)
 }
 
 // OrgUnit is the resolver for the orgUnit field.
 func (r *modulePropagationResolver) OrgUnit(ctx context.Context, obj *models.ModulePropagation) (*models.OrganizationalUnit, error) {
-	return r.apiClient.GetOrganizationalUnit(ctx, obj.OrgDimensionId, obj.OrgUnitId)
+	return r.apiClient.GetOrganizationalUnitBatched(ctx, obj.OrgDimensionId, obj.OrgUnitId)
 }
 
 // OrgDimension is the resolver for the orgDimension field.
 func (r *modulePropagationResolver) OrgDimension(ctx context.Context, obj *models.ModulePropagation) (*models.OrganizationalDimension, error) {
-	return r.apiClient.GetOrganizationalDimension(ctx, obj.OrgDimensionId)
+	return r.apiClient.GetOrganizationalDimensionBatched(ctx, obj.OrgDimensionId)
 }
 
 // ModuleAssignments is the resolver for the moduleAssignments field.

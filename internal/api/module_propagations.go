@@ -25,6 +25,10 @@ func (c *APIClient) GetModulePropagationsByIds(ctx context.Context, keys dataloa
 }
 
 func (c *APIClient) GetModulePropagation(ctx context.Context, id string) (*models.ModulePropagation, error) {
+	return c.dbClient.GetModulePropagation(ctx, id)
+}
+
+func (c *APIClient) GetModulePropagationBatched(ctx context.Context, id string) (*models.ModulePropagation, error) {
 	thunk := c.modulePropagationsLoader.Load(ctx, dataloader.StringKey(id))
 	result, err := thunk()
 	if err != nil {

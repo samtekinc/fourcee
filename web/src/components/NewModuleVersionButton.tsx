@@ -22,6 +22,7 @@ type CreateModuleVersionResponse = {
 
 interface NewModuleVersionButtonProps {
   moduleGroupId: string | undefined;
+  onCompleted: () => void;
 }
 
 export const NewModuleVersionButton: React.VFC<NewModuleVersionButtonProps> = (
@@ -65,6 +66,7 @@ export const NewModuleVersionButton: React.VFC<NewModuleVersionButtonProps> = (
     event.stopPropagation();
 
     mutation();
+    setTimeout(props.onCompleted, 1000);
 
     handleClose();
   };

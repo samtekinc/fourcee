@@ -3,9 +3,9 @@ type TerraformExecutionRequest {
   moduleAssignmentId: ID!
   moduleAssignment: ModuleAssignment!
   planExecutionRequestId: ID
-  planExecutionRequest(withOutputs: Boolean = false): PlanExecutionRequest
+  planExecutionRequest: PlanExecutionRequest
   applyExecutionRequestId: ID
-  applyExecutionRequest(withOutputs: Boolean = false): ApplyExecutionRequest
+  applyExecutionRequest: ApplyExecutionRequest
   requestTime: Time!
   status: RequestStatus!
   destroy: Boolean!

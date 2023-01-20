@@ -30,6 +30,10 @@ func (c *APIClient) GetOrganizationalUnitsByIds(ctx context.Context, keys datalo
 }
 
 func (c *APIClient) GetOrganizationalUnit(ctx context.Context, orgDimensionId string, orgUnitId string) (*models.OrganizationalUnit, error) {
+	return c.dbClient.GetOrganizationalUnit(ctx, orgDimensionId, orgUnitId)
+}
+
+func (c *APIClient) GetOrganizationalUnitBatched(ctx context.Context, orgDimensionId string, orgUnitId string) (*models.OrganizationalUnit, error) {
 	thunk := c.orgUnitsLoader.Load(ctx, dataloader.StringKey(fmt.Sprintf("%s:%s", orgDimensionId, orgUnitId)))
 	result, err := thunk()
 	if err != nil {

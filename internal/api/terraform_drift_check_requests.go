@@ -29,6 +29,10 @@ func (c *APIClient) GetTerraformDriftCheckRequestsByIds(ctx context.Context, key
 }
 
 func (c *APIClient) GetTerraformDriftCheckRequest(ctx context.Context, terraformDriftCheckRequestId string) (*models.TerraformDriftCheckRequest, error) {
+	return c.dbClient.GetTerraformDriftCheckRequest(ctx, terraformDriftCheckRequestId)
+}
+
+func (c *APIClient) GetTerraformDriftCheckRequestBatched(ctx context.Context, terraformDriftCheckRequestId string) (*models.TerraformDriftCheckRequest, error) {
 	thunk := c.terraformDriftCheckRequestsLoader.Load(ctx, dataloader.StringKey(terraformDriftCheckRequestId))
 	result, err := thunk()
 	if err != nil {

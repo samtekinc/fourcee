@@ -26,6 +26,10 @@ func (c *APIClient) GetModuleAssignmentsByIds(ctx context.Context, keys dataload
 }
 
 func (c *APIClient) GetModuleAssignment(ctx context.Context, moduleAssignmentId string) (*models.ModuleAssignment, error) {
+	return c.dbClient.GetModuleAssignment(ctx, moduleAssignmentId)
+}
+
+func (c *APIClient) GetModuleAssignmentBatched(ctx context.Context, moduleAssignmentId string) (*models.ModuleAssignment, error) {
 	thunk := c.moduleAssignmentsLoader.Load(ctx, dataloader.StringKey(moduleAssignmentId))
 	result, err := thunk()
 	if err != nil {
@@ -34,8 +38,8 @@ func (c *APIClient) GetModuleAssignment(ctx context.Context, moduleAssignmentId 
 	return result.(*models.ModuleAssignment), nil
 }
 
-func (c *APIClient) GetModuleAssignments(ctx context.Context, limit int32, cursor string) (*models.ModuleAssignments, error) {
-	return c.dbClient.GetModuleAssignments(ctx, limit, cursor)
+func (c *APIClient) GetModuleAssignments(ctx context.Context, filters *models.ModuleAssignmentFilters, limit int32, cursor string) (*models.ModuleAssignments, error) {
+	return c.dbClient.GetModuleAssignments(ctx, filters, limit, cursor)
 }
 
 func (c *APIClient) GetModuleAssignmentsByModulePropagationId(ctx context.Context, modulePropagationId string, limit int32, cursor string) (*models.ModuleAssignments, error) {

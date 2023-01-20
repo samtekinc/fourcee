@@ -12,6 +12,11 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
+// ModulePropagation is the resolver for the modulePropagation field.
+func (r *modulePropagationDriftCheckRequestResolver) ModulePropagation(ctx context.Context, obj *models.ModulePropagationDriftCheckRequest) (*models.ModulePropagation, error) {
+	return r.apiClient.GetModulePropagationBatched(ctx, obj.ModulePropagationId)
+}
+
 // TerraformDriftCheckRequests is the resolver for the terraformDriftCheckRequests field.
 func (r *modulePropagationDriftCheckRequestResolver) TerraformDriftCheckRequests(ctx context.Context, obj *models.ModulePropagationDriftCheckRequest, limit *int, nextCursor *string) (*models.TerraformDriftCheckRequests, error) {
 	if limit == nil {

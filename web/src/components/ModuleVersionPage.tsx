@@ -3,7 +3,8 @@ import { ModuleVersion, ModuleVersions } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
-import { Container } from "react-bootstrap";
+import { Breadcrumb, Card, Col, Container, Row } from "react-bootstrap";
+import { renderCloudPlatform, renderRemoteSource } from "../utils/rendering";
 
 const MODULE_VERSION_QUERY = gql`
   query moduleVersion($moduleGroupId: ID!, $moduleVersionId: ID!) {
@@ -15,6 +16,7 @@ const MODULE_VERSION_QUERY = gql`
       name
       moduleGroup {
         moduleGroupId
+        cloudPlatform
         name
       }
       remoteSource
@@ -28,6 +30,7 @@ const MODULE_VERSION_QUERY = gql`
       modulePropagations {
         items {
           name
+          description
           modulePropagationId
           orgUnit {
             orgUnitId
@@ -64,83 +67,117 @@ export const ModuleVersionPage = () => {
   if (error) return <div>Error</div>;
 
   return (
-    <Container>
-      <h1>
-        <b>
-          <u>{data?.moduleVersion.name}</u>
-        </b>{" "}
-        ({data?.moduleVersion.moduleVersionId})<h2></h2>
-      </h1>
+    <Container
+      style={{ paddingTop: "2rem", maxWidth: "calc(100vw - 20rem)" }}
+      fluid
+    >
+      <Breadcrumb>
+        <Breadcrumb.Item linkAs={NavLink} linkProps={{ to: "/" }}>
+          Home
+        </Breadcrumb.Item>
+        <Breadcrumb.Item linkAs={NavLink} linkProps={{ to: "/module-groups" }}>
+          Modules
+        </Breadcrumb.Item>
+        <Breadcrumb.Item
+          linkAs={NavLink}
+          linkProps={{
+            to: `/module-groups/${data?.moduleVersion.moduleGroup.moduleGroupId}`,
+          }}
+        >
+          {data?.moduleVersion.moduleGroup.name} (
+          {data?.moduleVersion.moduleGroup.moduleGroupId})
+        </Breadcrumb.Item>
+        <Breadcrumb.Item
+          linkAs={NavLink}
+          linkProps={{
+            to: `/module-groups/${data?.moduleVersion.moduleGroup.moduleGroupId}`,
+          }}
+        >
+          Versions
+        </Breadcrumb.Item>
+        <Breadcrumb.Item active>
+          {data?.moduleVersion.name} ({data?.moduleVersion.moduleVersionId})
+        </Breadcrumb.Item>
+      </Breadcrumb>
+
+      <Row>
+        <Col md={"auto"}>
+          <h1>
+            {renderCloudPlatform(data?.moduleVersion.moduleGroup.cloudPlatform)}{" "}
+            {data?.moduleVersion.moduleGroup.name} {data?.moduleVersion.name}
+          </h1>
+        </Col>
+      </Row>
+
       <p>
-        <li>
-          <b>Remote Source:</b> {data?.moduleVersion.remoteSource}
-        </li>
-        <li>
-          <b>Terraform Version:</b> {data?.moduleVersion.terraformVersion}
-        </li>
+        <b>Remote Source:</b>{" "}
+        {renderRemoteSource(data?.moduleVersion.remoteSource)}
+        <br />
+        <b>Terraform Version:</b> {data?.moduleVersion.terraformVersion}
       </p>
       <h2>Variables</h2>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Default</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.moduleVersion.variables.map((variable) => {
-            return (
-              <tr>
-                <td>{variable?.name}</td>
-                <td>{variable?.type}</td>
-                <td>{variable?.default}</td>
-                <td>{variable?.description}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </Table>
+      <Container fluid style={{ maxHeight: "50vh", overflow: "auto" }}>
+        <Table striped hover bordered responsive>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data?.moduleVersion.variables.map((variable) => {
+              return (
+                <tr>
+                  <td>{variable?.name}</td>
+                  <td>{variable?.type}</td>
+                  <td>{variable?.default}</td>
+                  <td>{variable?.description}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </Table>
+      </Container>
+      <br />
       <h2>Module Propagations</h2>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Org Dimension</th>
-            <th>Org Unit</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.moduleVersion.modulePropagations.items.map((propagation) => {
-            return (
-              <tr>
-                <td>
+      <Row>
+        {data?.moduleVersion.modulePropagations.items.map((propagation) => {
+          return (
+            <Col md={"auto"}>
+              <Card>
+                <Card.Body>
                   <NavLink
                     to={`/module-propagations/${propagation?.modulePropagationId}`}
                   >
-                    {propagation?.name}
+                    <Card.Title style={{ fontSize: "medium" }}>
+                      {propagation?.name}
+                    </Card.Title>
                   </NavLink>
-                </td>
-                <td>
-                  <NavLink
-                    to={`/org-dimensions/${propagation?.orgDimension?.orgDimensionId}`}
-                  >
-                    {propagation?.orgDimension?.name}
-                  </NavLink>
-                </td>
-                <td>
-                  <NavLink
-                    to={`/org-dimensions/${propagation?.orgDimension?.orgDimensionId}/org-units/${propagation?.orgUnit?.orgUnitId}`}
-                  >
-                    {propagation?.orgUnit?.name}
-                  </NavLink>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </Table>
+                  <Card.Text style={{ fontSize: "small" }}>
+                    <b>Org Unit: </b>
+                    <NavLink
+                      to={`/org-dimensions/${propagation?.orgDimension?.orgDimensionId}`}
+                    >
+                      {propagation?.orgDimension?.name}
+                    </NavLink>
+                    {" / "}
+                    <NavLink
+                      to={`/org-dimensions/${propagation?.orgDimension?.orgDimensionId}/org-units/${propagation?.orgUnit?.orgUnitId}`}
+                    >
+                      {propagation?.orgUnit?.name}
+                    </NavLink>
+                    <br />
+                    <b>Description: </b>
+                    {propagation?.description}
+                  </Card.Text>
+                </Card.Body>
+              </Card>
+            </Col>
+          );
+        })}
+      </Row>
     </Container>
   );
 };

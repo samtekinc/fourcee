@@ -2,27 +2,24 @@ package main
 
 import (
 	"context"
-	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sheacloud/tfom/internal/api"
-	"github.com/sheacloud/tfom/internal/database"
+	tfomConfig "github.com/sheacloud/tfom/internal/config"
 	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/internal/graph/resolver"
+	"go.uber.org/zap"
 )
 
 // Defining the Graphql handler
-func graphqlHandler(apiClient api.APIClientInterface) gin.HandlerFunc {
+func graphqlHandler(apiClient api.APIClientInterface, config *tfomConfig.Config) gin.HandlerFunc {
 	// NewExecutableSchema and Config are in the generated.go file
 	// Resolver is in the resolver.go file
-	h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver.NewResolver(apiClient)}))
+	h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver.NewResolver(apiClient, config)}))
 
 	return func(c *gin.Context) {
 		h.ServeHTTP(c.Writer, c.Request)
@@ -39,58 +36,30 @@ func playgroundHandler() gin.HandlerFunc {
 }
 
 func main() {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic("unable to create logger, " + err.Error())
+	}
+	defer logger.Sync()
+	undo := zap.ReplaceGlobals(logger)
+	defer undo()
+
 	ctx := context.Background()
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		panic("unable to load SDK config, " + err.Error())
 	}
 
-	dynamodbClient := dynamodb.NewFromConfig(cfg)
-	s3Client := s3.NewFromConfig(cfg)
-	sfnClient := sfn.NewFromConfig(cfg)
-
-	dbInput := database.DatabaseClientInput{
-		DynamoDB:              dynamodbClient,
-		S3:                    s3Client,
-		DimensionsTableName:   "tfom-organizational-dimensions",
-		UnitsTableName:        "tfom-organizational-units",
-		AccountsTableName:     "tfom-organizational-accounts",
-		MembershipsTableName:  "tfom-organizational-unit-memberships",
-		GroupsTableName:       "tfom-module-groups",
-		VersionsTableName:     "tfom-module-versions",
-		PropagationsTableName: "tfom-module-propagations",
-		ModulePropagationExecutionRequestsTableName:  "tfom-module-propagation-execution-requests",
-		ModulePropagationDriftCheckRequestsTableName: "tfom-module-propagation-drift-check-requests",
-		ModuleAssignmentsTableName:                   "tfom-module-assignments",
-		ModulePropagationAssignmentsTableName:        "tfom-module-propagation-assignments",
-		TerraformExecutionRequestsTableName:          "tfom-terraform-execution-requests",
-		TerraformDriftCheckRequestsTableName:         "tfom-terraform-drift-check-requests",
-		PlanExecutionsTableName:                      "tfom-plan-execution-requests",
-		ApplyExecutionsTableName:                     "tfom-apply-execution-requests",
-		ResultsBucketName:                            "tfom-execution-results",
-	}
-	dbClient := database.NewDatabaseClient(&dbInput)
-	apiInput := api.APIClientInput{
-		DBClient:                       dbClient,
-		WorkingDirectory:               "./tmp/",
-		SfnClient:                      sfnClient,
-		ModulePropagationExecutionArn:  "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-execution",
-		ModulePropagationDriftCheckArn: "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-drift-check",
-		TerraformCommandWorkflowArn:    "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-command",
-		TerraformExecutionArn:          "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-execution",
-		TerraformDriftCheckArn:         "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-drift-check",
-		RemoteStateBucket:              "tfom-backend-states",
-		RemoteStateRegion:              "us-east-1",
-		DataLoaderWaitTime:             time.Millisecond * 16,
-	}
-	apiClient := api.NewAPIClient(&apiInput)
+	conf := tfomConfig.ConfigFromEnv()
+	dbClient := conf.GetDatabaseClient(cfg)
+	apiClient := conf.GetApiClient(cfg, dbClient)
 
 	router := gin.Default()
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"*"}
 	router.Use(cors.New(config))
 
-	router.POST("/query", graphqlHandler(apiClient))
+	router.POST("/query", graphqlHandler(apiClient, &conf))
 	router.GET("/", playgroundHandler())
 
 	router.Run(":8080")

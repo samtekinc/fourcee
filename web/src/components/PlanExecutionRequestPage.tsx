@@ -1,37 +1,43 @@
-import React, { useState } from "react";
-import {
-  PlanExecutionRequest,
-  PlanExecutionRequests,
-  RequestStatus,
-} from "../__generated__/graphql";
+import { PlanExecutionRequest, RequestStatus } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
-import Table from "react-bootstrap/Table";
-import { renderStatus, renderTimeField } from "../utils/table_rendering";
-import { Container } from "react-bootstrap";
-import Accordion from "react-bootstrap/Accordion";
+import { renderStatus } from "../utils/table_rendering";
+import { Col, Container, Row } from "react-bootstrap";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import Ansi from "ansi-to-react";
+import { b64DecodeUnicode } from "../utils/decoding";
 
 const PLAN_EXECUTION_REQUEST_QUERY = gql`
   query planExecutionRequest($planExecutionRequestId: ID!) {
-    planExecutionRequest(
-      planExecutionRequestId: $planExecutionRequestId
-      withOutputs: true
-    ) {
+    planExecutionRequest(planExecutionRequestId: $planExecutionRequestId) {
       planExecutionRequestId
       status
       requestTime
       terraformConfigurationBase64
-      initOutput {
-        Stdout
-        Stderr
+      moduleAssignment {
+        name
+        moduleAssignmentId
+        modulePropagation {
+          modulePropagationId
+          name
+        }
+        orgAccount {
+          orgAccountId
+          name
+          cloudPlatform
+        }
+        moduleGroup {
+          moduleGroupId
+          name
+        }
+        moduleVersion {
+          moduleVersionId
+          name
+        }
       }
-      planOutput {
-        Stdout
-        Stderr
-      }
+      initOutput
+      planOutput
     }
   }
 `;
@@ -71,38 +77,58 @@ export const PlanExecutionRequestPage = () => {
 
   let terraformConfiguration = data?.planExecutionRequest
     .terraformConfigurationBase64
-    ? atob(data?.planExecutionRequest.terraformConfigurationBase64)
-    : "...";
-  let initStdout = data?.planExecutionRequest.initOutput?.Stdout
-    ? atob(data?.planExecutionRequest.initOutput?.Stdout)
-    : "...";
-  let initStderr = data?.planExecutionRequest.initOutput?.Stderr
-    ? atob(data?.planExecutionRequest.initOutput?.Stderr)
+    ? b64DecodeUnicode(data?.planExecutionRequest.terraformConfigurationBase64)
     : "...";
 
-  let planStdout = data?.planExecutionRequest.planOutput?.Stdout
-    ? atob(data?.planExecutionRequest.planOutput?.Stdout)
-    : "...";
-  let planStderr = data?.planExecutionRequest.planOutput?.Stderr
-    ? atob(data?.planExecutionRequest.planOutput?.Stderr)
-    : "...";
+  let initOutput = data?.planExecutionRequest.initOutput ?? "...";
+  let planOutput = data?.planExecutionRequest.planOutput ?? "...";
 
   return (
-    <Container>
+    <Container
+      fluid
+      style={{
+        paddingTop: "2rem",
+        paddingBottom: "2rem",
+        paddingLeft: "5rem",
+        paddingRight: "5rem",
+      }}
+    >
       <h1>
-        Plan Execution Request{" "}
         <b>{data?.planExecutionRequest.planExecutionRequestId}</b>
       </h1>
       <p>
-        Status: <b>{renderStatus(data?.planExecutionRequest.status)}</b>
+        <b>Org Account: </b>
+        <NavLink
+          to={`/org-accounts/${data?.planExecutionRequest.moduleAssignment.orgAccount.orgAccountId}`}
+        >
+          {data?.planExecutionRequest.moduleAssignment.orgAccount.name}
+        </NavLink>
+        <br />
+        <b>Module: </b>
+        <NavLink
+          to={`/module-groups/${data?.planExecutionRequest.moduleAssignment.moduleGroup.moduleGroupId}`}
+        >
+          {data?.planExecutionRequest.moduleAssignment.moduleGroup.name}
+        </NavLink>
+        {" / "}
+        <NavLink
+          to={`/module-groups/${data?.planExecutionRequest.moduleAssignment.moduleGroup.moduleGroupId}/versions/${data?.planExecutionRequest.moduleAssignment.moduleVersion.moduleVersionId}`}
+        >
+          {data?.planExecutionRequest.moduleAssignment.moduleVersion.name}
+        </NavLink>
+        <br />
+        <b>Plan Status: </b>
+        {renderStatus(data?.planExecutionRequest.status)}
+        <br />
       </p>
       <h2>Terraform Configuration</h2>
       <Container
+        fluid
         className="bg-dark"
         style={{
           overflow: "auto",
           maxHeight: "60vh",
-          whiteSpace: "pre-wrap",
+          whiteSpace: "pre",
           textAlign: "left",
         }}
       >
@@ -110,56 +136,38 @@ export const PlanExecutionRequestPage = () => {
           {terraformConfiguration}
         </SyntaxHighlighter>
       </Container>
-      <h2>Terraform Init Output</h2>
-      Std Out
-      <Container
-        className="bg-dark"
-        style={{
-          overflow: "auto",
-          maxHeight: "60vh",
-          whiteSpace: "pre-wrap",
-          textAlign: "left",
-        }}
-      >
-        <Ansi className="ansi-black-bg">{initStdout}</Ansi>
-      </Container>
-      Std Err
-      <Container
-        className="bg-dark"
-        style={{
-          overflow: "auto",
-          maxHeight: "60vh",
-          whiteSpace: "pre-wrap",
-          textAlign: "left",
-        }}
-      >
-        <Ansi className="ansi-black-bg">{initStderr}</Ansi>
-      </Container>
-      <h2>Terraform Plan Output</h2>
-      Std Out
-      <Container
-        className="bg-dark"
-        style={{
-          overflow: "auto",
-          maxHeight: "60vh",
-          whiteSpace: "pre-wrap",
-          textAlign: "left",
-        }}
-      >
-        <Ansi className="ansi-black-bg">{planStdout}</Ansi>
-      </Container>
-      Std Err
-      <Container
-        className="bg-dark"
-        style={{
-          overflow: "auto",
-          maxHeight: "60vh",
-          whiteSpace: "pre-wrap",
-          textAlign: "left",
-        }}
-      >
-        <Ansi className="ansi-black-bg">{planStderr}</Ansi>
-      </Container>
+      <br />
+      <Row>
+        <Col md={6}>
+          <h2>Terraform Init Output</h2>
+          <Container
+            className="bg-dark"
+            fluid
+            style={{
+              overflow: "auto",
+              maxHeight: "80vh",
+              whiteSpace: "pre",
+              textAlign: "left",
+            }}
+          >
+            <Ansi className="ansi-black-bg">{initOutput}</Ansi>
+          </Container>
+        </Col>
+        <Col md={6}>
+          <h2>Terraform Plan Output</h2>
+          <Container
+            className="bg-dark"
+            style={{
+              overflow: "auto",
+              maxHeight: "80vh",
+              whiteSpace: "pre",
+              textAlign: "left",
+            }}
+          >
+            <Ansi className="ansi-black-bg">{planOutput}</Ansi>
+          </Container>
+        </Col>
+      </Row>
     </Container>
   );
 };

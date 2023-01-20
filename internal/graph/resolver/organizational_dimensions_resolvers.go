@@ -25,7 +25,7 @@ func (r *mutationResolver) DeleteOrganizationalDimension(ctx context.Context, or
 
 // RootOrgUnit is the resolver for the rootOrgUnit field.
 func (r *organizationalDimensionResolver) RootOrgUnit(ctx context.Context, obj *models.OrganizationalDimension) (*models.OrganizationalUnit, error) {
-	return r.apiClient.GetOrganizationalUnit(ctx, obj.OrgDimensionId, obj.RootOrgUnitId)
+	return r.apiClient.GetOrganizationalUnitBatched(ctx, obj.OrgDimensionId, obj.RootOrgUnitId)
 }
 
 // OrgUnits is the resolver for the orgUnits field.

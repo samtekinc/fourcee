@@ -31,6 +31,17 @@ export const OrgUnitTreeNode = (props: OrgUnitTreeNodeProps) => {
         >
           <NavLink
             to={`/org-dimensions/${props.orgUnit?.orgDimensionId}/org-units/${props.orgUnit?.orgUnitId}`}
+            style={({ isActive }) =>
+              isActive
+                ? {
+                    color: "blue",
+                    textDecoration: "none",
+                  }
+                : {
+                    color: "inherit",
+                    textDecoration: "none",
+                  }
+            }
           >
             {props.orgUnit?.name}
           </NavLink>

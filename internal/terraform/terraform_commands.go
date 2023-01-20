@@ -1,14 +1,12 @@
 package terraform
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
-
-	"github.com/sheacloud/tfom/pkg/models"
+	"strings"
 )
 
 type TerraformExecutable struct {
@@ -31,124 +29,87 @@ func executeCommand(executable *TerraformExecutable, args []string, directory st
 	return cmd.Run()
 }
 
-func (t *TerraformExecutable) TerraformInit(workingDirectory *TerraformWorkingDirectory) *models.TerraformInitOutput {
-	output := models.TerraformInitOutput{}
+func (t *TerraformExecutable) TerraformInit(workingDirectory *TerraformWorkingDirectory, output io.Writer) error {
 
-	stderrBuff := bytes.NewBuffer([]byte{})
-	stdoutBuff := bytes.NewBuffer([]byte{})
+	output.Write([]byte(fmt.Sprintf("%s init\n\n", t.Filepath)))
 
-	err := executeCommand(t, []string{"init"}, workingDirectory.Directory, stdoutBuff, stderrBuff)
+	err := executeCommand(t, []string{"init"}, workingDirectory.Directory, output, output)
 	if err != nil {
-		output.Error = fmt.Errorf("failed to run terraform init: %w", err)
-		output.Stderr = stderrBuff.Bytes()
-		return &output
+		output.Write([]byte(fmt.Sprintf("failed to run terraform init: %s", err.Error())))
+		return err
 	}
 
-	output.Stdout = stdoutBuff.Bytes()
-	output.Stderr = stderrBuff.Bytes()
-
-	return &output
+	return nil
 }
 
-func (t *TerraformExecutable) TerraformPlan(workingDirectory *TerraformWorkingDirectory, additionalArguments []string) *models.TerraformPlanOutput {
-	output := models.TerraformPlanOutput{}
+func (t *TerraformExecutable) TerraformPlan(workingDirectory *TerraformWorkingDirectory, additionalArguments []string, output io.Writer, planWriter io.Writer, planJSONWriter io.Writer) error {
+	output.Write([]byte(fmt.Sprintf("%s plan -out plan.tfplan %s\n\n", t.Filepath, strings.Join(additionalArguments, " "))))
 
-	stderrBuff := bytes.NewBuffer([]byte{})
-	stdoutBuff := bytes.NewBuffer([]byte{})
-
-	err := executeCommand(t, append([]string{"plan", "-out", "plan.tfplan"}, additionalArguments...), workingDirectory.Directory, stdoutBuff, stderrBuff)
+	err := executeCommand(t, append([]string{"plan", "-out", "plan.tfplan"}, additionalArguments...), workingDirectory.Directory, output, output)
 	if err != nil {
-		output.Error = fmt.Errorf("failed to run terraform plan: %w", err)
-		output.Stderr = stderrBuff.Bytes()
-		return &output
+		output.Write([]byte(fmt.Sprintf("failed to run terraform plan: %s", err.Error())))
+		return err
 	}
 
-	output.Stdout = stdoutBuff.Bytes()
-	output.Stderr = stderrBuff.Bytes()
-
-	// generate the JSON plan
-	stderrBuff = bytes.NewBuffer([]byte{})
-	stdoutBuff = bytes.NewBuffer([]byte{})
-
-	err = executeCommand(t, []string{"show", "-json", "plan.tfplan"}, workingDirectory.Directory, stdoutBuff, stderrBuff)
+	err = executeCommand(t, []string{"show", "-json", "plan.tfplan"}, workingDirectory.Directory, planJSONWriter, planJSONWriter)
 	if err != nil {
-		output.Error = fmt.Errorf("failed to run terraform show: %w", err)
-		output.Stderr = stderrBuff.Bytes()
-		return &output
+		output.Write([]byte(fmt.Sprintf("failed to run terraform show: %s", err.Error())))
+		return err
 	}
-
-	output.PlanJSON = stdoutBuff.Bytes()
 
 	// read the plan file
 	planFilePath := filepath.Join(workingDirectory.Directory, "plan.tfplan")
 	planFile, err := os.ReadFile(planFilePath)
 	if err != nil {
-		output.Error = fmt.Errorf("failed to read plan file: %w", err)
-		return &output
+		output.Write([]byte(fmt.Sprintf("failed to read plan file: %s", err.Error())))
+		return err
 	}
-	output.PlanFile = planFile
+	planWriter.Write(planFile)
 
 	// delete the plan file
 	err = os.Remove(planFilePath)
 	if err != nil {
-		output.Error = fmt.Errorf("failed to delete plan file: %w", err)
-		return &output
+		output.Write([]byte(fmt.Sprintf("failed to delete plan file: %s", err.Error())))
+		return err
 	}
 
-	return &output
+	return nil
 }
 
-func (t *TerraformExecutable) TerraformApply(workingDirectory *TerraformWorkingDirectory, terraformPlanFileBase64 string, additionalArguments []string) *models.TerraformApplyOutput {
-	output := models.TerraformApplyOutput{}
-
+func (t *TerraformExecutable) TerraformApply(workingDirectory *TerraformWorkingDirectory, terraformPlanFileBase64 string, additionalArguments []string, output io.Writer) error {
 	// write the plan file
-
 	err := workingDirectory.AddFile(terraformPlanFileBase64, "plan.tfplan")
 	if err != nil {
-		output.Error = fmt.Errorf("failed to write plan file: %w", err)
-		return &output
+		output.Write([]byte(fmt.Sprintf("failed to write plan file: %s", err.Error())))
+		return err
 	}
-
-	stderrBuff := bytes.NewBuffer([]byte{})
-	stdoutBuff := bytes.NewBuffer([]byte{})
 
 	args := append([]string{"apply"}, additionalArguments...)
 	args = append(args, "-auto-approve", "plan.tfplan")
-	err = executeCommand(t, args, workingDirectory.Directory, stdoutBuff, stderrBuff)
-	if err != nil {
-		output.Error = fmt.Errorf("failed to run terraform apply: %w", err)
-		output.Stderr = stderrBuff.Bytes()
-		return &output
-	}
 
-	output.Stdout = stdoutBuff.Bytes()
-	output.Stderr = stderrBuff.Bytes()
+	output.Write([]byte(fmt.Sprintf("%s %s\n\n", t.Filepath, strings.Join(args, " "))))
+
+	err = executeCommand(t, args, workingDirectory.Directory, output, output)
+	if err != nil {
+		output.Write([]byte(fmt.Sprintf("failed to run terraform apply: %s", err.Error())))
+		return err
+	}
 
 	// delete the plan file
 	err = workingDirectory.DeleteFile("plan.tfplan")
 	if err != nil {
-		output.Error = fmt.Errorf("failed to delete plan file: %w", err)
-		return &output
+		return err
 	}
 
-	return &output
+	return nil
 }
 
-func (t *TerraformExecutable) TerraformCommand(workingDirectory *TerraformWorkingDirectory, args []string) *models.TerraformCommandOutput {
-	output := models.TerraformCommandOutput{}
-
-	stderrBuff := bytes.NewBuffer([]byte{})
-	stdoutBuff := bytes.NewBuffer([]byte{})
-
-	err := executeCommand(t, args, workingDirectory.Directory, stdoutBuff, stderrBuff)
+func (t *TerraformExecutable) TerraformCommand(workingDirectory *TerraformWorkingDirectory, args []string, output io.Writer) error {
+	err := executeCommand(t, args, workingDirectory.Directory, output, output)
 	if err != nil {
-		output.Error = fmt.Errorf("failed to run terraform command: %w", err)
-		output.Stderr = stderrBuff.Bytes()
-		return &output
+		output.Write([]byte(fmt.Sprintf("failed to run terraform command: %s", err.Error())))
+		return err
 	}
 
-	output.Stdout = stdoutBuff.Bytes()
-	output.Stderr = stderrBuff.Bytes()
-
-	return &output
+	return nil
 }

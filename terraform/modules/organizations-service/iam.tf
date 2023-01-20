@@ -79,7 +79,9 @@ resource "aws_iam_policy" "executor_task_policy" {
         Action = [
           "dynamodb:*",
           "s3:*",
-          "sqs:*"
+          "sqs:*",
+          "states:SendTaskSuccess",
+          "states:SendTaskFailure",
         ]
         Effect   = "Allow"
         Resource = "*"
@@ -142,6 +144,16 @@ data "aws_iam_policy_document" "workflow_handler_policy" {
     ]
     resources = [
       "*"
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "sns:Publish",
+    ]
+    resources = [
+      aws_sns_topic.tfom_alerts.arn
     ]
   }
 

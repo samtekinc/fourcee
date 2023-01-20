@@ -12,7 +12,32 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/pkg/models"
+	"go.uber.org/zap"
 )
+
+func getExpressionForModuleAssignmentFilters(filters *models.ModuleAssignmentFilters) expression.ConditionBuilder {
+	expr := expression.ConditionBuilder{}
+
+	if filters == nil {
+		return expr
+	}
+
+	if filters.IsPropagated != nil {
+		var filter expression.ConditionBuilder
+		if *filters.IsPropagated {
+			filter = expression.Name("ModulePropagationId").AttributeExists()
+		} else {
+			filter = expression.Name("ModulePropagationId").AttributeNotExists()
+		}
+		if !expr.IsSet() {
+			expr = filter
+		} else {
+			expr = expr.And(filter)
+		}
+	}
+
+	return expr
+}
 
 func (c *DatabaseClient) GetModuleAssignment(ctx context.Context, moduleAssignmentId string) (*models.ModuleAssignment, error) {
 	fmt.Println("getting module assignment")
@@ -37,7 +62,7 @@ func (c *DatabaseClient) GetModuleAssignment(ctx context.Context, moduleAssignme
 }
 
 func (c *DatabaseClient) GetModuleAssignmentsByIds(ctx context.Context, ids []string) ([]models.ModuleAssignment, error) {
-	fmt.Println("getting module assignments by ids", len(ids))
+	zap.L().Sugar().Debugw("GetModuleAssignmentsByIds", "ids", ids)
 	var keys []map[string]types.AttributeValue
 
 	for _, id := range ids {
@@ -81,16 +106,38 @@ func (c *DatabaseClient) GetModuleAssignmentsByIds(ctx context.Context, ids []st
 	return results, nil
 }
 
-func (c DatabaseClient) GetModuleAssignments(ctx context.Context, limit int32, cursor string) (*models.ModuleAssignments, error) {
+func (c DatabaseClient) GetModuleAssignments(ctx context.Context, filters *models.ModuleAssignmentFilters, limit int32, cursor string) (*models.ModuleAssignments, error) {
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
 	}
 
-	scanInput := &dynamodb.ScanInput{
-		TableName:         &c.moduleAssignmentsTableName,
-		Limit:             &limit,
-		ExclusiveStartKey: startKey,
+	var scanInput *dynamodb.ScanInput
+	expressionBuilder := expression.NewBuilder()
+	filterCondition := getExpressionForModuleAssignmentFilters(filters)
+
+	if filterCondition.IsSet() {
+		expressionBuilder = expressionBuilder.WithFilter(filterCondition)
+
+		expr, err := expressionBuilder.Build()
+		if err != nil {
+			return nil, err
+		}
+
+		scanInput = &dynamodb.ScanInput{
+			TableName:                 &c.moduleAssignmentsTableName,
+			ExpressionAttributeNames:  expr.Names(),
+			ExpressionAttributeValues: expr.Values(),
+			FilterExpression:          expr.Filter(),
+			Limit:                     &limit,
+			ExclusiveStartKey:         startKey,
+		}
+	} else {
+		scanInput = &dynamodb.ScanInput{
+			TableName:         &c.moduleAssignmentsTableName,
+			Limit:             &limit,
+			ExclusiveStartKey: startKey,
+		}
 	}
 
 	resultItems, lastEvaluatedKey, err := helpers.ScanDynamoDBUntilLimit(ctx, c.dynamodb, scanInput, limit, []string{"ModuleAssignmentId"})

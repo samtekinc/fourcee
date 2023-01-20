@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import { useMutation, gql, useQuery } from "@apollo/client";
 import { NotificationManager } from "react-notifications";
-import { Button, Col, Form, Modal, Row } from "react-bootstrap";
+import { Button, Col, FloatingLabel, Form, Modal, Row } from "react-bootstrap";
 import {
   Maybe,
   NewOrganizationalUnit,
@@ -285,98 +285,124 @@ export const NewModulePropagationForm: React.VFC<
           <Modal.Title>New Module Propagation</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form.Group>
-            <Form.Label>Name</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter module propagation name"
-              name="name"
-              onChange={handleInputChange}
-            />
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Description</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter module propagation description"
-              name="description"
-              onChange={handleInputChange}
-            />
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Org Dimension</Form.Label>
-            <Form.Select name="orgDimensionId" onChange={handleSelectChange}>
-              <option selected={true} disabled={true}>
-                Select an Org Dimension
-              </option>
-              {data?.organizationalDimensions.items?.map((orgDimension) => {
-                return (
-                  <option
-                    value={orgDimension?.orgDimensionId}
-                    key={orgDimension?.orgDimensionId}
-                  >
-                    {orgDimension?.name}
+          <Row>
+            <Col md={5}>
+              <Form.Group>
+                <Form.Label>Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter module propagation name"
+                  name="name"
+                  onChange={handleInputChange}
+                />
+              </Form.Group>
+            </Col>
+            <Col md={7}>
+              <Form.Group>
+                <Form.Label>Description</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  name="description"
+                  onChange={handleInputChange}
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          <br />
+          <Row>
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label>Org Dimension</Form.Label>
+                <Form.Select
+                  name="orgDimensionId"
+                  onChange={handleSelectChange}
+                >
+                  <option selected={true} disabled={true}>
+                    Select an Org Dimension
                   </option>
-                );
-              })}
-            </Form.Select>
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Org Unit</Form.Label>
-            <Form.Select name="orgUnitId" onChange={handleSelectChange}>
-              <option selected={true} disabled={true}>
-                Select an Org Unit
-              </option>
-              {orgDimension?.orgUnits?.items.map((orgUnit) => {
-                return (
-                  <option value={orgUnit?.orgUnitId} key={orgUnit?.orgUnitId}>
-                    {orgUnit?.name}
+                  {data?.organizationalDimensions.items?.map((orgDimension) => {
+                    return (
+                      <option
+                        value={orgDimension?.orgDimensionId}
+                        key={orgDimension?.orgDimensionId}
+                      >
+                        {orgDimension?.name}
+                      </option>
+                    );
+                  })}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label>Org Unit</Form.Label>
+                <Form.Select name="orgUnitId" onChange={handleSelectChange}>
+                  <option selected={true} disabled={true}>
+                    Select an Org Unit
                   </option>
-                );
-              })}
-            </Form.Select>
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Module Group</Form.Label>
-            <Form.Select name="moduleGroupId" onChange={handleSelectChange}>
-              <option selected={true} disabled={true}>
-                Select a Module Group
-              </option>
-              {data?.moduleGroups.items?.map((moduleGroup) => {
-                return (
-                  <option
-                    value={moduleGroup?.moduleGroupId}
-                    key={moduleGroup?.moduleGroupId}
-                  >
-                    {renderCloudPlatform(moduleGroup?.cloudPlatform)}{" "}
-                    {moduleGroup?.name}
+                  {orgDimension?.orgUnits?.items.map((orgUnit) => {
+                    return (
+                      <option
+                        value={orgUnit?.orgUnitId}
+                        key={orgUnit?.orgUnitId}
+                      >
+                        {orgUnit?.name}
+                      </option>
+                    );
+                  })}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+          <br />
+          <Row>
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label>Module Group</Form.Label>
+                <Form.Select name="moduleGroupId" onChange={handleSelectChange}>
+                  <option selected={true} disabled={true}>
+                    Select a Module Group
                   </option>
-                );
-              })}
-            </Form.Select>
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Module Version</Form.Label>
-            <Form.Select
-              name="moduleVersionId"
-              onChange={handleSelectChange}
-              key={moduleGroup?.moduleGroupId}
-            >
-              <option selected={true} disabled={true}>
-                Select a Module Version
-              </option>
-              {moduleGroup?.versions?.items.map((moduleVersion) => {
-                return (
-                  <option
-                    value={moduleVersion?.moduleVersionId}
-                    key={moduleVersion?.moduleVersionId}
-                  >
-                    {moduleVersion?.name}
+                  {data?.moduleGroups.items?.map((moduleGroup) => {
+                    return (
+                      <option
+                        value={moduleGroup?.moduleGroupId}
+                        key={moduleGroup?.moduleGroupId}
+                      >
+                        {renderCloudPlatform(moduleGroup?.cloudPlatform)}{" "}
+                        {moduleGroup?.name}
+                      </option>
+                    );
+                  })}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label>Module Version</Form.Label>
+                <Form.Select
+                  name="moduleVersionId"
+                  onChange={handleSelectChange}
+                  key={moduleGroup?.moduleGroupId}
+                >
+                  <option selected={true} disabled={true}>
+                    Select a Module Version
                   </option>
-                );
-              })}
-            </Form.Select>
-          </Form.Group>
+                  {moduleGroup?.versions?.items.map((moduleVersion) => {
+                    return (
+                      <option
+                        value={moduleVersion?.moduleVersionId}
+                        key={moduleVersion?.moduleVersionId}
+                      >
+                        {moduleVersion?.name}
+                      </option>
+                    );
+                  })}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
           <h3>AWS Providers</h3>
           <Button
             onClick={() => {
@@ -422,19 +448,42 @@ export const NewModulePropagationForm: React.VFC<
             </Row>
           ))}
           <h3>Arguments</h3>
-          {moduleVersion?.variables?.map((variable, index) => {
-            return (
-              <Form.Group>
-                <Form.Label>{variable?.name}</Form.Label>
-                <Form.Control
-                  name={`variable:${index}:${variable?.name}`}
-                  type="text"
-                  onChange={handleInputChange}
-                  placeholder={variable?.default?.toString()}
-                />
-              </Form.Group>
-            );
-          })}
+          <Row>
+            {moduleVersion?.variables?.map((variable, index) => {
+              return (
+                <Col
+                  md={6}
+                  style={{
+                    border: "1px solid black",
+                    padding: "0.5rem 0.5rem 0.5rem 0.5rem",
+                  }}
+                >
+                  <Form.Group>
+                    <Form.Label>
+                      {variable?.name} - {variable?.type}
+                      <br />
+                      <span style={{ fontSize: "x-small" }}>
+                        {variable?.description}
+                      </span>
+                    </Form.Label>
+                    <Form.Control
+                      as={
+                        variable?.type === "bool" ||
+                        variable?.type === "string" ||
+                        variable?.type === "number"
+                          ? undefined
+                          : "textarea"
+                      }
+                      name={`variable:${index}:${variable?.name}`}
+                      type="text"
+                      onChange={handleInputChange}
+                      placeholder={variable?.default?.toString()}
+                    />
+                  </Form.Group>
+                </Col>
+              );
+            })}
+          </Row>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={props.handleClose}>

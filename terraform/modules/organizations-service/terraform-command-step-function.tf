@@ -145,7 +145,7 @@ resource "aws_sfn_state_machine" "terraform_command" {
     },
     "ExecuteTerraform": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::ecs:runTask.sync",
+      "Resource": "arn:aws:states:::ecs:runTask.waitForTaskToken",
       "TimeoutSeconds": 3600,
       "Parameters": {
         "LaunchType": "FARGATE",
@@ -180,6 +180,10 @@ resource "aws_sfn_state_machine" "terraform_command" {
                 {
                   "Name": "TF_WORKING_DIRECTORY",
                   "Value": "/tmp/tf-working"
+                },
+                {
+                  "Name": "TASK_TOKEN",
+                  "Value.$": "$$.Task.Token"
                 }
               ]
             }

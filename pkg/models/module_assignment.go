@@ -50,3 +50,11 @@ type ModuleAssignmentUpdate struct {
 	GcpProviderConfigurations []GcpProviderConfigurationInput
 	Status                    *ModuleAssignmentStatus
 }
+
+type ModuleAssignmentFilters struct {
+	IsPropagated *bool
+}
+
+type ModuleAssignmentFiltersInput struct {
+	IsPropagated *bool
+}

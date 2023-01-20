@@ -21,8 +21,8 @@ resource "aws_ecs_task_definition" "executor" {
   family                   = "${var.prefix}-executor"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  cpu                      = 2048
-  memory                   = 4096
+  cpu                      = 1024
+  memory                   = 2048
   container_definitions = jsonencode([
     {
       name      = "executor"
@@ -46,6 +46,38 @@ resource "aws_ecs_task_definition" "executor" {
         {
           name  = "TF_PLUGIN_CACHE_DIR"
           value = "/efs/.terraform.d/plugin-cache"
+        },
+        {
+          name  = "TFOM_WORKING_DIRECTORY"
+          value = "./tmp/"
+        },
+        {
+          name  = "TFOM_PREFIX"
+          value = var.prefix
+        },
+        {
+          name  = "TFOM_STATE_BUCKET"
+          value = aws_s3_bucket.backends.bucket
+        },
+        {
+          name  = "TFOM_STATE_REGION"
+          value = aws_s3_bucket.backends.region
+        },
+        {
+          name  = "TFOM_RESULTS_BUCKET"
+          value = aws_s3_bucket.execution_service.bucket
+        },
+        {
+          name  = "TFOM_ACCOUNT_ID"
+          value = data.aws_caller_identity.current.account_id
+        },
+        {
+          name  = "TFOM_REGION"
+          value = data.aws_region.current.name
+        },
+        {
+          name  = "TFOM_ALERTS_TOPIC"
+          value = aws_sns_topic.tfom_alerts.arn
         }
       ]
       secrets = [

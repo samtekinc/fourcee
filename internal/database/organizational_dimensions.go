@@ -11,9 +11,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/pkg/models"
+	"go.uber.org/zap"
 )
 
 func (c *DatabaseClient) GetOrganizationalDimension(ctx context.Context, orgDimensionId string) (*models.OrganizationalDimension, error) {
+	zap.L().Sugar().Debugw("GetOrganizationalDimension", "orgDimensionId", orgDimensionId)
 	response, err := c.dynamodb.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &c.dimensionsTableName,
 		Key: map[string]types.AttributeValue{
@@ -34,11 +36,11 @@ func (c *DatabaseClient) GetOrganizationalDimension(ctx context.Context, orgDime
 	return &orgDimension, nil
 }
 
-func (c *DatabaseClient) GetOrganizationalDimensionsByIds(ctx context.Context, ids []string) ([]models.OrganizationalDimension, error) {
-	fmt.Println("getting org dimensions by ids", len(ids))
+func (c *DatabaseClient) GetOrganizationalDimensionsByIds(ctx context.Context, orgDimensionIds []string) ([]models.OrganizationalDimension, error) {
+	zap.L().Sugar().Debugw("GetOrganizationalDimensionsByIds", "orgDimensionIds", orgDimensionIds)
 	var keys []map[string]types.AttributeValue
 
-	for _, id := range ids {
+	for _, id := range orgDimensionIds {
 		keys = append(keys, map[string]types.AttributeValue{
 			"OrgDimensionId": &types.AttributeValueMemberS{Value: id},
 		})
@@ -80,6 +82,7 @@ func (c *DatabaseClient) GetOrganizationalDimensionsByIds(ctx context.Context, i
 }
 
 func (c DatabaseClient) GetOrganizationalDimensions(ctx context.Context, limit int32, cursor string) (*models.OrganizationalDimensions, error) {
+	zap.L().Sugar().Debugw("GetOrganizationalDimensions", "limit", limit, "cursor", cursor)
 	startKey, err := helpers.GetKeyFromCursor(cursor)
 	if err != nil {
 		return nil, err
@@ -118,6 +121,7 @@ func (c DatabaseClient) GetOrganizationalDimensions(ctx context.Context, limit i
 }
 
 func (c *DatabaseClient) PutOrganizationalDimension(ctx context.Context, input *models.OrganizationalDimension) error {
+	zap.L().Sugar().Debugw("PutOrganizationalDimension", "input", input)
 	item, err := attributevalue.MarshalMap(input)
 	if err != nil {
 		return err
@@ -148,6 +152,7 @@ func (c *DatabaseClient) PutOrganizationalDimension(ctx context.Context, input *
 }
 
 func (c *DatabaseClient) DeleteOrganizationalDimension(ctx context.Context, orgDimensionId string) error {
+	zap.L().Sugar().Debugw("DeleteOrganizationalDimension", "orgDimensionId", orgDimensionId)
 	condition := expression.AttributeExists(expression.Name("OrgDimensionId"))
 
 	expr, err := expression.NewBuilder().WithCondition(condition).Build()

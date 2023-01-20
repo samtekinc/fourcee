@@ -7,7 +7,6 @@ package resolver
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/pkg/models"
 )
@@ -19,15 +18,15 @@ func (r *mutationResolver) CreateTerraformDriftCheckRequest(ctx context.Context,
 
 // ModuleAssignment is the resolver for the moduleAssignment field.
 func (r *terraformDriftCheckRequestResolver) ModuleAssignment(ctx context.Context, obj *models.TerraformDriftCheckRequest) (*models.ModuleAssignment, error) {
-	return r.apiClient.GetModuleAssignment(ctx, obj.ModuleAssignmentId)
+	return r.apiClient.GetModuleAssignmentBatched(ctx, obj.ModuleAssignmentId)
 }
 
 // PlanExecutionRequest is the resolver for the planExecutionRequest field.
-func (r *terraformDriftCheckRequestResolver) PlanExecutionRequest(ctx context.Context, obj *models.TerraformDriftCheckRequest, withOutputs *bool) (*models.PlanExecutionRequest, error) {
+func (r *terraformDriftCheckRequestResolver) PlanExecutionRequest(ctx context.Context, obj *models.TerraformDriftCheckRequest) (*models.PlanExecutionRequest, error) {
 	if obj.PlanExecutionRequestId == nil {
 		return nil, nil
 	}
-	return r.apiClient.GetPlanExecutionRequest(ctx, *obj.PlanExecutionRequestId, aws.ToBool(withOutputs))
+	return r.apiClient.GetPlanExecutionRequestBatched(ctx, *obj.PlanExecutionRequestId)
 }
 
 // ModulePropagation is the resolver for the modulePropagation field.
@@ -35,7 +34,7 @@ func (r *terraformDriftCheckRequestResolver) ModulePropagation(ctx context.Conte
 	if obj.ModulePropagationId == nil {
 		return nil, nil
 	}
-	return r.apiClient.GetModulePropagation(ctx, *obj.ModulePropagationId)
+	return r.apiClient.GetModulePropagationBatched(ctx, *obj.ModulePropagationId)
 }
 
 // ModulePropagationDriftCheckRequest is the resolver for the modulePropagationDriftCheckRequest field.

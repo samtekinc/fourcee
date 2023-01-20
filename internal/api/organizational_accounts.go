@@ -25,6 +25,10 @@ func (c *APIClient) GetOrganizationalAccountsByIds(ctx context.Context, keys dat
 }
 
 func (c *APIClient) GetOrganizationalAccount(ctx context.Context, id string) (*models.OrganizationalAccount, error) {
+	return c.dbClient.GetOrganizationalAccount(ctx, id)
+}
+
+func (c *APIClient) GetOrganizationalAccountBatched(ctx context.Context, id string) (*models.OrganizationalAccount, error) {
 	thunk := c.orgAccountsLoader.Load(ctx, dataloader.StringKey(id))
 	result, err := thunk()
 	if err != nil {

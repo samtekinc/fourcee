@@ -3,7 +3,7 @@ type TerraformDriftCheckRequest {
   moduleAssignmentId: ID!
   moduleAssignment: ModuleAssignment!
   planExecutionRequestId: ID
-  planExecutionRequest(withOutputs: Boolean = false): PlanExecutionRequest
+  planExecutionRequest: PlanExecutionRequest
   requestTime: Time!
   status: RequestStatus!
   syncStatus: TerraformDriftCheckStatus!

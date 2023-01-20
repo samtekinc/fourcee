@@ -12,6 +12,11 @@ import (
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
+// ModulePropagation is the resolver for the modulePropagation field.
+func (r *modulePropagationExecutionRequestResolver) ModulePropagation(ctx context.Context, obj *models.ModulePropagationExecutionRequest) (*models.ModulePropagation, error) {
+	return r.apiClient.GetModulePropagationBatched(ctx, obj.ModulePropagationId)
+}
+
 // TerraformExecutionRequests is the resolver for the terraformExecutionRequests field.
 func (r *modulePropagationExecutionRequestResolver) TerraformExecutionRequests(ctx context.Context, obj *models.ModulePropagationExecutionRequest, limit *int, nextCursor *string) (*models.TerraformExecutionRequests, error) {
 	if limit == nil {

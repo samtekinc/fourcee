@@ -29,6 +29,10 @@ func (c *APIClient) GetTerraformExecutionRequestsByIds(ctx context.Context, keys
 }
 
 func (c *APIClient) GetTerraformExecutionRequest(ctx context.Context, terraformExecutionRequestId string) (*models.TerraformExecutionRequest, error) {
+	return c.dbClient.GetTerraformExecutionRequest(ctx, terraformExecutionRequestId)
+}
+
+func (c *APIClient) GetTerraformExecutionRequestBatched(ctx context.Context, terraformExecutionRequestId string) (*models.TerraformExecutionRequest, error) {
 	thunk := c.terraformExecutionRequestsLoader.Load(ctx, dataloader.StringKey(terraformExecutionRequestId))
 	result, err := thunk()
 	if err != nil {

@@ -5,14 +5,14 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/sheacloud/tfom/internal/api"
-	"github.com/sheacloud/tfom/internal/database"
+	"github.com/sheacloud/tfom/internal/awsclients"
+	tfomConfig "github.com/sheacloud/tfom/internal/config"
+	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/internal/terraform"
 	"github.com/sheacloud/tfom/pkg/models"
 	"go.uber.org/zap"
@@ -21,9 +21,34 @@ import (
 var (
 	TF_INSTALLATION_DIRECTORY = os.Getenv("TF_INSTALLATION_DIRECTORY")
 	TF_WORKING_DIRECTORY      = os.Getenv("TF_WORKING_DIRECTORY")
+	wasSuccessful             = false
 )
 
+func sendTaskFailure(ctx context.Context, sfnClient awsclients.StepFunctionsInterface, taskToken string) {
+	if wasSuccessful {
+		return
+	}
+	_, err := sfnClient.SendTaskFailure(ctx, &sfn.SendTaskFailureInput{
+		TaskToken: &taskToken,
+	})
+	if err != nil {
+		zap.L().Panic("unable to send task failure", zap.Error(err))
+	}
+}
+
 func main() {
+	taskToken := os.Getenv("TASK_TOKEN")
+	if taskToken == "" {
+		zap.L().Panic("TASK_TOKEN environment variable not set")
+	}
+	ctx := context.Background()
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		panic("unable to load SDK config, " + err.Error())
+	}
+	sfnClient := sfn.NewFromConfig(cfg)
+	defer sendTaskFailure(context.Background(), sfnClient, taskToken)
+
 	logger, err := zap.NewProduction()
 	if err != nil {
 		panic("unable to create logger, " + err.Error())
@@ -32,49 +57,9 @@ func main() {
 	undo := zap.ReplaceGlobals(logger)
 	defer undo()
 
-	ctx := context.Background()
-	cfg, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
-		panic("unable to load SDK config, " + err.Error())
-	}
-
-	dynamodbClient := dynamodb.NewFromConfig(cfg)
-	s3Client := s3.NewFromConfig(cfg)
-	sfnClient := sfn.NewFromConfig(cfg)
-
-	dbInput := database.DatabaseClientInput{
-		DynamoDB:              dynamodbClient,
-		S3:                    s3Client,
-		DimensionsTableName:   "tfom-organizational-dimensions",
-		UnitsTableName:        "tfom-organizational-units",
-		AccountsTableName:     "tfom-organizational-accounts",
-		MembershipsTableName:  "tfom-organizational-unit-memberships",
-		GroupsTableName:       "tfom-module-groups",
-		VersionsTableName:     "tfom-module-versions",
-		PropagationsTableName: "tfom-module-propagations",
-		ModulePropagationExecutionRequestsTableName:  "tfom-module-propagation-execution-requests",
-		ModulePropagationDriftCheckRequestsTableName: "tfom-module-propagation-drift-check-requests",
-		ModuleAssignmentsTableName:                   "tfom-module-assignments",
-		ModulePropagationAssignmentsTableName:        "tfom-module-propagation-assignments",
-		TerraformExecutionRequestsTableName:          "tfom-terraform-execution-requests",
-		TerraformDriftCheckRequestsTableName:         "tfom-terraform-drift-check-requests",
-		PlanExecutionsTableName:                      "tfom-plan-execution-requests",
-		ApplyExecutionsTableName:                     "tfom-apply-execution-requests",
-		ResultsBucketName:                            "tfom-execution-results",
-	}
-	dbClient := database.NewDatabaseClient(&dbInput)
-	apiInput := api.APIClientInput{
-		DBClient:                       dbClient,
-		WorkingDirectory:               "./tmp/",
-		SfnClient:                      sfnClient,
-		ModulePropagationExecutionArn:  "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-execution",
-		ModulePropagationDriftCheckArn: "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-module-propagation-drift-check",
-		TerraformExecutionArn:          "arn:aws:states:us-east-1:306526781466:stateMachine:tfom-terraform-execution",
-		RemoteStateBucket:              "tfom-backend-states",
-		RemoteStateRegion:              "us-east-1",
-		DataLoaderWaitTime:             time.Millisecond * 16,
-	}
-	apiClient := api.NewAPIClient(&apiInput)
+	conf := tfomConfig.ConfigFromEnv()
+	dbClient := conf.GetDatabaseClient(cfg)
+	apiClient := conf.GetApiClient(cfg, dbClient)
 
 	installationDirectory, err := terraform.NewTerraformInstallationDirectory(TF_INSTALLATION_DIRECTORY)
 	if err != nil {
@@ -90,7 +75,7 @@ func main() {
 	// get the request from the database
 	switch requestType {
 	case "plan":
-		planRequest, err := apiClient.GetPlanExecutionRequest(ctx, requestID, false)
+		planRequest, err := apiClient.GetPlanExecutionRequest(ctx, requestID)
 		if err != nil {
 			zap.L().Panic("unable to get plan execution request", zap.Error(err))
 		}
@@ -100,7 +85,7 @@ func main() {
 			zap.L().Panic("unable to run plan", zap.Error(err))
 		}
 	case "apply":
-		applyRequest, err := apiClient.GetApplyExecutionRequest(ctx, requestID, false)
+		applyRequest, err := apiClient.GetApplyExecutionRequest(ctx, requestID)
 		if err != nil {
 			zap.L().Panic("unable to get apply execution request", zap.Error(err))
 		}
@@ -112,9 +97,18 @@ func main() {
 	default:
 		zap.L().Panic("invalid request type", zap.String("requestType", requestType))
 	}
+
+	wasSuccessful = true
+	_, err = sfnClient.SendTaskSuccess(ctx, &sfn.SendTaskSuccessInput{
+		TaskToken: &taskToken,
+		Output:    aws.String("{}"),
+	})
+	if err != nil {
+		zap.L().Panic("unable to send task success", zap.Error(err))
+	}
 }
 
-func runPlan(ctx context.Context, request *models.PlanExecutionRequest, apiClient *api.APIClient, installDirectory *terraform.TerraformInstallationDirectory) error {
+func runPlan(ctx context.Context, request *models.PlanExecutionRequest, apiClient api.APIClientInterface, installDirectory *terraform.TerraformInstallationDirectory) error {
 	workingDirectory, err := terraform.NewWorkingDirectory(filepath.Join(TF_WORKING_DIRECTORY, request.PlanExecutionRequestId))
 	if err != nil {
 		return err
@@ -134,49 +128,61 @@ func runPlan(ctx context.Context, request *models.PlanExecutionRequest, apiClien
 	}
 
 	// init terraform
-	initOutput := executable.TerraformInit(workingDirectory)
-
-	// upload init results
-	key, err := apiClient.UploadTerraformPlanInitResults(ctx, request.PlanExecutionRequestId, initOutput)
+	initOutputKey := helpers.GetPlanInitOutputKey(request.PlanExecutionRequestId)
+	initOutput, err := apiClient.GetResultObjectWriter(ctx, initOutputKey, true)
 	if err != nil {
 		return err
 	}
 	request, err = apiClient.UpdatePlanExecutionRequest(ctx, request.PlanExecutionRequestId, &models.PlanExecutionRequestUpdate{
-		InitOutputKey: &key,
+		InitOutputKey: &initOutputKey,
 	})
 	if err != nil {
 		return err
 	}
-
-	// if the init failed, return the error
-	if initOutput.Error != nil {
-		return initOutput.Error
+	err = executable.TerraformInit(workingDirectory, initOutput)
+	initOutput.Close()
+	if err != nil {
+		return err
 	}
 
 	// plan terraform
-	planOutput := executable.TerraformPlan(workingDirectory, request.AdditionalArguments)
-
-	// upload plan results
-	key, err = apiClient.UploadTerraformPlanResults(ctx, request.PlanExecutionRequestId, planOutput)
+	planOutputKey := helpers.GetPlanOutputKey(request.PlanExecutionRequestId)
+	planOutput, err := apiClient.GetResultObjectWriter(ctx, planOutputKey, true)
 	if err != nil {
 		return err
 	}
+	planFileKey := helpers.GetPlanFileKey(request.PlanExecutionRequestId)
+	planFileOutput, err := apiClient.GetResultObjectWriter(ctx, planFileKey, false)
+	if err != nil {
+		return err
+	}
+	planJSONKey := helpers.GetPlanJSONKey(request.PlanExecutionRequestId)
+	planJSONOutput, err := apiClient.GetResultObjectWriter(ctx, planJSONKey, false)
+	if err != nil {
+		return err
+	}
+
 	_, err = apiClient.UpdatePlanExecutionRequest(ctx, request.PlanExecutionRequestId, &models.PlanExecutionRequestUpdate{
-		PlanOutputKey: &key,
+		PlanOutputKey: &planOutputKey,
+		PlanFileKey:   &planFileKey,
+		PlanJSONKey:   &planJSONKey,
 	})
 	if err != nil {
 		return err
 	}
 
-	// if the plan failed, return the error
-	if planOutput.Error != nil {
-		return planOutput.Error
+	err = executable.TerraformPlan(workingDirectory, request.AdditionalArguments, planOutput, planFileOutput, planJSONOutput)
+	planOutput.Close()
+	planFileOutput.Close()
+	planJSONOutput.Close()
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func runApply(ctx context.Context, request *models.ApplyExecutionRequest, apiClient *api.APIClient, installDirectory *terraform.TerraformInstallationDirectory) error {
+func runApply(ctx context.Context, request *models.ApplyExecutionRequest, apiClient api.APIClientInterface, installDirectory *terraform.TerraformInstallationDirectory) error {
 	workingDirectory, err := terraform.NewWorkingDirectory(filepath.Join(TF_WORKING_DIRECTORY, request.ApplyExecutionRequestId))
 	if err != nil {
 		return err
@@ -196,41 +202,41 @@ func runApply(ctx context.Context, request *models.ApplyExecutionRequest, apiCli
 	}
 
 	// init terraform
-	initOutput := executable.TerraformInit(workingDirectory)
 
-	// upload init results
-	key, err := apiClient.UploadTerraformApplyInitResults(ctx, request.ApplyExecutionRequestId, initOutput)
+	// init terraform
+	initOutputKey := helpers.GetApplyInitOutputKey(request.ApplyExecutionRequestId)
+	initOutput, err := apiClient.GetResultObjectWriter(ctx, initOutputKey, true)
 	if err != nil {
 		return err
 	}
 	request, err = apiClient.UpdateApplyExecutionRequest(ctx, request.ApplyExecutionRequestId, &models.ApplyExecutionRequestUpdate{
-		InitOutputKey: &key,
+		InitOutputKey: &initOutputKey,
 	})
 	if err != nil {
 		return err
 	}
-
-	if initOutput.Error != nil {
-		return initOutput.Error
+	err = executable.TerraformInit(workingDirectory, initOutput)
+	initOutput.Close()
+	if err != nil {
+		return err
 	}
 
 	// apply terraform
-	applyOutput := executable.TerraformApply(workingDirectory, request.TerraformPlanBase64, request.AdditionalArguments)
-
-	// upload apply results
-	key, err = apiClient.UploadTerraformApplyResults(ctx, request.ApplyExecutionRequestId, applyOutput)
+	applyOutputKey := helpers.GetApplyOutputKey(request.ApplyExecutionRequestId)
+	applyOutput, err := apiClient.GetResultObjectWriter(ctx, applyOutputKey, true)
 	if err != nil {
 		return err
 	}
 	_, err = apiClient.UpdateApplyExecutionRequest(ctx, request.ApplyExecutionRequestId, &models.ApplyExecutionRequestUpdate{
-		ApplyOutputKey: &key,
+		ApplyOutputKey: &applyOutputKey,
 	})
 	if err != nil {
 		return err
 	}
-
-	if applyOutput.Error != nil {
-		return applyOutput.Error
+	err = executable.TerraformApply(workingDirectory, request.TerraformPlanBase64, request.AdditionalArguments, applyOutput)
+	applyOutput.Close()
+	if err != nil {
+		return err
 	}
 
 	return nil

@@ -1,3 +1,14 @@
+resource "aws_dynamodb_table" "terraform_lock" {
+  name         = "${var.prefix}-terraform-lock"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "LockID"
+
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+}
+
 resource "aws_dynamodb_table" "org_dimensions" {
   name         = "${var.prefix}-organizational-dimensions"
   billing_mode = "PAY_PER_REQUEST"

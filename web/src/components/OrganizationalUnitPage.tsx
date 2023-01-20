@@ -25,14 +25,6 @@ const ORGANIZATIONAL_UNIT_QUERY = gql`
       name
       hierarchy
       parentOrgUnitId
-      downstreamOrgUnits {
-        items {
-          orgUnitId
-          name
-          hierarchy
-          parentOrgUnitId
-        }
-      }
       upstreamOrgUnits {
         items {
           orgUnitId
@@ -113,123 +105,96 @@ export const OrganizationalUnitPage = () => {
   if (loading) return null;
   if (error) return <div>Error</div>;
 
-  let orgUnits = Array.from(
-    data?.organizationalUnit.downstreamOrgUnits.items ?? []
-  );
-  orgUnits.push(data?.organizationalUnit ?? null);
-
-  let orgUnitsMap = GetOrgUnitTree(organizationalDimensionId, orgUnits);
-
   return (
-    <Container>
+    <Container style={{ paddingTop: "2rem", borderTop: "1px solid black" }}>
       <h1>
         <b>
           <u>{data?.organizationalUnit.name}</u>
         </b>{" "}
         ({data?.organizationalUnit.orgUnitId})
       </h1>
-      <Tree lineWidth={"2px"} nodePadding={"30px"}>
-        <OrgUnitTreeNode
-          orgUnit={orgUnitsMap.get(data?.organizationalUnit.orgUnitId ?? "")}
-        />
-      </Tree>
+
       <h2>Module Propagations</h2>
-      {data?.organizationalUnit.modulePropagations.items.map(
-        (modulePropagation) => {
-          return (
-            <>
-              <Card>
-                <Card.Header>
-                  <NavLink
-                    to={`/module-propagations/${modulePropagation?.modulePropagationId}`}
-                  >
-                    {modulePropagation?.name}
-                  </NavLink>
-                </Card.Header>
-                <Card.Body>
-                  <Card.Text>
-                    <b>Module Group:</b>{" "}
-                    <NavLink
-                      to={`/module-groups/${modulePropagation?.moduleGroup.moduleGroupId}`}
-                    >
-                      {modulePropagation?.moduleGroup.name}
-                    </NavLink>
-                    <br />
-                    <b>Module Version:</b>{" "}
-                    <NavLink
-                      to={`/module-groups/${modulePropagation?.moduleGroup.moduleGroupId}/versions/${modulePropagation?.moduleVersion.moduleVersionId}`}
-                    >
-                      {modulePropagation?.moduleVersion.name}
-                    </NavLink>
-                    <br />
-                    {modulePropagation?.description}
-                  </Card.Text>
-                </Card.Body>
-              </Card>
-              <br />
-            </>
-          );
-        }
-      )}
+      <Row>
+        {data?.organizationalUnit.modulePropagations.items.map(
+          (modulePropagation) => {
+            return (
+              <Col md={4}>
+                <NavLink
+                  to={`/module-propagations/${modulePropagation?.modulePropagationId}`}
+                  style={{ textDecoration: "none", color: "black" }}
+                >
+                  <Card>
+                    <Card.Body>
+                      <Card.Title style={{ fontSize: "large", color: "blue" }}>
+                        {modulePropagation?.name}
+                      </Card.Title>
+                      <Card.Text style={{ fontSize: "small" }}>
+                        <b>Module:</b> {modulePropagation?.moduleGroup.name}{" "}
+                        {modulePropagation?.moduleVersion.name}
+                      </Card.Text>
+                      <Card.Text style={{ fontSize: "small" }}>
+                        {modulePropagation?.description}
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
+                </NavLink>
+                <br />
+              </Col>
+            );
+          }
+        )}
+      </Row>
+
       <br />
       <h2>Upstream Module Propagations</h2>
-      {data?.organizationalUnit.upstreamOrgUnits.items.map(
-        (upstreamOrgUnit) => {
-          return (
-            <>
-              {upstreamOrgUnit?.modulePropagations.items.map(
-                (modulePropagation) => {
-                  return (
-                    <>
-                      <Card>
-                        <Card.Header>
-                          <NavLink
-                            to={`/module-propagations/${modulePropagation?.modulePropagationId}`}
-                          >
-                            {modulePropagation?.name}
-                          </NavLink>
-                        </Card.Header>
-                        <Card.Body>
-                          <Card.Text>
-                            <b>Propagated from Org Unit:</b>{" "}
-                            <NavLink
-                              to={`/org-dimensions/${organizationalDimensionId}/org-units/${upstreamOrgUnit?.orgUnitId}`}
-                            >
-                              {upstreamOrgUnit?.name}
-                            </NavLink>
-                          </Card.Text>
-                          <Card.Text>
-                            <b>Module Group:</b>{" "}
-                            <NavLink
-                              to={`/module-groups/${modulePropagation?.moduleGroup.moduleGroupId}`}
-                            >
-                              {modulePropagation?.moduleGroup.name}
-                            </NavLink>
-                            <br />
-                            <b>Module Version:</b>{" "}
-                            <NavLink
-                              to={`/module-groups/${modulePropagation?.moduleGroup.moduleGroupId}/versions/${modulePropagation?.moduleVersion.moduleVersionId}`}
-                            >
-                              {modulePropagation?.moduleVersion.name}
-                            </NavLink>
-                            <br />
-                            {modulePropagation?.description}
-                          </Card.Text>
-                        </Card.Body>
-                      </Card>
-                      <br />
-                    </>
-                  );
-                }
-              )}
-            </>
-          );
-        }
-      )}
+      <Row>
+        {data?.organizationalUnit.upstreamOrgUnits.items.map(
+          (upstreamOrgUnit) => {
+            return (
+              <>
+                {upstreamOrgUnit?.modulePropagations.items.map(
+                  (modulePropagation) => {
+                    return (
+                      <Col md={4}>
+                        <NavLink
+                          to={`/module-propagations/${modulePropagation?.modulePropagationId}`}
+                          style={{ textDecoration: "none", color: "black" }}
+                        >
+                          <Card>
+                            <Card.Body>
+                              <Card.Title
+                                style={{ fontSize: "large", color: "blue" }}
+                              >
+                                {modulePropagation?.name}
+                              </Card.Title>
+                              <Card.Text style={{ fontSize: "small" }}>
+                                <b>Module:</b>{" "}
+                                {modulePropagation?.moduleGroup.name}{" "}
+                                {modulePropagation?.moduleVersion.name}
+                                <br />
+                                <b>Propagated By:</b> {upstreamOrgUnit?.name}
+                              </Card.Text>
+                              <Card.Text style={{ fontSize: "small" }}>
+                                {modulePropagation?.description}
+                              </Card.Text>
+                            </Card.Body>
+                          </Card>
+                        </NavLink>
+                        <br />
+                      </Col>
+                    );
+                  }
+                )}
+              </>
+            );
+          }
+        )}
+      </Row>
 
       <br />
       <h2>Org Unit Memberships</h2>
-      <ListGroup>
+      <ListGroup style={{ maxWidth: "36rem" }}>
         {data?.organizationalUnit.orgUnitMemberships.items.map((membership) => {
           return (
             <ListGroup.Item>
@@ -247,6 +212,7 @@ export const OrganizationalUnitPage = () => {
                   <DeleteOrganizationalUnitMembershipButton
                     orgDimensionId={membership?.orgDimensionId}
                     orgAccountId={membership?.orgAccountId}
+                    onCompleted={refetch}
                   />
                 </Col>
               </Row>

@@ -6,7 +6,7 @@ import {
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
-import { Container } from "react-bootstrap";
+import { Breadcrumb, Card, Col, Container, Row } from "react-bootstrap";
 import {
   renderCloudPlatform,
   renderModuleAssignmentStatus,
@@ -88,123 +88,140 @@ export const OrganizationalAccountPage = () => {
   if (error) return <div>Error</div>;
 
   return (
-    <Container>
-      <h1>
-        {renderCloudPlatform(data?.organizationalAccount.cloudPlatform)}{" "}
-        <i>{data?.organizationalAccount.name}</i> (
-        {data?.organizationalAccount.orgAccountId})<h2></h2>
-      </h1>
+    <Container
+      style={{ paddingTop: "2rem", maxWidth: "calc(100vw - 20rem)" }}
+      fluid
+    >
+      <Breadcrumb>
+        <Breadcrumb.Item linkAs={NavLink} linkProps={{ to: "/" }}>
+          Home
+        </Breadcrumb.Item>
+        <Breadcrumb.Item linkAs={NavLink} linkProps={{ to: "/module-groups" }}>
+          Accounts
+        </Breadcrumb.Item>
+        <Breadcrumb.Item active>
+          {data?.organizationalAccount.name} (
+          {data?.organizationalAccount.orgAccountId})
+        </Breadcrumb.Item>
+      </Breadcrumb>
+      <Row>
+        <Col md={"auto"}>
+          <h1>
+            {renderCloudPlatform(data?.organizationalAccount.cloudPlatform)}{" "}
+            {data?.organizationalAccount.name}
+          </h1>
+        </Col>
+      </Row>
       <p>
         <b>Cloud Identifier:</b> {data?.organizationalAccount.cloudIdentifier}
       </p>
-      <h2>Org Unit Memberships</h2>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Org Dimension</th>
-            <th>Org Unit</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.organizationalAccount.orgUnitMemberships.items.map(
-            (orgUnitMembership) => {
-              return (
-                <tr>
-                  <td>
-                    <NavLink
-                      to={`/org-dimensions/${orgUnitMembership?.orgDimension.orgDimensionId}`}
-                    >
-                      {orgUnitMembership?.orgDimension.name}
-                    </NavLink>
-                  </td>
-                  <td>
-                    <NavLink
-                      to={`/org-dimensions/${orgUnitMembership?.orgDimension.orgDimensionId}/org-units/${orgUnitMembership?.orgUnit.orgUnitId}`}
-                    >
-                      {orgUnitMembership?.orgUnit.name}
-                    </NavLink>
-                  </td>
-                </tr>
-              );
-            }
-          )}
-        </tbody>
-      </Table>
+
+      <Row>
+        <Col md={"auto"}>
+          <h2>Org Unit Memberships</h2>
+          <Table hover>
+            <thead>
+              <tr>
+                <th>Org Dimension</th>
+                <th>Org Unit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data?.organizationalAccount.orgUnitMemberships.items.map(
+                (orgUnitMembership) => {
+                  return (
+                    <tr>
+                      <td>
+                        <NavLink
+                          to={`/org-dimensions/${orgUnitMembership?.orgDimension.orgDimensionId}`}
+                        >
+                          {orgUnitMembership?.orgDimension.name}
+                        </NavLink>
+                      </td>
+                      <td>
+                        <NavLink
+                          to={`/org-dimensions/${orgUnitMembership?.orgDimension.orgDimensionId}/org-units/${orgUnitMembership?.orgUnit.orgUnitId}`}
+                        >
+                          {orgUnitMembership?.orgUnit.name}
+                        </NavLink>
+                      </td>
+                    </tr>
+                  );
+                }
+              )}
+            </tbody>
+          </Table>
+        </Col>
+      </Row>
+      <br />
+
       <h2>Module Assignments</h2>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Status</th>
-            <th>Assignment Id</th>
-            <th>Module Group</th>
-            <th>Module Version</th>
-            <th>Propagated By</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.organizationalAccount.moduleAssignments.items.map(
-            (moduleAssignment) => {
-              return (
-                <tr>
-                  <td>
-                    {renderModuleAssignmentStatus(moduleAssignment?.status)}
-                  </td>
-                  <td>
+      <Row>
+        {data?.organizationalAccount.moduleAssignments.items.map(
+          (moduleAssignment) => {
+            return (
+              <Col md={"auto"} style={{ padding: "0.25rem" }}>
+                <Card>
+                  <Card.Body>
                     <NavLink
                       to={`/module-assignments/${moduleAssignment?.moduleAssignmentId}`}
                     >
-                      {moduleAssignment?.moduleAssignmentId}
+                      <Card.Title>
+                        {moduleAssignment?.moduleAssignmentId}{" "}
+                      </Card.Title>
                     </NavLink>
-                  </td>
-                  <td>
-                    <NavLink
-                      to={`/module-groups/${moduleAssignment?.moduleGroup.moduleGroupId}`}
-                    >
-                      {moduleAssignment?.moduleGroup.name}
-                    </NavLink>
-                  </td>
-                  <td>
-                    <NavLink
-                      to={`/module-groups/${moduleAssignment?.moduleGroup.moduleGroupId}/module-versions/${moduleAssignment?.moduleVersion.moduleVersionId}`}
-                    >
-                      {moduleAssignment?.moduleVersion.name}
-                    </NavLink>
-                  </td>
-                  <td>
-                    {moduleAssignment?.modulePropagation ? (
-                      <>
-                        <NavLink
-                          to={`/module-propagations/${moduleAssignment?.modulePropagation.modulePropagationId}`}
-                        >
-                          {moduleAssignment?.modulePropagation?.name}
-                        </NavLink>
-                        {" ("}
-                        <NavLink
-                          to={`/org-dimensions/${moduleAssignment?.modulePropagation?.orgDimension.orgDimensionId}`}
-                        >
-                          {
-                            moduleAssignment?.modulePropagation?.orgDimension
-                              .name
-                          }
-                        </NavLink>
-                        {" / "}
-                        <NavLink
-                          to={`/org-dimensions/${moduleAssignment?.modulePropagation?.orgDimension.orgDimensionId}/org-units/${moduleAssignment?.modulePropagation?.orgUnit.orgUnitId}`}
-                        >
-                          {moduleAssignment?.modulePropagation?.orgUnit.name}
-                        </NavLink>
-                        {")"}
-                      </>
-                    ) : (
-                      <div>Direct Assignment</div>
-                    )}
-                  </td>
-                </tr>
-              );
-            }
-          )}
-        </tbody>
-      </Table>
+                    <Card.Text>
+                      {renderModuleAssignmentStatus(moduleAssignment?.status)}
+                      <br />
+                      <b>Module: </b>
+                      <NavLink
+                        to={`/module-groups/${moduleAssignment?.moduleGroup.moduleGroupId}`}
+                      >
+                        {moduleAssignment?.moduleGroup.name}
+                      </NavLink>
+                      {" / "}
+                      <NavLink
+                        to={`/module-groups/${moduleAssignment?.moduleGroup.moduleGroupId}/module-versions/${moduleAssignment?.moduleVersion.moduleVersionId}`}
+                      >
+                        {moduleAssignment?.moduleVersion.name}
+                      </NavLink>
+                      <br />
+                      <b>Propagated By: </b>
+                      {moduleAssignment?.modulePropagation ? (
+                        <>
+                          <NavLink
+                            to={`/module-propagations/${moduleAssignment?.modulePropagation?.modulePropagationId}`}
+                          >
+                            {moduleAssignment?.modulePropagation?.name}
+                          </NavLink>
+                          {" ("}
+                          <NavLink
+                            to={`/org-dimensions/${moduleAssignment?.modulePropagation?.orgDimension.orgDimensionId}`}
+                          >
+                            {
+                              moduleAssignment?.modulePropagation?.orgDimension
+                                .name
+                            }
+                          </NavLink>
+                          {" / "}
+                          <NavLink
+                            to={`/org-dimensions/${moduleAssignment?.modulePropagation?.orgDimension.orgDimensionId}/org-units/${moduleAssignment?.modulePropagation?.orgUnit.orgUnitId}`}
+                          >
+                            {moduleAssignment?.modulePropagation?.orgUnit.name}
+                          </NavLink>
+                          {")"}
+                        </>
+                      ) : (
+                        <span>Direct Assignment</span>
+                      )}
+                    </Card.Text>
+                  </Card.Body>
+                </Card>
+              </Col>
+            );
+          }
+        )}
+      </Row>
     </Container>
   );
 };

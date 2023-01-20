@@ -26,6 +26,10 @@ func (c *APIClient) GetOrganizationalDimensionsByIds(ctx context.Context, keys d
 }
 
 func (c *APIClient) GetOrganizationalDimension(ctx context.Context, orgDimensionId string) (*models.OrganizationalDimension, error) {
+	return c.dbClient.GetOrganizationalDimension(ctx, orgDimensionId)
+}
+
+func (c *APIClient) GetOrganizationalDimensionBatched(ctx context.Context, orgDimensionId string) (*models.OrganizationalDimension, error) {
 	thunk := c.orgDimensionsLoader.Load(ctx, dataloader.StringKey(orgDimensionId))
 	result, err := thunk()
 	if err != nil {

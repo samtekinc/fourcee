@@ -11,6 +11,19 @@ resource "aws_lambda_function" "workflow_handler" {
   package_type  = "Zip"
   timeout       = 900
 
+  environment {
+    variables = {
+      TFOM_WORKING_DIRECTORY = "./tmp/"
+      TFOM_PREFIX            = var.prefix
+      TFOM_STATE_BUCKET      = aws_s3_bucket.backends.bucket
+      TFOM_STATE_REGION      = aws_s3_bucket.backends.region
+      TFOM_RESULTS_BUCKET    = aws_s3_bucket.execution_service.bucket
+      TFOM_ACCOUNT_ID        = data.aws_caller_identity.current.account_id
+      TFOM_REGION            = data.aws_region.current.name
+      TFOM_ALERTS_TOPIC      = aws_sns_topic.tfom_alerts.arn
+    }
+  }
+
   source_code_hash = data.archive_file.empty.output_base64sha256
 
   lifecycle {

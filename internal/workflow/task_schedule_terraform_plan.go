@@ -76,6 +76,7 @@ func (t *TaskHandler) ScheduleTerraformPlan(ctx context.Context, input ScheduleT
 		ModulePropagation: modulePropagation,
 		ModuleVersion:     moduleVersion,
 		OrgAccount:        orgAccount,
+		LockTableName:     t.config.Prefix + "-terraform-lock",
 	})
 	if err != nil {
 		return nil, err

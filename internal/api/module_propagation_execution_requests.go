@@ -30,6 +30,10 @@ func (c *APIClient) GetModulePropagationExecutionRequestsByIds(ctx context.Conte
 }
 
 func (c *APIClient) GetModulePropagationExecutionRequest(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string) (*models.ModulePropagationExecutionRequest, error) {
+	return c.dbClient.GetModulePropagationExecutionRequest(ctx, modulePropagationId, modulePropagationExecutionRequestId)
+}
+
+func (c *APIClient) GetModulePropagationExecutionRequestBatched(ctx context.Context, modulePropagationId string, modulePropagationExecutionRequestId string) (*models.ModulePropagationExecutionRequest, error) {
 	thunk := c.modulePropagationExecutionRequestsLoader.Load(ctx, dataloader.StringKey(fmt.Sprintf("%s:%s", modulePropagationId, modulePropagationExecutionRequestId)))
 	result, err := thunk()
 	if err != nil {

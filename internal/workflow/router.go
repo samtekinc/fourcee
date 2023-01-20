@@ -6,6 +6,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/sheacloud/tfom/internal/api"
+	"github.com/sheacloud/tfom/internal/config"
 
 	"go.uber.org/zap"
 )
@@ -19,16 +20,14 @@ type CommonTaskInput struct {
 }
 
 type TaskHandler struct {
-	apiClient         api.APIClientInterface
-	remoteStateBucket string
-	remoteStateRegion string
+	apiClient api.APIClientInterface
+	config    *config.Config
 }
 
-func NewTaskHandler(apiClient api.APIClientInterface, remoteStateBucket string, remoteStateRegion string) *TaskHandler {
+func NewTaskHandler(apiClient api.APIClientInterface, config *config.Config) *TaskHandler {
 	return &TaskHandler{
-		apiClient:         apiClient,
-		remoteStateBucket: remoteStateBucket,
-		remoteStateRegion: remoteStateRegion,
+		apiClient: apiClient,
+		config:    config,
 	}
 }
 
@@ -113,6 +112,12 @@ func (t *TaskHandler) RouteTask(ctx context.Context, input map[string]interface{
 			return nil, fmt.Errorf("unable to decode task payload: %w", err)
 		}
 		return t.UpdateModuleAssignments(ctx, taskPayload)
+	case TaskTallySyncStatus:
+		var taskPayload TallySyncStatusInput
+		if err := mapstructure.Decode(parsedInput.Payload, &taskPayload); err != nil {
+			return nil, fmt.Errorf("unable to decode task payload: %w", err)
+		}
+		return t.TallySyncStatus(ctx, taskPayload)
 	default:
 		return nil, fmt.Errorf("unknown task: %s", parsedInput.Task)
 	}

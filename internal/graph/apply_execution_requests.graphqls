@@ -8,8 +8,8 @@ type ApplyExecutionRequest {
   additionalArguments: [String]!
   terraformWorkflowRequestId: String!
   status: RequestStatus!
-  initOutput: TerraformInitOutput
-  applyOutput: TerraformApplyOutput
+  initOutput: String
+  applyOutput: String
   requestTime: Time!
 }
 
@@ -19,13 +19,9 @@ type ApplyExecutionRequests {
 }
 
 extend type Query {
-  applyExecutionRequest(
-    applyExecutionRequestId: ID!
-    withOutputs: Boolean = false
-  ): ApplyExecutionRequest!
+  applyExecutionRequest(applyExecutionRequestId: ID!): ApplyExecutionRequest!
   applyExecutionRequests(
     limit: Int
     nextCursor: String
-    withOutputs: Boolean = false
   ): ApplyExecutionRequests!
 }

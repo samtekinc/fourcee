@@ -29,19 +29,20 @@ func (t *TaskHandler) DetermineSyncStatus(ctx context.Context, input DetermineSy
 		return nil, fmt.Errorf("plan execution request id is nil")
 	}
 
-	plan, err := t.apiClient.GetPlanExecutionRequest(ctx, *tfWorkflow.PlanExecutionRequestId, true)
+	plan, err := t.apiClient.GetPlanExecutionRequest(ctx, *tfWorkflow.PlanExecutionRequestId)
 	if err != nil {
 		return nil, err
 	}
 
-	if plan.PlanOutput == nil {
-		return nil, fmt.Errorf("plan output is nil")
+	if plan.PlanJSONKey == nil {
+		return nil, fmt.Errorf("plan json key is nil")
 	}
-	if plan.PlanOutput.PlanJSON == nil {
-		return nil, fmt.Errorf("plan output plan json is nil")
+	planJSON, err := t.apiClient.DownloadResultObject(ctx, *plan.PlanJSONKey)
+	if err != nil {
+		return nil, err
 	}
 
-	planFile, err := terraform.TerraformPlanFileFromJSON(plan.PlanOutput.PlanJSON)
+	planFile, err := terraform.TerraformPlanFileFromJSON(planJSON)
 	if err != nil {
 		return nil, err
 	}

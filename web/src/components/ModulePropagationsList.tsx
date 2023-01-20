@@ -61,21 +61,24 @@ export const ModulePropagationsList = () => {
           md={2}
           xl={2}
           className="d-flex flex-column"
+          bg="dark"
+          variant="dark"
           style={{
             position: "sticky",
             top: "3.5rem",
             backgroundColor: "#f7f7f7",
             zIndex: 1000,
-
+            maxWidth: "20rem",
             height: "calc(100vh - 3.5rem)",
             borderRight: "1px solid #dee2e6",
+            paddingTop: "1rem",
           }}
         >
           <h3>Module Propagations</h3>
           <Nav
             as={ListGroup}
             style={{
-              maxHeight: "calc(100vh - 6rem)",
+              maxHeight: "calc(100vh - 7rem)",
               flexDirection: "column",
               height: "100%",
               display: "flex",
@@ -85,40 +88,52 @@ export const ModulePropagationsList = () => {
           >
             {data?.modulePropagations.items.map((modulePropagation) => {
               return (
-                <ListGroup.Item>
-                  <Card>
-                    <Card.Body>
-                      <Card.Title>
-                        <NavLink
-                          to={`/module-propagations/${modulePropagation?.modulePropagationId}`}
-                          style={({ isActive, isPending }) =>
-                            isActive ? { color: "navy" } : {}
+                <>
+                  <NavLink
+                    to={`/module-propagations/${modulePropagation?.modulePropagationId}`}
+                    style={({ isActive }) =>
+                      isActive
+                        ? {
+                            color: "blue",
+                            textDecoration: "none",
+                            padding: "0.25rem",
                           }
-                        >
+                        : {
+                            color: "inherit",
+                            textDecoration: "none",
+                            padding: "0.25rem",
+                          }
+                    }
+                  >
+                    <Card>
+                      <Card.Body>
+                        <Card.Title style={{ fontSize: "small" }}>
+                          {renderCloudPlatform(
+                            modulePropagation?.moduleGroup.cloudPlatform
+                          )}{" "}
                           {modulePropagation?.name}
-                        </NavLink>
-                      </Card.Title>
-                      <Card.Text>
-                        <b>Module Group: </b>
-                        {modulePropagation?.moduleGroup?.name}
-                        <br />
-                        <b>Module Version: </b>
-                        {modulePropagation?.moduleVersion?.name}
-                        <br />
-                        <b>Org Unit: </b>
-                        {modulePropagation?.orgDimension?.name}
-                        {" / "}
-                        {modulePropagation?.orgUnit?.name}
-                      </Card.Text>
-                    </Card.Body>
-                  </Card>
-                </ListGroup.Item>
+                        </Card.Title>
+                        <Card.Text style={{ fontSize: "x-small" }}>
+                          <b>Module: </b>
+                          {modulePropagation?.moduleGroup?.name}{" "}
+                          {modulePropagation?.moduleVersion.name}
+                          <br />
+                          <b>Org Unit: </b>
+                          {modulePropagation?.orgDimension?.name}
+                          {" / "}
+                          {modulePropagation?.orgUnit?.name}
+                        </Card.Text>
+                      </Card.Body>
+                    </Card>
+                  </NavLink>
+                </>
               );
             })}
+            <br />
             <NewModulePropagationButton onCompleted={refetch} />
           </Nav>
         </Col>
-        <Col md={"auto"}>
+        <Col md={10}>
           <Outlet />
         </Col>
       </Row>

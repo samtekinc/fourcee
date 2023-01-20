@@ -11,10 +11,10 @@ type PlanExecutionRequest struct {
 	AdditionalArguments          []string
 	TerraformWorkflowRequestId   string // could be a tfexec or a tfsync request
 	Status                       RequestStatus
-	InitOutputKey                string
-	InitOutput                   *TerraformInitOutput `dynamodbav:"-"` // fetched from S3 on request
-	PlanOutputKey                string
-	PlanOutput                   *TerraformPlanOutput `dynamodbav:"-"` // fetched from S3 on request
+	InitOutputKey                *string
+	PlanOutputKey                *string
+	PlanFileKey                  *string
+	PlanJSONKey                  *string
 	RequestTime                  time.Time
 }
 
@@ -35,5 +35,12 @@ type NewPlanExecutionRequest struct {
 type PlanExecutionRequestUpdate struct {
 	InitOutputKey *string
 	PlanOutputKey *string
+	PlanFileKey   *string
+	PlanJSONKey   *string
 	Status        *RequestStatus
+}
+
+type TerraformPlanOutput struct {
+	PlanFile []byte
+	PlanJSON []byte
 }

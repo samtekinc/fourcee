@@ -8,6 +8,7 @@ type ModulePropagationDriftCheckRequest struct {
 	RequestTime                          time.Time
 	Status                               RequestStatus
 	WorkflowRequestId                    string
+	SyncStatus                           TerraformDriftCheckStatus
 }
 
 type ModulePropagationDriftCheckRequests struct {
@@ -20,5 +21,6 @@ type NewModulePropagationDriftCheckRequest struct {
 }
 
 type ModulePropagationDriftCheckRequestUpdate struct {
-	Status *RequestStatus
+	Status     *RequestStatus
+	SyncStatus *TerraformDriftCheckStatus
 }

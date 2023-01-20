@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/pkg/models"
+	"go.uber.org/zap"
 )
 
 func (c *DatabaseClient) GetModulePropagationAssignment(ctx context.Context, modulePropagationId string, orgAccountId string) (*models.ModulePropagationAssignment, error) {
@@ -38,7 +39,7 @@ func (c *DatabaseClient) GetModulePropagationAssignment(ctx context.Context, mod
 }
 
 func (c *DatabaseClient) GetModulePropagationAssignmentsByIds(ctx context.Context, ids []string) ([]models.ModulePropagationAssignment, error) {
-	fmt.Println("getting module propagation assignments by ids", len(ids))
+	zap.L().Sugar().Debugw("GetModulePropagationAssignmentsByIds", "ids", ids)
 	var keys []map[string]types.AttributeValue
 
 	for _, id := range ids {

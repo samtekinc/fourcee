@@ -7,7 +7,7 @@ import Tabs from "react-bootstrap/Tabs";
 import Container from "react-bootstrap/Container";
 import { OrganizationalAccountPage } from "./OrganizationalAccountPage";
 import Table from "react-bootstrap/Table";
-import { Col, ListGroup, Nav, Row } from "react-bootstrap";
+import { Card, Col, ListGroup, Nav, Row } from "react-bootstrap";
 import { NewOrganizationalAccountButton } from "./NewOrganizationalAccountButton";
 import { renderCloudPlatform } from "../utils/rendering";
 
@@ -51,16 +51,17 @@ export const OrganizationalAccountsList = () => {
             top: "3.5rem",
             backgroundColor: "#f7f7f7",
             zIndex: 1000,
-
+            maxWidth: "20rem",
             height: "calc(100vh - 3.5rem)",
             borderRight: "1px solid #dee2e6",
+            paddingTop: "1rem",
           }}
         >
           <h3>Org Accounts</h3>
           <Nav
             as={ListGroup}
             style={{
-              maxHeight: "calc(100vh - 6rem)",
+              maxHeight: "calc(100vh - 7rem)",
               flexDirection: "column",
               height: "100%",
               display: "flex",
@@ -70,19 +71,38 @@ export const OrganizationalAccountsList = () => {
           >
             {data?.organizationalAccounts.items.map((orgAccount) => {
               return (
-                <ListGroup.Item>
-                  {renderCloudPlatform(orgAccount?.cloudPlatform)}{" "}
-                  <NavLink
-                    to={`/org-accounts/${orgAccount?.orgAccountId}`}
-                    style={({ isActive, isPending }) =>
-                      isActive ? { fontWeight: 500 } : {}
-                    }
-                  >
-                    {orgAccount?.name}
-                  </NavLink>
-                </ListGroup.Item>
+                <NavLink
+                  to={`/org-accounts/${orgAccount?.orgAccountId}`}
+                  style={({ isActive }) =>
+                    isActive
+                      ? {
+                          color: "blue",
+                          textDecoration: "none",
+                          padding: "0.25rem",
+                        }
+                      : {
+                          color: "inherit",
+                          textDecoration: "none",
+                          padding: "0.25rem",
+                        }
+                  }
+                >
+                  <Card>
+                    <Card.Body>
+                      <Card.Title style={{ fontSize: "medium" }}>
+                        {renderCloudPlatform(orgAccount?.cloudPlatform)}{" "}
+                        {orgAccount?.name}
+                      </Card.Title>
+                      <Card.Text style={{ fontSize: "small" }}>
+                        <b>Cloud ID: </b>
+                        {orgAccount?.cloudIdentifier}
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
+                </NavLink>
               );
             })}
+            <br />
             <NewOrganizationalAccountButton onCompleted={refetch} />
           </Nav>
         </Col>

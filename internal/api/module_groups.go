@@ -25,6 +25,10 @@ func (c *APIClient) GetModuleGroupsByIds(ctx context.Context, keys dataloader.Ke
 }
 
 func (c *APIClient) GetModuleGroup(ctx context.Context, id string) (*models.ModuleGroup, error) {
+	return c.dbClient.GetModuleGroup(ctx, id)
+}
+
+func (c *APIClient) GetModuleGroupBatched(ctx context.Context, id string) (*models.ModuleGroup, error) {
 	thunk := c.moduleGroupsLoader.Load(ctx, dataloader.StringKey(id))
 	result, err := thunk()
 	if err != nil {

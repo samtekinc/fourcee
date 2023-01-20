@@ -7,8 +7,10 @@ type PlanExecutionRequest {
   additionalArguments: [String]!
   terraformWorkflowRequestId: String!
   status: RequestStatus!
-  initOutput: TerraformInitOutput
-  planOutput: TerraformPlanOutput
+  initOutput: String
+  planOutput: String
+  planFile: String
+  planJSON: String
   requestTime: Time!
 }
 

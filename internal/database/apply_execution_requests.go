@@ -1,9 +1,7 @@
 package database
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -12,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/pkg/models"
 )
@@ -281,74 +278,4 @@ func (c *DatabaseClient) UpdateApplyExecutionRequest(ctx context.Context, applyE
 	}
 
 	return &applyExecutionRequest, nil
-}
-
-func (c *DatabaseClient) UploadTerraformApplyInitResults(ctx context.Context, applyExecutionRequestId string, initResults *models.TerraformInitOutput) (string, error) {
-	outputKey := fmt.Sprintf("applies/%s/init-results.json", applyExecutionRequestId)
-
-	initResultsBytes, err := json.Marshal(initResults)
-	if err != nil {
-		return "", err
-	}
-
-	_, err = c.s3.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: &c.resultsBucketName,
-		Key:    &outputKey,
-		Body:   bytes.NewReader(initResultsBytes),
-	})
-
-	return outputKey, err
-}
-
-func (c *DatabaseClient) UploadTerraformApplyResults(ctx context.Context, applyExecutionRequestId string, applyResults *models.TerraformApplyOutput) (string, error) {
-	outputKey := fmt.Sprintf("applies/%s/apply-results.json", applyExecutionRequestId)
-
-	applyResultsBytes, err := json.Marshal(applyResults)
-	if err != nil {
-		return "", err
-	}
-
-	_, err = c.s3.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: &c.resultsBucketName,
-		Key:    &outputKey,
-		Body:   bytes.NewReader(applyResultsBytes),
-	})
-
-	return outputKey, err
-}
-
-func (c *DatabaseClient) DownloadTerraformApplyInitResults(ctx context.Context, initResultsObjectKey string) (*models.TerraformInitOutput, error) {
-	result, err := c.s3.GetObject(ctx, &s3.GetObjectInput{
-		Bucket: &c.resultsBucketName,
-		Key:    &initResultsObjectKey,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	initResults := models.TerraformInitOutput{}
-	err = json.NewDecoder(result.Body).Decode(&initResults)
-	if err != nil {
-		return nil, err
-	}
-
-	return &initResults, nil
-}
-
-func (c *DatabaseClient) DownloadTerraformApplyResults(ctx context.Context, applyResultsObjectKey string) (*models.TerraformApplyOutput, error) {
-	result, err := c.s3.GetObject(ctx, &s3.GetObjectInput{
-		Bucket: &c.resultsBucketName,
-		Key:    &applyResultsObjectKey,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	applyResults := models.TerraformApplyOutput{}
-	err = json.NewDecoder(result.Body).Decode(&applyResults)
-	if err != nil {
-		return nil, err
-	}
-
-	return &applyResults, nil
 }

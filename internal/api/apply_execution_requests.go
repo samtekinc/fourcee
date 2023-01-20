@@ -25,7 +25,16 @@ func (c *APIClient) GetApplyExecutionRequestsByIds(ctx context.Context, keys dat
 	return output
 }
 
-func (c *APIClient) GetApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string, withOutputs bool) (*models.ApplyExecutionRequest, error) {
+func (c *APIClient) GetApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string) (*models.ApplyExecutionRequest, error) {
+	applyExecutionRequest, err := c.dbClient.GetApplyExecutionRequest(ctx, applyExecutionRequestId)
+	if err != nil {
+		return nil, err
+	}
+
+	return applyExecutionRequest, nil
+}
+
+func (c *APIClient) GetApplyExecutionRequestBatched(ctx context.Context, applyExecutionRequestId string) (*models.ApplyExecutionRequest, error) {
 	thunk := c.applyExecutionRequestsLoader.Load(ctx, dataloader.StringKey(applyExecutionRequestId))
 	result, err := thunk()
 	if err != nil {
@@ -33,83 +42,22 @@ func (c *APIClient) GetApplyExecutionRequest(ctx context.Context, applyExecution
 	}
 	applyExecutionRequest := result.(*models.ApplyExecutionRequest)
 
-	if withOutputs {
-		// fetch init and apply outputs from S3
-		if applyExecutionRequest.InitOutputKey != "" {
-			initOutput, err := c.DownloadTerraformApplyInitResults(ctx, applyExecutionRequest.InitOutputKey)
-			if err != nil {
-				return nil, err
-			}
-			applyExecutionRequest.InitOutput = initOutput
-		}
-
-		if applyExecutionRequest.ApplyOutputKey != "" {
-			applyOutput, err := c.DownloadTerraformApplyResults(ctx, applyExecutionRequest.ApplyOutputKey)
-			if err != nil {
-				return nil, err
-			}
-			applyExecutionRequest.ApplyOutput = applyOutput
-		}
-	}
-
 	return applyExecutionRequest, nil
 }
 
-func (c *APIClient) GetApplyExecutionRequests(ctx context.Context, limit int32, cursor string, withOutputs bool) (*models.ApplyExecutionRequests, error) {
+func (c *APIClient) GetApplyExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
 	requests, err := c.dbClient.GetApplyExecutionRequests(ctx, limit, cursor)
 	if err != nil {
 		return nil, err
 	}
 
-	if withOutputs {
-		for i := range requests.Items {
-			// fetch init and apply outputs from S3
-			if requests.Items[i].InitOutputKey != "" {
-				initOutput, err := c.DownloadTerraformApplyInitResults(ctx, requests.Items[i].InitOutputKey)
-				if err != nil {
-					return nil, err
-				}
-				requests.Items[i].InitOutput = initOutput
-			}
-
-			if requests.Items[i].ApplyOutputKey != "" {
-				applyOutput, err := c.DownloadTerraformApplyResults(ctx, requests.Items[i].ApplyOutputKey)
-				if err != nil {
-					return nil, err
-				}
-				requests.Items[i].ApplyOutput = applyOutput
-			}
-		}
-	}
-
 	return requests, nil
 }
 
-func (c *APIClient) GetApplyExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string, withOutputs bool) (*models.ApplyExecutionRequests, error) {
+func (c *APIClient) GetApplyExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
 	requests, err := c.dbClient.GetApplyExecutionRequestsByModuleAssignmentId(ctx, moduleAssignmentId, limit, cursor)
 	if err != nil {
 		return nil, err
-	}
-
-	if withOutputs {
-		for i := range requests.Items {
-			// fetch init and apply outputs from S3
-			if requests.Items[i].InitOutputKey != "" {
-				initOutput, err := c.DownloadTerraformApplyInitResults(ctx, requests.Items[i].InitOutputKey)
-				if err != nil {
-					return nil, err
-				}
-				requests.Items[i].InitOutput = initOutput
-			}
-
-			if requests.Items[i].ApplyOutputKey != "" {
-				applyOutput, err := c.DownloadTerraformApplyResults(ctx, requests.Items[i].ApplyOutputKey)
-				if err != nil {
-					return nil, err
-				}
-				requests.Items[i].ApplyOutput = applyOutput
-			}
-		}
 	}
 
 	return requests, nil
@@ -153,20 +101,4 @@ func (c *APIClient) PutApplyExecutionRequest(ctx context.Context, input *models.
 
 func (c *APIClient) UpdateApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string, input *models.ApplyExecutionRequestUpdate) (*models.ApplyExecutionRequest, error) {
 	return c.dbClient.UpdateApplyExecutionRequest(ctx, applyExecutionRequestId, input)
-}
-
-func (c *APIClient) UploadTerraformApplyInitResults(ctx context.Context, planExecutionRequestId string, initResults *models.TerraformInitOutput) (string, error) {
-	return c.dbClient.UploadTerraformApplyInitResults(ctx, planExecutionRequestId, initResults)
-}
-
-func (c *APIClient) UploadTerraformApplyResults(ctx context.Context, planExecutionRequestId string, planResults *models.TerraformApplyOutput) (string, error) {
-	return c.dbClient.UploadTerraformApplyResults(ctx, planExecutionRequestId, planResults)
-}
-
-func (c *APIClient) DownloadTerraformApplyInitResults(ctx context.Context, applyExecutionRequestId string) (*models.TerraformInitOutput, error) {
-	return c.dbClient.DownloadTerraformApplyInitResults(ctx, applyExecutionRequestId)
-}
-
-func (c *APIClient) DownloadTerraformApplyResults(ctx context.Context, applyExecutionRequestId string) (*models.TerraformApplyOutput, error) {
-	return c.dbClient.DownloadTerraformApplyResults(ctx, applyExecutionRequestId)
 }

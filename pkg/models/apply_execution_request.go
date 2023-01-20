@@ -12,10 +12,8 @@ type ApplyExecutionRequest struct {
 	AdditionalArguments          []string
 	TerraformWorkflowRequestId   string // could be a tfexec or a tfsync request
 	Status                       RequestStatus
-	InitOutputKey                string
-	InitOutput                   *TerraformInitOutput `dynamodbav:"-"` // fetched from S3 on request
-	ApplyOutputKey               string
-	ApplyOutput                  *TerraformApplyOutput `dynamodbav:"-"` // fetched from S3 on request
+	InitOutputKey                *string
+	ApplyOutputKey               *string
 	RequestTime                  time.Time
 }
 

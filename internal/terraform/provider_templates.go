@@ -34,7 +34,7 @@ func (t *AWSProviderTemplate) GetProviderConfiguration() (string, error) {
 	role_arn = "arn:aws:iam::%s:role/%s"
 	session_name = "%s"
   }
-}`, t.Config.Alias, t.Config.Region, t.AccountId, t.AssumeRoleName, t.SessionName), nil
+}`, *t.Config.Alias, t.Config.Region, t.AccountId, t.AssumeRoleName, t.SessionName), nil
 }
 
 type AzureProviderTemplate struct {
@@ -64,5 +64,5 @@ func (t *GCPProviderTemplate) GetProviderConfiguration() (string, error) {
   alias = "%s"
   project = "%s"
   region = "%s"
-}`, t.Config.Alias, t.ProjectId, t.Config.Region), nil
+}`, *t.Config.Alias, t.ProjectId, t.Config.Region), nil
 }

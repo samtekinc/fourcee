@@ -26,6 +26,10 @@ func (c *APIClient) GetModuleVersionsByIds(ctx context.Context, keys dataloader.
 }
 
 func (c *APIClient) GetModuleVersion(ctx context.Context, moduleGroupId string, moduleVersionId string) (*models.ModuleVersion, error) {
+	return c.dbClient.GetModuleVersion(ctx, moduleGroupId, moduleVersionId)
+}
+
+func (c *APIClient) GetModuleVersionBatched(ctx context.Context, moduleGroupId string, moduleVersionId string) (*models.ModuleVersion, error) {
 	thunk := c.moduleVersionsLoader.Load(ctx, dataloader.StringKey(fmt.Sprintf("%s:%s", moduleGroupId, moduleVersionId)))
 	result, err := thunk()
 	if err != nil {

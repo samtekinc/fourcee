@@ -30,6 +30,10 @@ func (c *APIClient) GetModulePropagationDriftCheckRequestsByIds(ctx context.Cont
 }
 
 func (c *APIClient) GetModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationId string, modulePropagationDriftCheckRequestId string) (*models.ModulePropagationDriftCheckRequest, error) {
+	return c.dbClient.GetModulePropagationDriftCheckRequest(ctx, modulePropagationId, modulePropagationDriftCheckRequestId)
+}
+
+func (c *APIClient) GetModulePropagationDriftCheckRequestBatched(ctx context.Context, modulePropagationId string, modulePropagationDriftCheckRequestId string) (*models.ModulePropagationDriftCheckRequest, error) {
 	thunk := c.modulePropagationDriftCheckRequestsLoader.Load(ctx, dataloader.StringKey(fmt.Sprintf("%s:%s", modulePropagationId, modulePropagationDriftCheckRequestId)))
 	result, err := thunk()
 	if err != nil {
@@ -67,6 +71,7 @@ func (c *APIClient) PutModulePropagationDriftCheckRequest(ctx context.Context, i
 		ModulePropagationId:                  input.ModulePropagationId,
 		RequestTime:                          time.Now().UTC(),
 		Status:                               models.RequestStatusPending,
+		SyncStatus:                           models.TerraformDriftCheckStatusPending,
 	}
 
 	err = c.dbClient.PutModulePropagationDriftCheckRequest(ctx, &modulePropagationDriftCheckRequest)

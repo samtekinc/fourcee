@@ -215,6 +215,9 @@ func (c *DatabaseClient) UpdateModulePropagationDriftCheckRequest(ctx context.Co
 	if update.Status != nil {
 		updateBuilder = updateBuilder.Set(expression.Name("Status"), expression.Value(*update.Status))
 	}
+	if update.SyncStatus != nil {
+		updateBuilder = updateBuilder.Set(expression.Name("SyncStatus"), expression.Value(*update.SyncStatus))
+	}
 
 	updateExpression, err := expression.NewBuilder().WithUpdate(updateBuilder).Build()
 	if err != nil {
@@ -222,8 +225,11 @@ func (c *DatabaseClient) UpdateModulePropagationDriftCheckRequest(ctx context.Co
 	}
 
 	updateInput := &dynamodb.UpdateItemInput{
-		TableName:                 &c.modulePropagationDriftCheckRequestsTableName,
-		Key:                       map[string]types.AttributeValue{"ModulePropagationDriftCheckRequestId": &types.AttributeValueMemberS{Value: modulePropagationDriftCheckRequestId}},
+		TableName: &c.modulePropagationDriftCheckRequestsTableName,
+		Key: map[string]types.AttributeValue{
+			"ModulePropagationId":                  &types.AttributeValueMemberS{Value: modulePropagationId},
+			"ModulePropagationDriftCheckRequestId": &types.AttributeValueMemberS{Value: modulePropagationDriftCheckRequestId},
+		},
 		ExpressionAttributeNames:  updateExpression.Names(),
 		ExpressionAttributeValues: updateExpression.Values(),
 		UpdateExpression:          updateExpression.Update(),
