@@ -46,17 +46,11 @@ resource "aws_sfn_state_machine" "terraform_command" {
             "S.$": "$.RequestId"
           }
         },
-        "UpdateExpression": "SET WorkflowExecutionId = :execId, #s = :status",
+        "UpdateExpression": "SET WorkflowExecutionId = :execId",
         "ExpressionAttributeValues": {
           ":execId": {
             "S.$": "$$.Execution.Id"
-          },
-          ":status": {
-            "S": "RUNNING"
           }
-        },
-        "ExpressionAttributeNames": {
-          "#s": "Status"
         }
       },
       "Next": "ExecuteTerraform",

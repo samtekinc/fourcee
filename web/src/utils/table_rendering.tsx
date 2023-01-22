@@ -53,39 +53,43 @@ export function renderTimeField(time: string): JSX.Element {
 export function renderStatus(state: string | undefined): JSX.Element {
   if (state === "PENDING") {
     return (
-      <>
+      <div
+        style={{
+          color: "#6C757D",
+        }}
+      >
         <OverlayTrigger placement="top" overlay={<Tooltip>Pending</Tooltip>}>
           <Spinner animation="border" variant="secondary" size="sm" />
         </OverlayTrigger>{" "}
         Pending
-      </>
+      </div>
     );
   } else if (state === "RUNNING") {
     return (
-      <>
+      <div style={{ color: "#0DCAF0" }}>
         <OverlayTrigger placement="top" overlay={<Tooltip>Running</Tooltip>}>
           <Spinner animation="border" variant="info" size="sm" />
         </OverlayTrigger>{" "}
         Running
-      </>
+      </div>
     );
   } else if (state === "SUCCEEDED") {
     return (
-      <>
+      <div style={{ color: "#4CB950" }}>
         <OverlayTrigger placement="top" overlay={<Tooltip>Running</Tooltip>}>
           <FcOk />
         </OverlayTrigger>{" "}
         Succeeded
-      </>
+      </div>
     );
   } else if (state === "FAILED") {
     return (
-      <>
+      <div style={{ color: "#F44336" }}>
         <OverlayTrigger placement="top" overlay={<Tooltip>Running</Tooltip>}>
           <FcHighPriority />
         </OverlayTrigger>{" "}
         Failed
-      </>
+      </div>
     );
   }
   return (

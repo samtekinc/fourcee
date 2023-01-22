@@ -109,6 +109,15 @@ func main() {
 }
 
 func runPlan(ctx context.Context, request *models.PlanExecutionRequest, apiClient api.APIClientInterface, installDirectory *terraform.TerraformInstallationDirectory) error {
+	// update the request to running
+	newStatus := models.RequestStatusRunning
+	request, err := apiClient.UpdatePlanExecutionRequest(ctx, request.PlanExecutionRequestId, &models.PlanExecutionRequestUpdate{
+		Status: &newStatus,
+	})
+	if err != nil {
+		return err
+	}
+
 	workingDirectory, err := terraform.NewWorkingDirectory(filepath.Join(TF_WORKING_DIRECTORY, request.PlanExecutionRequestId))
 	if err != nil {
 		return err
@@ -183,6 +192,15 @@ func runPlan(ctx context.Context, request *models.PlanExecutionRequest, apiClien
 }
 
 func runApply(ctx context.Context, request *models.ApplyExecutionRequest, apiClient api.APIClientInterface, installDirectory *terraform.TerraformInstallationDirectory) error {
+	// update the request to running
+	newStatus := models.RequestStatusRunning
+	request, err := apiClient.UpdateApplyExecutionRequest(ctx, request.ApplyExecutionRequestId, &models.ApplyExecutionRequestUpdate{
+		Status: &newStatus,
+	})
+	if err != nil {
+		return err
+	}
+
 	workingDirectory, err := terraform.NewWorkingDirectory(filepath.Join(TF_WORKING_DIRECTORY, request.ApplyExecutionRequestId))
 	if err != nil {
 		return err
@@ -200,8 +218,6 @@ func runApply(ctx context.Context, request *models.ApplyExecutionRequest, apiCli
 	if err != nil {
 		return err
 	}
-
-	// init terraform
 
 	// init terraform
 	initOutputKey := helpers.GetApplyInitOutputKey(request.ApplyExecutionRequestId)

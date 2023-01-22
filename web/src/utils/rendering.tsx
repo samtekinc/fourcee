@@ -37,11 +37,11 @@ export function renderApplyDestroy(destroy: boolean): JSX.Element {
     <>
       {destroy ? (
         <>
-          <MdOutlineAutoDelete color="#fc0303" /> Destroy
+          <MdOutlineAutoDelete color="#F44336" /> Destroy
         </>
       ) : (
         <>
-          <MdAddCircle color="#20fc03" /> Apply
+          <MdAddCircle color="#4CB950" /> Apply
         </>
       )}
     </>
@@ -129,11 +129,11 @@ export function renderModuleAssignmentStatus(
     <>
       {moduleAssignmentStatus === ModuleAssignmentStatus.Active ? (
         <>
-          <BsFillCircleFill color="#20fc03" /> Active
+          <BsFillCircleFill color="#4CB950" /> Active
         </>
       ) : moduleAssignmentStatus === ModuleAssignmentStatus.Inactive ? (
         <>
-          <BsFillCircleFill color="#fc0303" /> Inactive
+          <BsFillCircleFill color="#F44336" /> Inactive
         </>
       ) : (
         <>
