@@ -13,44 +13,44 @@ import (
 
 // CreateTerraformExecutionRequest is the resolver for the createTerraformExecutionRequest field.
 func (r *mutationResolver) CreateTerraformExecutionRequest(ctx context.Context, terraformExecutionRequest models.NewTerraformExecutionRequest) (*models.TerraformExecutionRequest, error) {
-	return r.apiClient.PutTerraformExecutionRequest(ctx, &terraformExecutionRequest)
+	return r.apiClient.CreateTerraformExecutionRequest(ctx, &terraformExecutionRequest)
 }
 
 // ModuleAssignment is the resolver for the moduleAssignment field.
 func (r *terraformExecutionRequestResolver) ModuleAssignment(ctx context.Context, obj *models.TerraformExecutionRequest) (*models.ModuleAssignment, error) {
-	return r.apiClient.GetModuleAssignmentBatched(ctx, obj.ModuleAssignmentId)
+	return r.apiClient.GetModuleAssignmentBatched(ctx, obj.ModuleAssignmentID)
 }
 
 // PlanExecutionRequest is the resolver for the planExecutionRequest field.
 func (r *terraformExecutionRequestResolver) PlanExecutionRequest(ctx context.Context, obj *models.TerraformExecutionRequest) (*models.PlanExecutionRequest, error) {
-	if obj.PlanExecutionRequestId == nil {
+	if obj.PlanExecutionRequestID == nil {
 		return nil, nil
 	}
-	return r.apiClient.GetPlanExecutionRequestBatched(ctx, *obj.PlanExecutionRequestId)
+	return r.apiClient.GetPlanExecutionRequestBatched(ctx, *obj.PlanExecutionRequestID)
 }
 
 // ApplyExecutionRequest is the resolver for the applyExecutionRequest field.
 func (r *terraformExecutionRequestResolver) ApplyExecutionRequest(ctx context.Context, obj *models.TerraformExecutionRequest) (*models.ApplyExecutionRequest, error) {
-	if obj.ApplyExecutionRequestId == nil {
+	if obj.ApplyExecutionRequestID == nil {
 		return nil, nil
 	}
-	return r.apiClient.GetApplyExecutionRequestBatched(ctx, *obj.ApplyExecutionRequestId)
+	return r.apiClient.GetApplyExecutionRequestBatched(ctx, *obj.ApplyExecutionRequestID)
 }
 
 // ModulePropagation is the resolver for the modulePropagation field.
 func (r *terraformExecutionRequestResolver) ModulePropagation(ctx context.Context, obj *models.TerraformExecutionRequest) (*models.ModulePropagation, error) {
-	if obj.ModulePropagationId == nil {
+	if obj.ModulePropagationID == nil {
 		return nil, nil
 	}
-	return r.apiClient.GetModulePropagationBatched(ctx, *obj.ModulePropagationId)
+	return r.apiClient.GetModulePropagationBatched(ctx, *obj.ModulePropagationID)
 }
 
 // ModulePropagationExecutionRequest is the resolver for the modulePropagationExecutionRequest field.
 func (r *terraformExecutionRequestResolver) ModulePropagationExecutionRequest(ctx context.Context, obj *models.TerraformExecutionRequest) (*models.ModulePropagationExecutionRequest, error) {
-	if obj.ModulePropagationId == nil || obj.ModulePropagationExecutionRequestId == nil {
+	if obj.ModulePropagationExecutionRequestID == nil {
 		return nil, nil
 	}
-	return r.apiClient.GetModulePropagationExecutionRequest(ctx, *obj.ModulePropagationId, *obj.ModulePropagationExecutionRequestId)
+	return r.apiClient.GetModulePropagationExecutionRequestBatched(ctx, *obj.ModulePropagationExecutionRequestID)
 }
 
 // TerraformExecutionRequest returns generated.TerraformExecutionRequestResolver implementation.

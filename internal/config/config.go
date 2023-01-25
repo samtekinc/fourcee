@@ -1,17 +1,17 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/sheacloud/tfom/internal/api"
-	"github.com/sheacloud/tfom/internal/database"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 type Config struct {
@@ -38,32 +38,13 @@ func ConfigFromEnv() Config {
 	}
 }
 
-func (c *Config) GetDatabaseClient(cfg aws.Config) database.DatabaseClientInterface {
-	return database.NewDatabaseClient(&database.DatabaseClientInput{
-		DynamoDB:              dynamodb.NewFromConfig(cfg),
-		S3:                    s3.NewFromConfig(cfg),
-		DimensionsTableName:   fmt.Sprintf("%s-organizational-dimensions", c.Prefix),
-		UnitsTableName:        fmt.Sprintf("%s-organizational-units", c.Prefix),
-		AccountsTableName:     fmt.Sprintf("%s-organizational-accounts", c.Prefix),
-		MembershipsTableName:  fmt.Sprintf("%s-organizational-unit-memberships", c.Prefix),
-		GroupsTableName:       fmt.Sprintf("%s-module-groups", c.Prefix),
-		VersionsTableName:     fmt.Sprintf("%s-module-versions", c.Prefix),
-		PropagationsTableName: fmt.Sprintf("%s-module-propagations", c.Prefix),
-		ModulePropagationExecutionRequestsTableName:  fmt.Sprintf("%s-module-propagation-execution-requests", c.Prefix),
-		ModulePropagationDriftCheckRequestsTableName: fmt.Sprintf("%s-module-propagation-drift-check-requests", c.Prefix),
-		ModuleAssignmentsTableName:                   fmt.Sprintf("%s-module-assignments", c.Prefix),
-		ModulePropagationAssignmentsTableName:        fmt.Sprintf("%s-module-propagation-assignments", c.Prefix),
-		TerraformExecutionRequestsTableName:          fmt.Sprintf("%s-terraform-execution-requests", c.Prefix),
-		TerraformDriftCheckRequestsTableName:         fmt.Sprintf("%s-terraform-drift-check-requests", c.Prefix),
-		PlanExecutionsTableName:                      fmt.Sprintf("%s-plan-execution-requests", c.Prefix),
-		ApplyExecutionsTableName:                     fmt.Sprintf("%s-apply-execution-requests", c.Prefix),
-		ResultsBucketName:                            fmt.Sprintf("%s-execution-results", c.Prefix),
-	})
+func (c *Config) GetDatabase(context context.Context) (*gorm.DB, error) {
+	return gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 }
 
-func (c *Config) GetApiClient(cfg aws.Config, dbClient database.DatabaseClientInterface) api.APIClientInterface {
+func (c *Config) GetApiClient(cfg aws.Config, db *gorm.DB) api.APIClientInterface {
 	return api.NewAPIClient(&api.APIClientInput{
-		DBClient:                       dbClient,
+		DB:                             db,
 		SfnClient:                      sfn.NewFromConfig(cfg),
 		SnsClient:                      sns.NewFromConfig(cfg),
 		WorkingDirectory:               c.WorkingDirectory,

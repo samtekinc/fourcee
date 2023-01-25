@@ -1,21 +1,24 @@
 package models
 
-type ModuleVersion struct {
-	ModuleVersionId  string
-	ModuleGroupId    string
-	Name             string
-	RemoteSource     string
-	TerraformVersion string
-	Variables        []*ModuleVariable
-}
+import (
+	"strconv"
 
-type ModuleVersions struct {
-	Items      []ModuleVersion
-	NextCursor string
+	"gorm.io/gorm"
+)
+
+type ModuleVersion struct {
+	gorm.Model
+	ModuleGroupID                 uint
+	Name                          string
+	RemoteSource                  string
+	TerraformVersion              string
+	Variables                     []*ModuleVariable
+	ModulePropagationsAssociation []ModulePropagation `gorm:"foreignKey:ModuleVersionID"`
+	ModuleAssignmentsAssociation  []ModuleAssignment  `gorm:"foreignKey:ModuleVersionID"`
 }
 
 type NewModuleVersion struct {
-	ModuleGroupId    string
+	ModuleGroupID    uint
 	Name             string
 	RemoteSource     string
 	TerraformVersion string
@@ -23,17 +26,25 @@ type NewModuleVersion struct {
 }
 
 type ModuleVariable struct {
-	Name        string
-	Type        string
-	Description string
-	Default     *string
+	gorm.Model
+	ModuleVersionID uint // Foreign key
+	Name            string
+	Type            string
+	Description     string
+	Default         *string
+}
+
+type ModuleVersionFilters struct {
+	NameContains         *string
+	RemoteSourceContains *string
+	TerraformVersion     *string
 }
 
 func (m *ModuleVersion) GetInternalMetadata() []Metadata {
 	return []Metadata{
 		{
 			Name:  "id",
-			Value: m.ModuleVersionId,
+			Value: strconv.FormatUint(uint64(m.ID), 10),
 		},
 		{
 			Name:  "name",

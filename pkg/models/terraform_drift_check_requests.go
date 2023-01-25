@@ -1,37 +1,49 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type TerraformDriftCheckRequest struct {
-	TerraformDriftCheckRequestId         string
-	ModuleAssignmentId                   string
-	PlanExecutionRequestId               *string
-	RequestTime                          time.Time
+	gorm.Model
+	ModuleAssignmentID                   uint
+	PlanExecutionRequestID               *uint
+	StartedAt                            *time.Time
+	CompletedAt                          *time.Time
 	Status                               RequestStatus
 	SyncStatus                           TerraformDriftCheckStatus
 	Destroy                              bool
 	CallbackTaskToken                    *string
-	ModulePropagationId                  *string `dynamodbav:",omitempty"`
-	ModulePropagationDriftCheckRequestId *string `dynamodbav:",omitempty"`
-}
-
-type TerraformDriftCheckRequests struct {
-	Items      []TerraformDriftCheckRequest
-	NextCursor string
+	ModulePropagationID                  *uint
+	ModulePropagationDriftCheckRequestID *uint
 }
 
 type NewTerraformDriftCheckRequest struct {
-	ModuleAssignmentId                   string
+	ModuleAssignmentID                   uint
 	Destroy                              bool
 	CallbackTaskToken                    *string
-	ModulePropagationId                  *string
-	ModulePropagationDriftCheckRequestId *string
+	ModulePropagationID                  *uint
+	ModulePropagationDriftCheckRequestID *uint
 }
 
 type TerraformDriftCheckRequestUpdate struct {
 	Status                 *RequestStatus
-	PlanExecutionRequestId *string
+	PlanExecutionRequestID *uint
+	StartedAt              *time.Time
+	CompletedAt            *time.Time
 	SyncStatus             *TerraformDriftCheckStatus
+}
+
+type TerraformDriftCheckRequestFilters struct {
+	StartedBefore   *time.Time
+	StartedAfter    *time.Time
+	CompletedBefore *time.Time
+	CompletedAfter  *time.Time
+	Destroy         *bool
+	Status          *RequestStatus
+	SyncStatus      *TerraformDriftCheckStatus
 }
 
 type TerraformDriftCheckStatus string

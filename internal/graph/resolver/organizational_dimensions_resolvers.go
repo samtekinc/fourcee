@@ -7,67 +7,47 @@ package resolver
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-// CreateOrganizationalDimension is the resolver for the createOrganizationalDimension field.
-func (r *mutationResolver) CreateOrganizationalDimension(ctx context.Context, orgDimension models.NewOrganizationalDimension) (*models.OrganizationalDimension, error) {
-	return r.apiClient.PutOrganizationalDimension(ctx, &orgDimension)
+// CreateOrgDimension is the resolver for the createOrgDimension field.
+func (r *mutationResolver) CreateOrgDimension(ctx context.Context, orgDimension models.NewOrgDimension) (*models.OrgDimension, error) {
+	return r.apiClient.CreateOrgDimension(ctx, &orgDimension)
 }
 
-// DeleteOrganizationalDimension is the resolver for the deleteOrganizationalDimension field.
-func (r *mutationResolver) DeleteOrganizationalDimension(ctx context.Context, orgDimensionID string) (bool, error) {
-	err := r.apiClient.DeleteOrganizationalDimension(ctx, orgDimensionID)
+// DeleteOrgDimension is the resolver for the deleteOrgDimension field.
+func (r *mutationResolver) DeleteOrgDimension(ctx context.Context, orgDimensionID uint) (bool, error) {
+	err := r.apiClient.DeleteOrgDimension(ctx, orgDimensionID)
 	return err == nil, err
 }
 
 // RootOrgUnit is the resolver for the rootOrgUnit field.
-func (r *organizationalDimensionResolver) RootOrgUnit(ctx context.Context, obj *models.OrganizationalDimension) (*models.OrganizationalUnit, error) {
-	return r.apiClient.GetOrganizationalUnitBatched(ctx, obj.OrgDimensionId, obj.RootOrgUnitId)
+func (r *orgDimensionResolver) RootOrgUnit(ctx context.Context, obj *models.OrgDimension) (*models.OrgUnit, error) {
+	return r.apiClient.GetOrgUnitBatched(ctx, obj.RootOrgUnitID)
 }
 
 // OrgUnits is the resolver for the orgUnits field.
-func (r *organizationalDimensionResolver) OrgUnits(ctx context.Context, obj *models.OrganizationalDimension, limit *int, nextCursor *string) (*models.OrganizationalUnits, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetOrganizationalUnitsByDimension(ctx, obj.OrgDimensionId, int32(*limit), aws.ToString(nextCursor))
-}
-
-// OrgUnitMemberships is the resolver for the orgUnitMemberships field.
-func (r *organizationalDimensionResolver) OrgUnitMemberships(ctx context.Context, obj *models.OrganizationalDimension, limit *int, nextCursor *string) (*models.OrganizationalUnitMemberships, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetOrganizationalUnitMembershipsByDimension(ctx, obj.OrgDimensionId, int32(*limit), aws.ToString(nextCursor))
+func (r *orgDimensionResolver) OrgUnits(ctx context.Context, obj *models.OrgDimension, filters *models.OrgUnitFilters, limit *int, offset *int) ([]*models.OrgUnit, error) {
+	return r.apiClient.GetOrgUnitsForDimension(ctx, obj.ID, filters, limit, offset)
 }
 
 // ModulePropagations is the resolver for the modulePropagations field.
-func (r *organizationalDimensionResolver) ModulePropagations(ctx context.Context, obj *models.OrganizationalDimension, limit *int, nextCursor *string) (*models.ModulePropagations, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetModulePropagationsByOrgDimensionId(ctx, obj.OrgDimensionId, int32(*limit), aws.ToString(nextCursor))
+func (r *orgDimensionResolver) ModulePropagations(ctx context.Context, obj *models.OrgDimension, filters *models.ModulePropagationFilters, limit *int, offset *int) ([]*models.ModulePropagation, error) {
+	return r.apiClient.GetModulePropagationsForOrgDimension(ctx, obj.ID, filters, limit, offset)
 }
 
-// OrganizationalDimension is the resolver for the organizationalDimension field.
-func (r *queryResolver) OrganizationalDimension(ctx context.Context, orgDimensionID string) (*models.OrganizationalDimension, error) {
-	return r.apiClient.GetOrganizationalDimension(ctx, orgDimensionID)
+// OrgDimension is the resolver for the orgDimension field.
+func (r *queryResolver) OrgDimension(ctx context.Context, orgDimensionID uint) (*models.OrgDimension, error) {
+	return r.apiClient.GetOrgDimension(ctx, orgDimensionID)
 }
 
-// OrganizationalDimensions is the resolver for the organizationalDimensions field.
-func (r *queryResolver) OrganizationalDimensions(ctx context.Context, limit *int, nextCursor *string) (*models.OrganizationalDimensions, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetOrganizationalDimensions(ctx, int32(*limit), aws.ToString(nextCursor))
+// OrgDimensions is the resolver for the orgDimensions field.
+func (r *queryResolver) OrgDimensions(ctx context.Context, filters *models.OrgDimensionFilters, limit *int, offset *int) ([]*models.OrgDimension, error) {
+	return r.apiClient.GetOrgDimensions(ctx, filters, limit, offset)
 }
 
-// OrganizationalDimension returns generated.OrganizationalDimensionResolver implementation.
-func (r *Resolver) OrganizationalDimension() generated.OrganizationalDimensionResolver {
-	return &organizationalDimensionResolver{r}
-}
+// OrgDimension returns generated.OrgDimensionResolver implementation.
+func (r *Resolver) OrgDimension() generated.OrgDimensionResolver { return &orgDimensionResolver{r} }
 
-type organizationalDimensionResolver struct{ *Resolver }
+type orgDimensionResolver struct{ *Resolver }

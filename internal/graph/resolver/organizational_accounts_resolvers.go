@@ -7,59 +7,47 @@ package resolver
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-// CreateOrganizationalAccount is the resolver for the createOrganizationalAccount field.
-func (r *mutationResolver) CreateOrganizationalAccount(ctx context.Context, orgAccount models.NewOrganizationalAccount) (*models.OrganizationalAccount, error) {
-	return r.apiClient.PutOrganizationalAccount(ctx, &orgAccount)
+// CreateOrgAccount is the resolver for the createOrgAccount field.
+func (r *mutationResolver) CreateOrgAccount(ctx context.Context, orgAccount models.NewOrgAccount) (*models.OrgAccount, error) {
+	return r.apiClient.CreateOrgAccount(ctx, &orgAccount)
 }
 
-// DeleteOrganizationalAccount is the resolver for the deleteOrganizationalAccount field.
-func (r *mutationResolver) DeleteOrganizationalAccount(ctx context.Context, orgAccountID string) (bool, error) {
-	err := r.apiClient.DeleteOrganizationalAccount(ctx, orgAccountID)
+// DeleteOrgAccount is the resolver for the deleteOrgAccount field.
+func (r *mutationResolver) DeleteOrgAccount(ctx context.Context, orgAccountID uint) (bool, error) {
+	err := r.apiClient.DeleteOrgAccount(ctx, orgAccountID)
 	return err == nil, err
 }
 
-// UpdateOrganizationalAccount is the resolver for the updateOrganizationalAccount field.
-func (r *mutationResolver) UpdateOrganizationalAccount(ctx context.Context, orgAccountID string, update models.OrganizationalAccountUpdate) (*models.OrganizationalAccount, error) {
-	return r.apiClient.UpdateOrganizationalAccount(ctx, orgAccountID, &update)
+// UpdateOrgAccount is the resolver for the updateOrgAccount field.
+func (r *mutationResolver) UpdateOrgAccount(ctx context.Context, orgAccountID uint, orgAccount models.OrgAccountUpdate) (*models.OrgAccount, error) {
+	return r.apiClient.UpdateOrgAccount(ctx, orgAccountID, &orgAccount)
 }
 
-// OrgUnitMemberships is the resolver for the orgUnitMemberships field.
-func (r *organizationalAccountResolver) OrgUnitMemberships(ctx context.Context, obj *models.OrganizationalAccount, limit *int, nextCursor *string) (*models.OrganizationalUnitMemberships, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetOrganizationalUnitMembershipsByAccount(ctx, obj.OrgAccountId, int32(*limit), aws.ToString(nextCursor))
+// OrgUnits is the resolver for the orgUnits field.
+func (r *orgAccountResolver) OrgUnits(ctx context.Context, obj *models.OrgAccount, filters *models.OrgUnitFilters, limit *int, offset *int) ([]*models.OrgUnit, error) {
+	return r.apiClient.GetOrgUnitsForOrgAccount(ctx, obj.ID, filters, limit, offset)
 }
 
 // ModuleAssignments is the resolver for the moduleAssignments field.
-func (r *organizationalAccountResolver) ModuleAssignments(ctx context.Context, obj *models.OrganizationalAccount, limit *int, nextCursor *string) (*models.ModuleAssignments, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetModuleAssignmentsByOrgAccountId(ctx, obj.OrgAccountId, int32(*limit), aws.ToString(nextCursor))
+func (r *orgAccountResolver) ModuleAssignments(ctx context.Context, obj *models.OrgAccount, filters *models.ModuleAssignmentFilters, limit *int, offset *int) ([]*models.ModuleAssignment, error) {
+	return r.apiClient.GetModuleAssignmentsForOrgAccount(ctx, obj.ID, filters, limit, offset)
 }
 
-// OrganizationalAccount is the resolver for the organizationalAccount field.
-func (r *queryResolver) OrganizationalAccount(ctx context.Context, orgAccountID string) (*models.OrganizationalAccount, error) {
-	return r.apiClient.GetOrganizationalAccount(ctx, orgAccountID)
+// OrgAccount is the resolver for the orgAccount field.
+func (r *queryResolver) OrgAccount(ctx context.Context, orgAccountID uint) (*models.OrgAccount, error) {
+	return r.apiClient.GetOrgAccount(ctx, orgAccountID)
 }
 
-// OrganizationalAccounts is the resolver for the organizationalAccounts field.
-func (r *queryResolver) OrganizationalAccounts(ctx context.Context, limit *int, nextCursor *string) (*models.OrganizationalAccounts, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetOrganizationalAccounts(ctx, int32(*limit), aws.ToString(nextCursor))
+// OrgAccounts is the resolver for the orgAccounts field.
+func (r *queryResolver) OrgAccounts(ctx context.Context, filters *models.OrgAccountFilters, limit *int, offset *int) ([]*models.OrgAccount, error) {
+	return r.apiClient.GetOrgAccounts(ctx, filters, limit, offset)
 }
 
-// OrganizationalAccount returns generated.OrganizationalAccountResolver implementation.
-func (r *Resolver) OrganizationalAccount() generated.OrganizationalAccountResolver {
-	return &organizationalAccountResolver{r}
-}
+// OrgAccount returns generated.OrgAccountResolver implementation.
+func (r *Resolver) OrgAccount() generated.OrgAccountResolver { return &orgAccountResolver{r} }
 
-type organizationalAccountResolver struct{ *Resolver }
+type orgAccountResolver struct{ *Resolver }

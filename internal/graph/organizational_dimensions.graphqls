@@ -1,36 +1,33 @@
-type OrganizationalDimension {
-  orgDimensionId: ID!
+type OrgDimension {
+  id: ID!
   name: String!
-  rootOrgUnitId: ID!
-  rootOrgUnit: OrganizationalUnit!
-  orgUnits(limit: Int, nextCursor: String): OrganizationalUnits!
-  orgUnitMemberships(
+  rootOrgUnit: OrgUnit!
+  orgUnits(filters: OrgUnitFilters, limit: Int, offset: Int): [OrgUnit!]!
+  modulePropagations(
+    filters: ModulePropagationFilters
     limit: Int
-    nextCursor: String
-  ): OrganizationalUnitMemberships!
-  modulePropagations(limit: Int, nextCursor: String): ModulePropagations!
+    offset: Int
+  ): [ModulePropagation!]!
 }
 
-type OrganizationalDimensions {
-  items: [OrganizationalDimension]!
-  nextCursor: String
-}
-
-input NewOrganizationalDimension {
+input NewOrgDimension {
   name: String!
+}
+
+input OrgDimensionFilters {
+  nameContains: String
 }
 
 extend type Query {
-  organizationalDimension(orgDimensionId: ID!): OrganizationalDimension!
-  organizationalDimensions(
+  orgDimension(orgDimensionID: ID!): OrgDimension!
+  orgDimensions(
+    filters: OrgDimensionFilters
     limit: Int
-    nextCursor: String
-  ): OrganizationalDimensions!
+    offset: Int
+  ): [OrgDimension!]!
 }
 
 extend type Mutation {
-  createOrganizationalDimension(
-    orgDimension: NewOrganizationalDimension!
-  ): OrganizationalDimension!
-  deleteOrganizationalDimension(orgDimensionId: ID!): Boolean!
+  createOrgDimension(orgDimension: NewOrgDimension!): OrgDimension!
+  deleteOrgDimension(orgDimensionID: ID!): Boolean!
 }

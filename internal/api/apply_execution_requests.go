@@ -2,16 +2,47 @@ package api
 
 import (
 	"context"
-	"time"
 
 	"github.com/graph-gophers/dataloader"
-	"github.com/sheacloud/tfom/internal/identifiers"
 	"github.com/sheacloud/tfom/pkg/models"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
+
+func applyApplyExecutionRequestFilters(tx *gorm.DB, filters *models.ApplyExecutionRequestFilters) *gorm.DB {
+	if filters != nil {
+		if filters.StartedBefore != nil {
+			tx = tx.Where("started_at < ?", *filters.StartedBefore)
+		}
+		if filters.StartedAfter != nil {
+			tx = tx.Where("started_at > ?", *filters.StartedAfter)
+		}
+		if filters.CompletedBefore != nil {
+			tx = tx.Where("completed_at < ?", *filters.CompletedBefore)
+		}
+		if filters.CompletedAfter != nil {
+			tx = tx.Where("completed_at > ?", *filters.CompletedAfter)
+		}
+		if filters.Status != nil {
+			tx = tx.Where("status = ?", *filters.Status)
+		}
+		if filters.Destroy != nil {
+			tx = tx.Where("destroy = ?", *filters.Destroy)
+		}
+	}
+	return tx
+}
+
+func applyApplyExecutionRequestPreloads(tx *gorm.DB) *gorm.DB {
+	return tx
+}
 
 func (c *APIClient) GetApplyExecutionRequestsByIds(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	output := make([]*dataloader.Result, len(keys))
-	results, err := c.dbClient.GetApplyExecutionRequestsByIds(ctx, keys.Keys())
+
+	var applyExecutionRequests []*models.ApplyExecutionRequest
+	tx := applyApplyExecutionRequestPreloads(c.db)
+	err := tx.Find(&applyExecutionRequests, keys.Keys()).Error
 	if err != nil {
 		for i := range keys {
 			output[i] = &dataloader.Result{Error: err}
@@ -20,78 +51,54 @@ func (c *APIClient) GetApplyExecutionRequestsByIds(ctx context.Context, keys dat
 	}
 
 	for i := range keys {
-		output[i] = &dataloader.Result{Data: &results[i], Error: nil}
+		output[i] = &dataloader.Result{Data: applyExecutionRequests[i], Error: nil}
 	}
 	return output
 }
 
-func (c *APIClient) GetApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string) (*models.ApplyExecutionRequest, error) {
-	applyExecutionRequest, err := c.dbClient.GetApplyExecutionRequest(ctx, applyExecutionRequestId)
+func (c *APIClient) GetApplyExecutionRequest(ctx context.Context, id uint) (*models.ApplyExecutionRequest, error) {
+	var applyExecutionRequest models.ApplyExecutionRequest
+	tx := applyApplyExecutionRequestPreloads(c.db)
+	err := tx.First(&applyExecutionRequest, id).Error
 	if err != nil {
 		return nil, err
 	}
-
-	return applyExecutionRequest, nil
+	return &applyExecutionRequest, nil
 }
 
-func (c *APIClient) GetApplyExecutionRequestBatched(ctx context.Context, applyExecutionRequestId string) (*models.ApplyExecutionRequest, error) {
-	thunk := c.applyExecutionRequestsLoader.Load(ctx, dataloader.StringKey(applyExecutionRequestId))
+func (c *APIClient) GetApplyExecutionRequestBatched(ctx context.Context, id uint) (*models.ApplyExecutionRequest, error) {
+	thunk := c.applyExecutionRequestsLoader.Load(ctx, dataloader.StringKey(idToString(id)))
 	result, err := thunk()
 	if err != nil {
 		return nil, err
 	}
-	applyExecutionRequest := result.(*models.ApplyExecutionRequest)
-
-	return applyExecutionRequest, nil
+	return result.(*models.ApplyExecutionRequest), nil
 }
 
-func (c *APIClient) GetApplyExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
-	requests, err := c.dbClient.GetApplyExecutionRequests(ctx, limit, cursor)
+func (c *APIClient) GetApplyExecutionRequests(ctx context.Context, filters *models.ApplyExecutionRequestFilters, limit *int, offset *int) ([]*models.ApplyExecutionRequest, error) {
+	var applyExecutionRequests []*models.ApplyExecutionRequest
+	tx := applyPagination(c.db, limit, offset)
+	tx = applyApplyExecutionRequestFilters(tx, filters)
+	tx = applyApplyExecutionRequestPreloads(tx)
+	err := tx.Find(&applyExecutionRequests).Error
 	if err != nil {
 		return nil, err
 	}
-
-	return requests, nil
+	return applyExecutionRequests, nil
 }
 
-func (c *APIClient) GetApplyExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.ApplyExecutionRequests, error) {
-	requests, err := c.dbClient.GetApplyExecutionRequestsByModuleAssignmentId(ctx, moduleAssignmentId, limit, cursor)
-	if err != nil {
-		return nil, err
-	}
-
-	return requests, nil
-}
-
-func (c *APIClient) PutApplyExecutionRequest(ctx context.Context, input *models.NewApplyExecutionRequest) (*models.ApplyExecutionRequest, error) {
-	applyExecutionRequestId, err := identifiers.NewIdentifier(identifiers.ResourceTypeApplyExecutionRequest)
-	if err != nil {
-		return nil, err
-	}
-
+func (c *APIClient) CreateApplyExecutionRequest(ctx context.Context, input *models.NewApplyExecutionRequest) (*models.ApplyExecutionRequest, error) {
 	applyExecutionRequest := models.ApplyExecutionRequest{
-		ApplyExecutionRequestId:      applyExecutionRequestId.String(),
-		ModuleAssignmentId:           input.ModuleAssignmentId,
+		ModuleAssignmentID:           input.ModuleAssignmentID,
 		TerraformVersion:             input.TerraformVersion,
 		CallbackTaskToken:            input.CallbackTaskToken,
-		TerraformWorkflowRequestId:   input.TerraformWorkflowRequestId,
 		TerraformConfigurationBase64: input.TerraformConfigurationBase64,
 		TerraformPlanBase64:          input.TerraformPlanBase64,
+		TerraformExecutionRequestID:  input.TerraformExecutionRequestID,
 		AdditionalArguments:          input.AdditionalArguments,
 		Status:                       models.RequestStatusPending,
-		RequestTime:                  time.Now().UTC(),
 	}
-	err = c.dbClient.PutApplyExecutionRequest(ctx, &applyExecutionRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	// Start Workflow
-	err = c.startTerraformCommandWorkflow(ctx, &TerraformExecutionInput{
-		RequestType: "apply",
-		RequestId:   applyExecutionRequestId.String(),
-		TaskToken:   applyExecutionRequest.CallbackTaskToken,
-	})
+	err := c.db.Create(&applyExecutionRequest).Error
 	if err != nil {
 		return nil, err
 	}
@@ -99,6 +106,38 @@ func (c *APIClient) PutApplyExecutionRequest(ctx context.Context, input *models.
 	return &applyExecutionRequest, nil
 }
 
-func (c *APIClient) UpdateApplyExecutionRequest(ctx context.Context, applyExecutionRequestId string, input *models.ApplyExecutionRequestUpdate) (*models.ApplyExecutionRequest, error) {
-	return c.dbClient.UpdateApplyExecutionRequest(ctx, applyExecutionRequestId, input)
+func (c *APIClient) DeleteApplyExecutionRequest(ctx context.Context, id uint) error {
+	return c.db.Select(clause.Associations).Delete(&models.ApplyExecutionRequest{}, id).Error
+}
+
+func (c *APIClient) UpdateApplyExecutionRequest(ctx context.Context, id uint, update *models.ApplyExecutionRequestUpdate) (*models.ApplyExecutionRequest, error) {
+	applyExecutionRequest := models.ApplyExecutionRequest{
+		Model: gorm.Model{
+			ID: id,
+		},
+	}
+	updates := models.ApplyExecutionRequest{}
+
+	if update.InitOutput != nil {
+		updates.InitOutput = update.InitOutput
+	}
+	if update.ApplyOutput != nil {
+		updates.ApplyOutput = update.ApplyOutput
+	}
+	if update.Status != nil {
+		updates.Status = *update.Status
+	}
+	if update.StartedAt != nil {
+		updates.StartedAt = update.StartedAt
+	}
+	if update.CompletedAt != nil {
+		updates.CompletedAt = update.CompletedAt
+	}
+
+	err := c.db.Model(&applyExecutionRequest).Updates(updates).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &applyExecutionRequest, nil
 }

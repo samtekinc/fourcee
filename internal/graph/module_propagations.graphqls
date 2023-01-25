@@ -1,27 +1,33 @@
 type ModulePropagation {
-  modulePropagationId: ID!
-  moduleVersionId: ID!
+  id: ID!
+  moduleVersionID: ID!
   moduleVersion: ModuleVersion!
-  moduleGroupId: ID!
+  moduleGroupID: ID!
   moduleGroup: ModuleGroup!
-  orgUnitId: ID!
-  orgUnit: OrganizationalUnit!
-  orgDimensionId: ID!
-  orgDimension: OrganizationalDimension!
+  orgUnitID: ID!
+  orgUnit: OrgUnit!
+  orgDimensionID: ID!
+  orgDimension: OrgDimension!
   name: String!
   description: String!
   arguments: [Argument!]!
   awsProviderConfigurations: [AwsProviderConfiguration!]
   gcpProviderConfigurations: [GcpProviderConfiguration!]
-  moduleAssignments(limit: Int, nextCursor: String): ModuleAssignments!
+  moduleAssignments(
+    filters: ModuleAssignmentFilters
+    limit: Int
+    offset: Int
+  ): [ModuleAssignment!]!
   executionRequests(
+    filters: ModulePropagationExecutionRequestFilters
     limit: Int
-    nextCursor: String
-  ): ModulePropagationExecutionRequests!
+    offset: Int
+  ): [ModulePropagationExecutionRequest!]!
   driftCheckRequests(
+    filters: ModulePropagationDriftCheckRequestFilters
     limit: Int
-    nextCursor: String
-  ): ModulePropagationDriftCheckRequests!
+    offset: Int
+  ): [ModulePropagationDriftCheckRequest!]!
 }
 
 type AwsProviderConfiguration {
@@ -39,16 +45,11 @@ type Argument {
   value: String!
 }
 
-type ModulePropagations {
-  items: [ModulePropagation]!
-  nextCursor: String
-}
-
 input NewModulePropagation {
-  moduleVersionId: ID!
-  moduleGroupId: ID!
-  orgUnitId: ID!
-  orgDimensionId: ID!
+  moduleVersionID: ID!
+  moduleGroupID: ID!
+  orgUnitID: ID!
+  orgDimensionID: ID!
   name: String!
   description: String!
   arguments: [ArgumentInput!]!
@@ -67,9 +68,9 @@ input GcpProviderConfigurationInput {
 }
 
 input ModulePropagationUpdate {
-  orgDimensionId: ID
-  orgUnitId: ID
-  moduleVersionId: ID
+  orgDimensionID: ID
+  orgUnitID: ID
+  moduleVersionID: ID
   name: String
   description: String
   arguments: [ArgumentInput!]
@@ -82,18 +83,27 @@ input ArgumentInput {
   value: String!
 }
 
+input ModulePropagationFilters {
+  nameContains: String
+  descriptionContains: String
+}
+
 extend type Query {
-  modulePropagation(modulePropagationId: ID!): ModulePropagation!
-  modulePropagations(limit: Int, nextCursor: String): ModulePropagations!
+  modulePropagation(modulePropagationID: ID!): ModulePropagation!
+  modulePropagations(
+    filters: ModulePropagationFilters
+    limit: Int
+    offset: Int
+  ): [ModulePropagation!]!
 }
 
 extend type Mutation {
   createModulePropagation(
     modulePropagation: NewModulePropagation!
   ): ModulePropagation!
-  deleteModulePropagation(modulePropagationId: ID!): Boolean!
+  deleteModulePropagation(modulePropagationID: ID!): Boolean!
   updateModulePropagation(
-    modulePropagationId: ID!
+    modulePropagationID: ID!
     update: ModulePropagationUpdate!
   ): ModulePropagation!
 }

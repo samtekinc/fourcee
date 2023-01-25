@@ -1,47 +1,54 @@
-type OrganizationalAccount {
-  orgAccountId: ID!
+type OrgAccount {
+  id: ID!
   name: String!
   cloudPlatform: CloudPlatform!
   cloudIdentifier: String!
+  assumeRoleName: String!
+  orgUnits(filters: OrgUnitFilters, limit: Int, offset: Int): [OrgUnit!]!
   metadata: [Metadata!]!
-  orgUnitMemberships(
+  moduleAssignments(
+    filters: ModuleAssignmentFilters
     limit: Int
-    nextCursor: String
-  ): OrganizationalUnitMemberships!
-  moduleAssignments(limit: Int, nextCursor: String): ModuleAssignments!
+    offset: Int
+  ): [ModuleAssignment!]!
 }
 
-type OrganizationalAccounts {
-  items: [OrganizationalAccount]!
-  nextCursor: String
-}
-
-input NewOrganizationalAccount {
+input NewOrgAccount {
   name: String!
   cloudPlatform: CloudPlatform!
   cloudIdentifier: String!
+  assumeRoleName: String!
   metadata: [MetadataInput!]!
 }
 
-input OrganizationalAccountUpdate {
+input OrgAccountUpdate {
+  name: String
+  cloudPlatform: CloudPlatform
+  cloudIdentifier: String
+  assumeRoleName: String
   metadata: [MetadataInput!]
 }
 
+input OrgAccountFilters {
+  nameContains: String
+  cloudPlatform: CloudPlatform
+  cloudIdentifier: String
+}
+
 extend type Query {
-  organizationalAccount(orgAccountId: ID!): OrganizationalAccount!
-  organizationalAccounts(
+  orgAccount(orgAccountID: ID!): OrgAccount!
+  orgAccounts(
+    filters: OrgAccountFilters
     limit: Int
-    nextCursor: String
-  ): OrganizationalAccounts!
+    offset: Int
+  ): [OrgAccount!]!
 }
 
 extend type Mutation {
-  createOrganizationalAccount(
-    orgAccount: NewOrganizationalAccount!
-  ): OrganizationalAccount!
-  deleteOrganizationalAccount(orgAccountId: ID!): Boolean!
-  updateOrganizationalAccount(
-    orgAccountId: ID!
-    update: OrganizationalAccountUpdate!
-  ): OrganizationalAccount!
+  createOrgAccount(orgAccount: NewOrgAccount!): OrgAccount!
+  deleteOrgAccount(orgAccountID: ID!): Boolean!
+  updateOrgAccount(
+    orgAccountID: ID!
+    orgAccount: OrgAccountUpdate!
+  ): OrgAccount!
 }

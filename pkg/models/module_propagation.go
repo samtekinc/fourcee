@@ -1,31 +1,49 @@
 package models
 
-type ModulePropagation struct {
-	ModulePropagationId       string
-	ModuleVersionId           string
-	ModuleGroupId             string
-	OrgUnitId                 string
-	OrgDimensionId            string
-	Arguments                 []Argument
-	AwsProviderConfigurations []AwsProviderConfiguration
-	GcpProviderConfigurations []GcpProviderConfiguration
-	Name                      string
-	Description               string
-}
+import (
+	"strconv"
 
-type ModulePropagations struct {
-	Items      []ModulePropagation
-	NextCursor string
+	"gorm.io/gorm"
+)
+
+type ModulePropagation struct {
+	gorm.Model
+	ModuleVersionID                                uint
+	ModuleGroupID                                  uint
+	OrgUnitID                                      uint
+	OrgDimensionID                                 uint
+	Name                                           string
+	Description                                    string
+	Arguments                                      []Argument
+	AwsProviderConfigurations                      []AwsProviderConfiguration
+	GcpProviderConfigurations                      []GcpProviderConfiguration
+	ModuleAssignmentsAssociation                   []ModuleAssignment                   `gorm:"foreignKey:ModulePropagationID"`
+	ModulePropagationExecutionRequestsAssociation  []ModulePropagationExecutionRequest  `gorm:"foreignKey:ModulePropagationID"`
+	ModulePropagationDriftCheckRequestsAssociation []ModulePropagationDriftCheckRequest `gorm:"foreignKey:ModulePropagationID"`
 }
 
 type AwsProviderConfiguration struct {
-	Region string
-	Alias  *string
+	gorm.Model
+	Region              string
+	Alias               *string
+	ModuleAssignmentID  *uint
+	ModulePropagationID *uint
 }
 
 type GcpProviderConfiguration struct {
-	Region string
-	Alias  *string
+	gorm.Model
+	Region              string
+	Alias               *string
+	ModuleAssignmentID  *uint
+	ModulePropagationID *uint
+}
+
+type Argument struct {
+	gorm.Model
+	Name                string
+	Value               string
+	ModuleAssignmentID  *uint
+	ModulePropagationID *uint
 }
 
 type AwsProviderConfigurationInput struct {
@@ -38,32 +56,27 @@ type GcpProviderConfigurationInput struct {
 	Alias  *string
 }
 
-type Argument struct {
-	Name  string
-	Value string
-}
-
 type ArgumentInput struct {
 	Name  string
 	Value string
 }
 
 type NewModulePropagation struct {
-	ModuleVersionId           string
-	ModuleGroupId             string
-	OrgUnitId                 string
-	OrgDimensionId            string
+	ModuleVersionID           uint
+	ModuleGroupID             uint
+	OrgUnitID                 uint
+	OrgDimensionID            uint
+	Name                      string
+	Description               string
 	Arguments                 []ArgumentInput
 	AwsProviderConfigurations []AwsProviderConfigurationInput
 	GcpProviderConfigurations []GcpProviderConfigurationInput
-	Name                      string
-	Description               string
 }
 
 type ModulePropagationUpdate struct {
-	OrgDimensionId            *string
-	OrgUnitId                 *string
-	ModuleVersionId           *string
+	OrgDimensionID            *uint
+	OrgUnitID                 *uint
+	ModuleVersionID           *uint
 	Name                      *string
 	Description               *string
 	Arguments                 []ArgumentInput
@@ -71,11 +84,16 @@ type ModulePropagationUpdate struct {
 	GcpProviderConfigurations []GcpProviderConfigurationInput
 }
 
+type ModulePropagationFilters struct {
+	NameContains        *string
+	DescriptionContains *string
+}
+
 func (m *ModulePropagation) GetInternalMetadata() []Metadata {
 	return []Metadata{
 		{
 			Name:  "id",
-			Value: m.ModulePropagationId,
+			Value: strconv.FormatUint(uint64(m.ID), 10),
 		},
 		{
 			Name:  "name",

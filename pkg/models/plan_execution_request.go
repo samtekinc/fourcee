@@ -1,46 +1,54 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type PlanExecutionRequest struct {
-	PlanExecutionRequestId       string
-	ModuleAssignmentId           string
+	gorm.Model
+	ModuleAssignmentID           uint
 	TerraformVersion             string
 	CallbackTaskToken            string
 	TerraformConfigurationBase64 string
-	AdditionalArguments          []string
-	TerraformWorkflowRequestId   string // could be a tfexec or a tfsync request
+	AdditionalArguments          *string
+	TerraformDriftCheckRequestID *uint
+	TerraformExecutionRequestID  *uint
 	Status                       RequestStatus
-	InitOutputKey                *string
-	PlanOutputKey                *string
-	PlanFileKey                  *string
-	PlanJSONKey                  *string
-	RequestTime                  time.Time
-}
-
-type PlanExecutionRequests struct {
-	Items      []PlanExecutionRequest
-	NextCursor string
+	InitOutput                   []byte
+	PlanOutput                   []byte
+	PlanFile                     []byte
+	PlanJSON                     []byte
+	StartedAt                    *time.Time
+	CompletedAt                  *time.Time
 }
 
 type NewPlanExecutionRequest struct {
-	ModuleAssignmentId           string
+	ModuleAssignmentID           uint
 	TerraformVersion             string
 	CallbackTaskToken            string
-	TerraformWorkflowRequestId   string
+	TerraformDriftCheckRequestID *uint
+	TerraformExecutionRequestID  *uint
 	TerraformConfigurationBase64 string
-	AdditionalArguments          []string
+	AdditionalArguments          *string
 }
 
 type PlanExecutionRequestUpdate struct {
-	InitOutputKey *string
-	PlanOutputKey *string
-	PlanFileKey   *string
-	PlanJSONKey   *string
-	Status        *RequestStatus
+	InitOutput  []byte
+	PlanOutput  []byte
+	PlanFile    []byte
+	PlanJSON    []byte
+	StartedAt   *time.Time
+	CompletedAt *time.Time
+	Status      *RequestStatus
 }
 
-type TerraformPlanOutput struct {
-	PlanFile []byte
-	PlanJSON []byte
+type PlanExecutionRequestFilters struct {
+	StartedBefore   *time.Time
+	StartedAfter    *time.Time
+	CompletedBefore *time.Time
+	CompletedAfter  *time.Time
+	Destroy         *bool
+	Status          *RequestStatus
 }

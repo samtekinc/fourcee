@@ -7,54 +7,44 @@ package resolver
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
 // ModuleGroup is the resolver for the moduleGroup field.
 func (r *moduleVersionResolver) ModuleGroup(ctx context.Context, obj *models.ModuleVersion) (*models.ModuleGroup, error) {
-	return r.apiClient.GetModuleGroupBatched(ctx, obj.ModuleGroupId)
+	return r.apiClient.GetModuleGroupBatched(ctx, obj.ModuleGroupID)
 }
 
 // ModulePropagations is the resolver for the modulePropagations field.
-func (r *moduleVersionResolver) ModulePropagations(ctx context.Context, obj *models.ModuleVersion, limit *int, nextCursor *string) (*models.ModulePropagations, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetModulePropagationsByModuleVersionId(ctx, obj.ModuleVersionId, int32(*limit), aws.ToString(nextCursor))
+func (r *moduleVersionResolver) ModulePropagations(ctx context.Context, obj *models.ModuleVersion, filters *models.ModulePropagationFilters, limit *int, offset *int) ([]*models.ModulePropagation, error) {
+	return r.apiClient.GetModulePropagationsForModuleVersion(ctx, obj.ID, filters, limit, offset)
 }
 
 // ModuleAssignments is the resolver for the moduleAssignments field.
-func (r *moduleVersionResolver) ModuleAssignments(ctx context.Context, obj *models.ModuleVersion, limit *int, nextCursor *string) (*models.ModuleAssignments, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetModuleAssignmentsByModuleVersionId(ctx, obj.ModuleVersionId, int32(*limit), aws.ToString(nextCursor))
+func (r *moduleVersionResolver) ModuleAssignments(ctx context.Context, obj *models.ModuleVersion, filters *models.ModuleAssignmentFilters, limit *int, offset *int) ([]*models.ModuleAssignment, error) {
+	return r.apiClient.GetModuleAssignmentsForModuleVersion(ctx, obj.ID, filters, limit, offset)
 }
 
 // CreateModuleVersion is the resolver for the createModuleVersion field.
 func (r *mutationResolver) CreateModuleVersion(ctx context.Context, moduleVersion models.NewModuleVersion) (*models.ModuleVersion, error) {
-	return r.apiClient.PutModuleVersion(ctx, &moduleVersion)
+	return r.apiClient.CreateModuleVersion(ctx, &moduleVersion)
 }
 
 // DeleteModuleVersion is the resolver for the deleteModuleVersion field.
-func (r *mutationResolver) DeleteModuleVersion(ctx context.Context, moduleGroupID string, moduleVersionID string) (bool, error) {
-	err := r.apiClient.DeleteModuleVersion(ctx, moduleGroupID, moduleVersionID)
+func (r *mutationResolver) DeleteModuleVersion(ctx context.Context, moduleVersionID uint) (bool, error) {
+	err := r.apiClient.DeleteModuleVersion(ctx, moduleVersionID)
 	return err == nil, err
 }
 
 // ModuleVersion is the resolver for the moduleVersion field.
-func (r *queryResolver) ModuleVersion(ctx context.Context, moduleGroupID string, moduleVersionID string) (*models.ModuleVersion, error) {
-	return r.apiClient.GetModuleVersion(ctx, moduleGroupID, moduleVersionID)
+func (r *queryResolver) ModuleVersion(ctx context.Context, moduleVersionID uint) (*models.ModuleVersion, error) {
+	return r.apiClient.GetModuleVersion(ctx, moduleVersionID)
 }
 
 // ModuleVersions is the resolver for the moduleVersions field.
-func (r *queryResolver) ModuleVersions(ctx context.Context, moduleGroupID string, limit *int, nextCursor *string) (*models.ModuleVersions, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetModuleVersions(ctx, moduleGroupID, int32(*limit), aws.ToString(nextCursor))
+func (r *queryResolver) ModuleVersions(ctx context.Context, filters *models.ModuleVersionFilters, limit *int, offset *int) ([]*models.ModuleVersion, error) {
+	return r.apiClient.GetModuleVersions(ctx, filters, limit, offset)
 }
 
 // ModuleVersion returns generated.ModuleVersionResolver implementation.

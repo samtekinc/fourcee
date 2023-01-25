@@ -1,32 +1,24 @@
 package api
 
-import (
-	"context"
-	"encoding/json"
+// type TerraformExecutionInput struct {
+// 	RequestType string
+// 	RequestId   string
+// 	TaskToken   string
+// }
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/sfn"
-)
+// func (c *APIClient) startTerraformCommandWorkflow(ctx context.Context, input *TerraformExecutionInput) error {
+// 	workflowExecutionInput, err := json.Marshal(input)
+// 	if err != nil {
+// 		return err
+// 	}
 
-type TerraformExecutionInput struct {
-	RequestType string
-	RequestId   string
-	TaskToken   string
-}
+// 	_, err = c.sfnClient.StartExecution(ctx, &sfn.StartExecutionInput{
+// 		StateMachineArn: aws.String(c.terraformCommandWorkflowArn),
+// 		Input:           aws.String(string(workflowExecutionInput)),
+// 	})
+// 	if err != nil {
+// 		return err
+// 	}
 
-func (c *APIClient) startTerraformCommandWorkflow(ctx context.Context, input *TerraformExecutionInput) error {
-	workflowExecutionInput, err := json.Marshal(input)
-	if err != nil {
-		return err
-	}
-
-	_, err = c.sfnClient.StartExecution(ctx, &sfn.StartExecutionInput{
-		StateMachineArn: aws.String(c.terraformCommandWorkflowArn),
-		Input:           aws.String(string(workflowExecutionInput)),
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+// 	return nil
+// }

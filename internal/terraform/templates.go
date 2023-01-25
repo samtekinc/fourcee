@@ -14,7 +14,7 @@ type TerraformConfigurationInput struct {
 	ModuleAssignment  *models.ModuleAssignment
 	ModulePropagation *models.ModulePropagation
 	ModuleVersion     *models.ModuleVersion
-	OrgAccount        *models.OrganizationalAccount
+	OrgAccount        *models.OrgAccount
 	LockTableName     string
 }
 
@@ -44,7 +44,7 @@ func GetTerraformConfigurationBase64(input *TerraformConfigurationInput) (string
 				Config:         awsProvider,
 				AssumeRoleName: input.OrgAccount.AssumeRoleName,
 				AccountId:      input.OrgAccount.CloudIdentifier,
-				SessionName:    fmt.Sprintf("tfom-%s", input.ModuleAssignment.ModuleAssignmentId),
+				SessionName:    fmt.Sprintf("tfom-%v", input.ModuleAssignment.ID),
 			})
 		}
 	case models.CloudPlatformAzure:

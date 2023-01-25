@@ -1,39 +1,50 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type ApplyExecutionRequest struct {
-	ApplyExecutionRequestId      string
-	ModuleAssignmentId           string
+	gorm.Model
+	ModuleAssignmentID           uint
 	TerraformVersion             string
 	CallbackTaskToken            string
 	TerraformConfigurationBase64 string
 	TerraformPlanBase64          string
-	AdditionalArguments          []string
-	TerraformWorkflowRequestId   string // could be a tfexec or a tfsync request
+	AdditionalArguments          *string
+	TerraformExecutionRequestID  uint
 	Status                       RequestStatus
-	InitOutputKey                *string
-	ApplyOutputKey               *string
-	RequestTime                  time.Time
-}
-
-type ApplyExecutionRequests struct {
-	Items      []ApplyExecutionRequest
-	NextCursor string
+	InitOutput                   []byte
+	ApplyOutput                  []byte
+	StartedAt                    *time.Time
+	CompletedAt                  *time.Time
 }
 
 type NewApplyExecutionRequest struct {
-	ModuleAssignmentId           string
+	ModuleAssignmentID           uint
 	TerraformVersion             string
 	CallbackTaskToken            string
-	TerraformWorkflowRequestId   string // could be a tfexec or a tfsync request
 	TerraformConfigurationBase64 string
+	TerraformExecutionRequestID  uint
 	TerraformPlanBase64          string
-	AdditionalArguments          []string
+	AdditionalArguments          *string
 }
 
 type ApplyExecutionRequestUpdate struct {
-	InitOutputKey  *string
-	ApplyOutputKey *string
-	Status         *RequestStatus
+	InitOutput  []byte
+	ApplyOutput []byte
+	StartedAt   *time.Time
+	CompletedAt *time.Time
+	Status      *RequestStatus
+}
+
+type ApplyExecutionRequestFilters struct {
+	StartedBefore   *time.Time
+	StartedAfter    *time.Time
+	CompletedBefore *time.Time
+	CompletedAfter  *time.Time
+	Destroy         *bool
+	Status          *RequestStatus
 }

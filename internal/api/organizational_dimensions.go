@@ -2,16 +2,32 @@ package api
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/graph-gophers/dataloader"
-	"github.com/sheacloud/tfom/internal/identifiers"
 	"github.com/sheacloud/tfom/pkg/models"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
-func (c *APIClient) GetOrganizationalDimensionsByIds(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+func applyOrgDimensionFilters(tx *gorm.DB, filters *models.OrgDimensionFilters) *gorm.DB {
+	if filters != nil {
+		if filters.NameContains != nil {
+			tx = tx.Where("name LIKE ?", "%"+*filters.NameContains+"%")
+		}
+	}
+	return tx
+}
+
+func applyOrgDimensionPreloads(tx *gorm.DB) *gorm.DB {
+	return tx
+}
+
+func (c *APIClient) GetOrgDimensionsByIds(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	output := make([]*dataloader.Result, len(keys))
-	results, err := c.dbClient.GetOrganizationalDimensionsByIds(ctx, keys.Keys())
+
+	var orgDimensions []*models.OrgDimension
+	tx := applyOrgDimensionPreloads(c.db)
+	err := tx.Find(&orgDimensions, keys.Keys()).Error
 	if err != nil {
 		for i := range keys {
 			output[i] = &dataloader.Result{Error: err}
@@ -20,64 +36,80 @@ func (c *APIClient) GetOrganizationalDimensionsByIds(ctx context.Context, keys d
 	}
 
 	for i := range keys {
-		output[i] = &dataloader.Result{Data: &results[i], Error: nil}
+		output[i] = &dataloader.Result{Data: orgDimensions[i], Error: nil}
 	}
 	return output
 }
 
-func (c *APIClient) GetOrganizationalDimension(ctx context.Context, orgDimensionId string) (*models.OrganizationalDimension, error) {
-	return c.dbClient.GetOrganizationalDimension(ctx, orgDimensionId)
+func (c *APIClient) GetOrgDimension(ctx context.Context, id uint) (*models.OrgDimension, error) {
+	var orgDimension models.OrgDimension
+	tx := applyOrgDimensionPreloads(c.db)
+	err := tx.First(&orgDimension, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &orgDimension, nil
 }
 
-func (c *APIClient) GetOrganizationalDimensionBatched(ctx context.Context, orgDimensionId string) (*models.OrganizationalDimension, error) {
-	thunk := c.orgDimensionsLoader.Load(ctx, dataloader.StringKey(orgDimensionId))
+func (c *APIClient) GetOrgDimensionBatched(ctx context.Context, id uint) (*models.OrgDimension, error) {
+	thunk := c.orgDimensionsLoader.Load(ctx, dataloader.StringKey(idToString(id)))
 	result, err := thunk()
 	if err != nil {
 		return nil, err
 	}
-	return result.(*models.OrganizationalDimension), nil
+	return result.(*models.OrgDimension), nil
 }
 
-func (c *APIClient) GetOrganizationalDimensions(ctx context.Context, limit int32, cursor string) (*models.OrganizationalDimensions, error) {
-	return c.dbClient.GetOrganizationalDimensions(ctx, limit, cursor)
+func (c *APIClient) GetOrgDimensions(ctx context.Context, filters *models.OrgDimensionFilters, limit *int, offset *int) ([]*models.OrgDimension, error) {
+	var orgDimensions []*models.OrgDimension
+	tx := applyPagination(c.db, limit, offset)
+	tx = applyOrgDimensionFilters(tx, filters)
+	tx = applyOrgDimensionPreloads(tx)
+	err := tx.Find(&orgDimensions).Error
+	if err != nil {
+		return nil, err
+	}
+	return orgDimensions, nil
 }
 
-func (c *APIClient) PutOrganizationalDimension(ctx context.Context, input *models.NewOrganizationalDimension) (*models.OrganizationalDimension, error) {
-	orgDimensionId, err := identifiers.NewIdentifier(identifiers.ResourceTypeOrganizationalDimension)
+func (c *APIClient) CreateOrgDimension(ctx context.Context, input *models.NewOrgDimension) (*models.OrgDimension, error) {
+	orgDimension := models.OrgDimension{
+		Name: input.Name,
+	}
+
+	err := c.db.Transaction(func(tx *gorm.DB) error {
+		// create org dimension
+		err := tx.Create(&orgDimension).Error
+		if err != nil {
+			return err
+		}
+
+		// create root org unit
+		orgUnit := models.OrgUnit{
+			Name:            "Root",
+			OrgDimensionID:  orgDimension.ID,
+			ParentOrgUnitID: nil,
+		}
+		err = tx.Create(&orgUnit).Error
+		if err != nil {
+			return err
+		}
+
+		// update org dimension with root org unit id
+		err = tx.Model(&orgDimension).Updates(models.OrgDimension{RootOrgUnitID: orgUnit.ID}).Error
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	rootOuId, err := identifiers.NewIdentifier(identifiers.ResourceTypeOrganizationalUnit)
-	if err != nil {
-		return nil, err
-	}
-
-	// create the root OU for the dimension
-	rootOu := models.OrganizationalUnit{
-		OrgUnitId:      rootOuId.String(),
-		Name:           fmt.Sprintf("%s Root", input.Name),
-		OrgDimensionId: orgDimensionId.String(),
-		Hierarchy:      "/",
-	}
-	err = c.dbClient.PutOrganizationalUnit(ctx, &rootOu)
-	if err != nil {
-		return nil, err
-	}
-
-	orgDimension := models.OrganizationalDimension{
-		OrgDimensionId: orgDimensionId.String(),
-		Name:           input.Name,
-		RootOrgUnitId:  rootOuId.String(),
-	}
-	err = c.dbClient.PutOrganizationalDimension(ctx, &orgDimension)
-	if err != nil {
-		return nil, err
-	} else {
-		return &orgDimension, nil
-	}
+	return &orgDimension, nil
 }
 
-func (c *APIClient) DeleteOrganizationalDimension(ctx context.Context, id string) error {
-	return c.dbClient.DeleteOrganizationalDimension(ctx, id)
+func (c *APIClient) DeleteOrgDimension(ctx context.Context, id uint) error {
+	return c.db.Select(clause.Associations).Delete(&models.OrgDimension{}, id).Error
 }

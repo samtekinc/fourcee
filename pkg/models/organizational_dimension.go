@@ -1,16 +1,20 @@
 package models
 
-type OrganizationalDimension struct {
-	OrgDimensionId string
-	Name           string
-	RootOrgUnitId  string
+import "gorm.io/gorm"
+
+type OrgDimension struct {
+	gorm.Model
+	Name                          string
+	RootOrgUnitID                 uint
+	RootOrgUnitAssociation        OrgUnit             `gorm:"foreignKey:RootOrgUnitID"`
+	OrgUnitsAssociation           []OrgUnit           `gorm:"foreignKey:OrgDimensionID"`
+	ModulePropagationsAssociation []ModulePropagation `gorm:"foreignKey:OrgDimensionID"`
 }
 
-type OrganizationalDimensions struct {
-	Items      []OrganizationalDimension
-	NextCursor string
-}
-
-type NewOrganizationalDimension struct {
+type NewOrgDimension struct {
 	Name string
+}
+
+type OrgDimensionFilters struct {
+	NameContains *string
 }

@@ -1,11 +1,11 @@
 type ModuleAssignment {
-  moduleAssignmentId: ID!
-  moduleVersionId: ID!
+  id: ID!
+  moduleVersionID: ID!
   moduleVersion: ModuleVersion!
-  moduleGroupId: ID!
+  moduleGroupID: ID!
   moduleGroup: ModuleGroup!
-  orgAccountId: ID!
-  orgAccount: OrganizationalAccount!
+  orgAccountID: ID!
+  orgAccount: OrgAccount!
   name: String!
   description: String!
   remoteStateRegion: String!
@@ -15,33 +15,25 @@ type ModuleAssignment {
   awsProviderConfigurations: [AwsProviderConfiguration!]
   gcpProviderConfigurations: [GcpProviderConfiguration!]
   status: ModuleAssignmentStatus!
-  modulePropagationId: ID
+  modulePropagationID: ID
   modulePropagation: ModulePropagation
   terraformDriftCheckRequests(
+    filters: TerraformDriftCheckRequestFilters
     limit: Int
-    nextCursor: String
-  ): TerraformDriftCheckRequests!
+    offset: Int
+  ): [TerraformDriftCheckRequest!]!
   terraformExecutionRequests(
+    filters: TerraformExecutionRequestFilters
     limit: Int
-    nextCursor: String
-  ): TerraformExecutionRequests!
-  planExecutionRequests(limit: Int, nextCursor: String): PlanExecutionRequests!
-  applyExecutionRequests(
-    limit: Int
-    nextCursor: String
-  ): ApplyExecutionRequests!
+    offset: Int
+  ): [TerraformExecutionRequest!]!
   terraformConfiguration: String!
 }
 
-type ModuleAssignments {
-  items: [ModuleAssignment]!
-  nextCursor: String
-}
-
 input NewModuleAssignment {
-  moduleVersionId: ID!
-  moduleGroupId: ID!
-  orgAccountId: ID!
+  moduleVersionID: ID!
+  moduleGroupID: ID!
+  orgAccountID: ID!
   name: String!
   description: String!
   arguments: [ArgumentInput!]!
@@ -52,13 +44,16 @@ input NewModuleAssignment {
 input ModuleAssignmentUpdate {
   name: String
   description: String
-  moduleVersionId: ID
+  moduleVersionID: ID
   arguments: [ArgumentInput!]
   awsProviderConfigurations: [AwsProviderConfigurationInput!]
   gcpProviderConfigurations: [GcpProviderConfigurationInput!]
 }
 
-input ModuleAssignmentFiltersInput {
+input ModuleAssignmentFilters {
+  nameContains: String
+  descriptionContains: String
+  status: ModuleAssignmentStatus
   isPropagated: Boolean
 }
 
@@ -68,12 +63,12 @@ enum ModuleAssignmentStatus {
 }
 
 extend type Query {
-  moduleAssignment(moduleAssignmentId: ID!): ModuleAssignment!
+  moduleAssignment(moduleAssignmentID: ID!): ModuleAssignment!
   moduleAssignments(
-    filters: ModuleAssignmentFiltersInput
+    filters: ModuleAssignmentFilters
     limit: Int
-    nextCursor: String
-  ): ModuleAssignments!
+    offset: Int
+  ): [ModuleAssignment!]!
 }
 
 extend type Mutation {
@@ -81,7 +76,7 @@ extend type Mutation {
     moduleAssignment: NewModuleAssignment!
   ): ModuleAssignment!
   updateModuleAssignment(
-    moduleAssignmentId: ID!
+    moduleAssignmentID: ID!
     moduleAssignmentUpdate: ModuleAssignmentUpdate!
   ): ModuleAssignment!
 }

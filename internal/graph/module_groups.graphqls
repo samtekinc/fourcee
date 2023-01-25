@@ -1,15 +1,22 @@
 type ModuleGroup {
-  moduleGroupId: ID!
+  id: ID!
   name: String!
   cloudPlatform: CloudPlatform!
-  versions(limit: Int, nextCursor: String): ModuleVersions!
-  modulePropagations(limit: Int, nextCursor: String): ModulePropagations!
-  moduleAssignments(limit: Int, nextCursor: String): ModuleAssignments!
-}
-
-type ModuleGroups {
-  items: [ModuleGroup]!
-  nextCursor: String
+  versions(
+    filters: ModuleVersionFilters
+    limit: Int
+    offset: Int
+  ): [ModuleVersion!]!
+  modulePropagations(
+    filters: ModulePropagationFilters
+    limit: Int
+    offset: Int
+  ): [ModulePropagation!]!
+  moduleAssignments(
+    filters: ModuleAssignmentFilters
+    limit: Int
+    offset: Int
+  ): [ModuleAssignment!]!
 }
 
 input NewModuleGroup {
@@ -17,12 +24,21 @@ input NewModuleGroup {
   cloudPlatform: CloudPlatform!
 }
 
+input ModuleGroupFilters {
+  nameContains: String
+  cloudPlatform: CloudPlatform
+}
+
 extend type Query {
-  moduleGroup(moduleGroupId: ID!): ModuleGroup!
-  moduleGroups(limit: Int, nextCursor: String): ModuleGroups!
+  moduleGroup(id: ID!): ModuleGroup!
+  moduleGroups(
+    filters: ModuleGroupFilters
+    limit: Int
+    offset: Int
+  ): [ModuleGroup!]!
 }
 
 extend type Mutation {
   createModuleGroup(moduleGroup: NewModuleGroup!): ModuleGroup!
-  deleteModuleGroup(moduleGroupId: ID!): Boolean!
+  deleteModuleGroup(id: ID!): Boolean!
 }

@@ -1,65 +1,57 @@
-type OrganizationalUnit {
-  orgUnitId: ID!
+type OrgUnit {
+  id: ID!
   name: String!
-  orgDimensionId: String!
-  orgDimension: OrganizationalDimension!
+  orgDimensionID: ID!
+  orgDimension: OrgDimension!
   hierarchy: String!
-  parentOrgUnitId: ID
-  parentOrgUnit: OrganizationalUnit
-  children(limit: Int, nextCursor: String): OrganizationalUnits!
-  downstreamOrgUnits(limit: Int, nextCursor: String): OrganizationalUnits!
-  upstreamOrgUnits: OrganizationalUnits!
-  orgUnitMemberships(
+  parentOrgUnitID: ID
+  parentOrgUnit: OrgUnit
+  children(filters: OrgUnitFilters, limit: Int, offset: Int): [OrgUnit!]!
+  downstreamOrgUnits(
+    filters: OrgUnitFilters
     limit: Int
-    nextCursor: String
-  ): OrganizationalUnitMemberships!
-  modulePropagations(limit: Int, nextCursor: String): ModulePropagations!
+    offset: Int
+  ): [OrgUnit!]!
+  upstreamOrgUnits(
+    filters: OrgUnitFilters
+    limit: Int
+    offset: Int
+  ): [OrgUnit!]!
+  orgAccounts(
+    filters: OrgAccountFilters
+    limit: Int
+    offset: Int
+  ): [OrgAccount!]!
+  modulePropagations(
+    filters: ModulePropagationFilters
+    limit: Int
+    offset: Int
+  ): [ModulePropagation!]!
 }
 
-type OrganizationalUnits {
-  items: [OrganizationalUnit]!
-  nextCursor: String
-}
-
-input OrganizationalUnitUpdate {
+input OrgUnitUpdate {
   Name: String
-  ParentOrgUnitId: ID
+  ParentOrgUnitID: ID
 }
 
-input NewOrganizationalUnit {
+input NewOrgUnit {
   name: String!
-  orgDimensionId: String!
+  orgDimensionID: ID!
   parentOrgUnitId: ID!
 }
 
+input OrgUnitFilters {
+  nameContains: String
+}
+
 extend type Query {
-  organizationalUnit(orgDimensionId: ID!, orgUnitId: ID!): OrganizationalUnit!
-  organizationalUnits(limit: Int, nextCursor: String): OrganizationalUnits!
-  organizationalUnitsByDimension(
-    orgDimensionId: ID!
-    limit: Int
-    nextCursor: String
-  ): OrganizationalUnits!
-  organizationalUnitsByParent(
-    orgDimensionId: ID!
-    parentOrgUnitId: ID!
-    limit: Int
-    nextCursor: String
-  ): OrganizationalUnits!
-  organizationalUnitsByHierarchy(
-    orgDimensionId: ID!
-    hierarchy: String!
-    limit: Int
-    nextCursor: String
-  ): OrganizationalUnits!
+  orgUnit(orgUnitID: ID!): OrgUnit!
 }
 
 extend type Mutation {
-  createOrganizationalUnit(orgUnit: NewOrganizationalUnit!): OrganizationalUnit!
-  deleteOrganizationalUnit(orgDimensionId: ID!, orgUnitId: ID!): Boolean!
-  updateOrganizationalUnit(
-    orgDimensionId: ID!
-    orgUnitId: ID!
-    update: OrganizationalUnitUpdate!
-  ): OrganizationalUnit!
+  createOrgUnit(orgUnit: NewOrgUnit!): OrgUnit!
+  deleteOrgUnit(orgUnitID: ID!): Boolean!
+  updateOrgUnit(orgUnitID: ID!, update: OrgUnitUpdate!): OrgUnit!
+  addAccountToOrgUnit(orgUnitID: ID!, orgAccountID: ID!): Boolean!
+  removeAccountFromOrgUnit(orgUnitID: ID!, orgAccountID: ID!): Boolean!
 }

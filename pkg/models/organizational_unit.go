@@ -1,25 +1,29 @@
 package models
 
-type OrganizationalUnit struct {
-	OrgUnitId       string
+import "gorm.io/gorm"
+
+type OrgUnit struct {
+	gorm.Model
+	Name                          string
+	OrgDimensionID                uint
+	ParentOrgUnitID               *uint
+	Hierarchy                     string
+	ChildOrgUnitsAssociation      []OrgUnit           `gorm:"foreignKey:ParentOrgUnitID"`
+	OrgAccountsAssociation        []OrgAccount        `gorm:"many2many:org_accounts_org_units;"`
+	ModulePropagationsAssociation []ModulePropagation `gorm:"foreignKey:OrgUnitID"`
+}
+
+type NewOrgUnit struct {
 	Name            string
-	OrgDimensionId  string
-	Hierarchy       string
-	ParentOrgUnitId string `dynamodbav:",omitempty"`
+	OrgDimensionID  uint
+	ParentOrgUnitID uint
 }
 
-type OrganizationalUnits struct {
-	Items      []OrganizationalUnit
-	NextCursor string
-}
-
-type NewOrganizationalUnit struct {
-	Name            string
-	OrgDimensionId  string
-	ParentOrgUnitId string
-}
-
-type OrganizationalUnitUpdate struct {
+type OrgUnitUpdate struct {
 	Name            *string
-	ParentOrgUnitId *string
+	ParentOrgUnitID *uint
+}
+
+type OrgUnitFilters struct {
+	NameContains *string
 }

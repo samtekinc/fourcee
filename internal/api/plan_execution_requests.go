@@ -2,16 +2,47 @@ package api
 
 import (
 	"context"
-	"time"
 
 	"github.com/graph-gophers/dataloader"
-	"github.com/sheacloud/tfom/internal/identifiers"
 	"github.com/sheacloud/tfom/pkg/models"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
+
+func applyPlanExecutionRequestFilters(tx *gorm.DB, filters *models.PlanExecutionRequestFilters) *gorm.DB {
+	if filters != nil {
+		if filters.StartedBefore != nil {
+			tx = tx.Where("started_at < ?", *filters.StartedBefore)
+		}
+		if filters.StartedAfter != nil {
+			tx = tx.Where("started_at > ?", *filters.StartedAfter)
+		}
+		if filters.CompletedBefore != nil {
+			tx = tx.Where("completed_at < ?", *filters.CompletedBefore)
+		}
+		if filters.CompletedAfter != nil {
+			tx = tx.Where("completed_at > ?", *filters.CompletedAfter)
+		}
+		if filters.Status != nil {
+			tx = tx.Where("status = ?", *filters.Status)
+		}
+		if filters.Destroy != nil {
+			tx = tx.Where("destroy = ?", *filters.Destroy)
+		}
+	}
+	return tx
+}
+
+func applyPlanExecutionRequestPreloads(tx *gorm.DB) *gorm.DB {
+	return tx
+}
 
 func (c *APIClient) GetPlanExecutionRequestsByIds(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	output := make([]*dataloader.Result, len(keys))
-	results, err := c.dbClient.GetPlanExecutionRequestsByIds(ctx, keys.Keys())
+
+	var planExecutionRequests []*models.PlanExecutionRequest
+	tx := applyPlanExecutionRequestPreloads(c.db)
+	err := tx.Find(&planExecutionRequests, keys.Keys()).Error
 	if err != nil {
 		for i := range keys {
 			output[i] = &dataloader.Result{Error: err}
@@ -20,77 +51,54 @@ func (c *APIClient) GetPlanExecutionRequestsByIds(ctx context.Context, keys data
 	}
 
 	for i := range keys {
-		output[i] = &dataloader.Result{Data: &results[i], Error: nil}
+		output[i] = &dataloader.Result{Data: planExecutionRequests[i], Error: nil}
 	}
 	return output
 }
 
-func (c *APIClient) GetPlanExecutionRequest(ctx context.Context, planExecutionRequestId string) (*models.PlanExecutionRequest, error) {
-	planExecutionRequest, err := c.dbClient.GetPlanExecutionRequest(ctx, planExecutionRequestId)
+func (c *APIClient) GetPlanExecutionRequest(ctx context.Context, id uint) (*models.PlanExecutionRequest, error) {
+	var planExecutionRequest models.PlanExecutionRequest
+	tx := applyPlanExecutionRequestPreloads(c.db)
+	err := tx.First(&planExecutionRequest, id).Error
 	if err != nil {
 		return nil, err
 	}
-
-	return planExecutionRequest, nil
+	return &planExecutionRequest, nil
 }
 
-func (c *APIClient) GetPlanExecutionRequestBatched(ctx context.Context, planExecutionRequestId string) (*models.PlanExecutionRequest, error) {
-	thunk := c.planExecutionRequestsLoader.Load(ctx, dataloader.StringKey(planExecutionRequestId))
+func (c *APIClient) GetPlanExecutionRequestBatched(ctx context.Context, id uint) (*models.PlanExecutionRequest, error) {
+	thunk := c.planExecutionRequestsLoader.Load(ctx, dataloader.StringKey(idToString(id)))
 	result, err := thunk()
 	if err != nil {
 		return nil, err
 	}
-	planExecutionRequest := result.(*models.PlanExecutionRequest)
-
-	return planExecutionRequest, nil
+	return result.(*models.PlanExecutionRequest), nil
 }
 
-func (c *APIClient) GetPlanExecutionRequests(ctx context.Context, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
-	requests, err := c.dbClient.GetPlanExecutionRequests(ctx, limit, cursor)
+func (c *APIClient) GetPlanExecutionRequests(ctx context.Context, filters *models.PlanExecutionRequestFilters, limit *int, offset *int) ([]*models.PlanExecutionRequest, error) {
+	var planExecutionRequests []*models.PlanExecutionRequest
+	tx := applyPagination(c.db, limit, offset)
+	tx = applyPlanExecutionRequestFilters(tx, filters)
+	tx = applyPlanExecutionRequestPreloads(tx)
+	err := tx.Find(&planExecutionRequests).Error
 	if err != nil {
 		return nil, err
 	}
-
-	return requests, nil
+	return planExecutionRequests, nil
 }
 
-func (c *APIClient) GetPlanExecutionRequestsByModuleAssignmentId(ctx context.Context, moduleAssignmentId string, limit int32, cursor string) (*models.PlanExecutionRequests, error) {
-	requests, err := c.dbClient.GetPlanExecutionRequestsByModuleAssignmentId(ctx, moduleAssignmentId, limit, cursor)
-	if err != nil {
-		return nil, err
-	}
-
-	return requests, nil
-}
-
-func (c *APIClient) PutPlanExecutionRequest(ctx context.Context, input *models.NewPlanExecutionRequest) (*models.PlanExecutionRequest, error) {
-	planExecutionRequestId, err := identifiers.NewIdentifier(identifiers.ResourceTypePlanExecutionRequest)
-	if err != nil {
-		return nil, err
-	}
-
+func (c *APIClient) CreatePlanExecutionRequest(ctx context.Context, input *models.NewPlanExecutionRequest) (*models.PlanExecutionRequest, error) {
 	planExecutionRequest := models.PlanExecutionRequest{
-		PlanExecutionRequestId:       planExecutionRequestId.String(),
-		ModuleAssignmentId:           input.ModuleAssignmentId,
+		ModuleAssignmentID:           input.ModuleAssignmentID,
 		TerraformVersion:             input.TerraformVersion,
 		CallbackTaskToken:            input.CallbackTaskToken,
-		TerraformWorkflowRequestId:   input.TerraformWorkflowRequestId,
 		TerraformConfigurationBase64: input.TerraformConfigurationBase64,
+		TerraformDriftCheckRequestID: input.TerraformDriftCheckRequestID,
+		TerraformExecutionRequestID:  input.TerraformExecutionRequestID,
 		AdditionalArguments:          input.AdditionalArguments,
 		Status:                       models.RequestStatusPending,
-		RequestTime:                  time.Now().UTC(),
 	}
-	err = c.dbClient.PutPlanExecutionRequest(ctx, &planExecutionRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	// Start Workflow
-	err = c.startTerraformCommandWorkflow(ctx, &TerraformExecutionInput{
-		RequestType: "plan",
-		RequestId:   planExecutionRequestId.String(),
-		TaskToken:   planExecutionRequest.CallbackTaskToken,
-	})
+	err := c.db.Create(&planExecutionRequest).Error
 	if err != nil {
 		return nil, err
 	}
@@ -98,6 +106,44 @@ func (c *APIClient) PutPlanExecutionRequest(ctx context.Context, input *models.N
 	return &planExecutionRequest, nil
 }
 
-func (c *APIClient) UpdatePlanExecutionRequest(ctx context.Context, planExecutionRequestId string, input *models.PlanExecutionRequestUpdate) (*models.PlanExecutionRequest, error) {
-	return c.dbClient.UpdatePlanExecutionRequest(ctx, planExecutionRequestId, input)
+func (c *APIClient) DeletePlanExecutionRequest(ctx context.Context, id uint) error {
+	return c.db.Select(clause.Associations).Delete(&models.PlanExecutionRequest{}, id).Error
+}
+
+func (c *APIClient) UpdatePlanExecutionRequest(ctx context.Context, id uint, update *models.PlanExecutionRequestUpdate) (*models.PlanExecutionRequest, error) {
+	planExecutionRequest := models.PlanExecutionRequest{
+		Model: gorm.Model{
+			ID: id,
+		},
+	}
+	updates := models.PlanExecutionRequest{}
+
+	if update.InitOutput != nil {
+		updates.InitOutput = update.InitOutput
+	}
+	if update.PlanOutput != nil {
+		updates.PlanOutput = update.PlanOutput
+	}
+	if update.PlanFile != nil {
+		updates.PlanFile = update.PlanFile
+	}
+	if update.PlanJSON != nil {
+		updates.PlanJSON = update.PlanJSON
+	}
+	if update.Status != nil {
+		updates.Status = *update.Status
+	}
+	if update.StartedAt != nil {
+		updates.StartedAt = update.StartedAt
+	}
+	if update.CompletedAt != nil {
+		updates.CompletedAt = update.CompletedAt
+	}
+
+	err := c.db.Model(&planExecutionRequest).Updates(updates).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &planExecutionRequest, nil
 }

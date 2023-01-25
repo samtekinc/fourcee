@@ -4,13 +4,36 @@ import (
 	"context"
 
 	"github.com/graph-gophers/dataloader"
-	"github.com/sheacloud/tfom/internal/identifiers"
 	"github.com/sheacloud/tfom/pkg/models"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
-func (c *APIClient) GetOrganizationalAccountsByIds(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+func applyOrgAccountFilters(tx *gorm.DB, filters *models.OrgAccountFilters) *gorm.DB {
+	if filters != nil {
+		if filters.NameContains != nil {
+			tx = tx.Where("name LIKE ?", "%"+*filters.NameContains+"%")
+		}
+		if filters.CloudPlatform != nil {
+			tx = tx.Where("cloud_platform = ?", *filters.CloudPlatform)
+		}
+		if filters.CloudIdentifier != nil {
+			tx = tx.Where("cloud_identifier = ?", *filters.CloudIdentifier)
+		}
+	}
+	return tx
+}
+
+func applyOrgAccountPreloads(tx *gorm.DB) *gorm.DB {
+	return tx.Preload("Metadata")
+}
+
+func (c *APIClient) GetOrgAccountsByIds(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	output := make([]*dataloader.Result, len(keys))
-	results, err := c.dbClient.GetOrganizationalAccountsByIds(ctx, keys.Keys())
+
+	var orgAccounts []*models.OrgAccount
+	tx := applyOrgAccountPreloads(c.db)
+	err := tx.Find(&orgAccounts, keys.Keys()).Error
 	if err != nil {
 		for i := range keys {
 			output[i] = &dataloader.Result{Error: err}
@@ -19,54 +42,111 @@ func (c *APIClient) GetOrganizationalAccountsByIds(ctx context.Context, keys dat
 	}
 
 	for i := range keys {
-		output[i] = &dataloader.Result{Data: &results[i], Error: nil}
+		output[i] = &dataloader.Result{Data: orgAccounts[i], Error: nil}
 	}
 	return output
 }
 
-func (c *APIClient) GetOrganizationalAccount(ctx context.Context, id string) (*models.OrganizationalAccount, error) {
-	return c.dbClient.GetOrganizationalAccount(ctx, id)
+func (c *APIClient) GetOrgAccount(ctx context.Context, id uint) (*models.OrgAccount, error) {
+	var orgAccount models.OrgAccount
+	tx := applyOrgAccountPreloads(c.db)
+	err := tx.First(&orgAccount, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &orgAccount, nil
 }
 
-func (c *APIClient) GetOrganizationalAccountBatched(ctx context.Context, id string) (*models.OrganizationalAccount, error) {
-	thunk := c.orgAccountsLoader.Load(ctx, dataloader.StringKey(id))
+func (c *APIClient) GetOrgAccountBatched(ctx context.Context, id uint) (*models.OrgAccount, error) {
+	thunk := c.orgAccountsLoader.Load(ctx, dataloader.StringKey(idToString(id)))
 	result, err := thunk()
 	if err != nil {
 		return nil, err
 	}
-	return result.(*models.OrganizationalAccount), nil
+	return result.(*models.OrgAccount), nil
 }
 
-func (c *APIClient) GetOrganizationalAccounts(ctx context.Context, limit int32, cursor string) (*models.OrganizationalAccounts, error) {
-	return c.dbClient.GetOrganizationalAccounts(ctx, limit, cursor)
-}
-
-func (c *APIClient) PutOrganizationalAccount(ctx context.Context, input *models.NewOrganizationalAccount) (*models.OrganizationalAccount, error) {
-	accountId, err := identifiers.NewIdentifier(identifiers.ResourceTypeOrganizationalAccount)
+func (c *APIClient) GetOrgAccounts(ctx context.Context, filters *models.OrgAccountFilters, limit *int, offset *int) ([]*models.OrgAccount, error) {
+	var orgAccounts []*models.OrgAccount
+	tx := applyPagination(c.db, limit, offset)
+	tx = applyOrgAccountFilters(tx, filters)
+	tx = applyOrgAccountPreloads(tx)
+	err := tx.Find(&orgAccounts).Error
 	if err != nil {
 		return nil, err
 	}
+	return orgAccounts, nil
+}
 
-	orgAccount := models.OrganizationalAccount{
-		OrgAccountId:    accountId.String(),
+func (c *APIClient) GetOrgAccountsForOrgUnit(ctx context.Context, orgUnitId uint, filters *models.OrgAccountFilters, limit *int, offset *int) ([]*models.OrgAccount, error) {
+	var orgAccounts []*models.OrgAccount
+	tx := applyPagination(c.db, limit, offset)
+	tx = applyOrgAccountFilters(tx, filters)
+	err := tx.Model(&models.OrgUnit{Model: gorm.Model{ID: orgUnitId}}).Association("OrgAccountsAssociation").Find(&orgAccounts)
+	if err != nil {
+		return nil, err
+	}
+	return orgAccounts, nil
+}
+
+func (c *APIClient) CreateOrgAccount(ctx context.Context, input *models.NewOrgAccount) (*models.OrgAccount, error) {
+	orgAccount := models.OrgAccount{
 		Name:            input.Name,
 		CloudPlatform:   input.CloudPlatform,
 		CloudIdentifier: input.CloudIdentifier,
 		AssumeRoleName:  input.AssumeRoleName,
 		Metadata:        MetadataInputsToMetadata(input.Metadata),
 	}
-	err = c.dbClient.PutOrganizationalAccount(ctx, &orgAccount)
+	err := c.db.Create(&orgAccount).Error
 	if err != nil {
 		return nil, err
-	} else {
-		return &orgAccount, nil
 	}
+	return &orgAccount, nil
 }
 
-func (c *APIClient) DeleteOrganizationalAccount(ctx context.Context, id string) error {
-	return c.dbClient.DeleteOrganizationalAccount(ctx, id)
+func (c *APIClient) DeleteOrgAccount(ctx context.Context, id uint) error {
+	return c.db.Select(clause.Associations).Delete(&models.OrgAccount{}, id).Error
 }
 
-func (c *APIClient) UpdateOrganizationalAccount(ctx context.Context, orgAccountId string, update *models.OrganizationalAccountUpdate) (*models.OrganizationalAccount, error) {
-	return c.dbClient.UpdateOrganizationalAccount(ctx, orgAccountId, update)
+func (c *APIClient) UpdateOrgAccount(ctx context.Context, id uint, update *models.OrgAccountUpdate) (*models.OrgAccount, error) {
+	orgAccount := models.OrgAccount{
+		Model: gorm.Model{
+			ID: id,
+		},
+	}
+	updates := models.OrgAccount{}
+
+	err := c.db.Transaction(func(tx *gorm.DB) error {
+		if update.Name != nil {
+			updates.Name = *update.Name
+		}
+		if update.CloudPlatform != nil {
+			updates.CloudPlatform = *update.CloudPlatform
+		}
+		if update.CloudIdentifier != nil {
+			updates.CloudIdentifier = *update.CloudIdentifier
+		}
+		if update.AssumeRoleName != nil {
+			updates.AssumeRoleName = *update.AssumeRoleName
+		}
+
+		err := tx.Model(&orgAccount).Updates(updates).Error
+		if err != nil {
+			return err
+		}
+
+		if update.Metadata != nil {
+			err = tx.Model(&orgAccount).Association("Metadata").Replace(MetadataInputsToMetadata(update.Metadata))
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &orgAccount, nil
 }

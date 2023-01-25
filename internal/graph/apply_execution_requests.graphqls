@@ -1,27 +1,28 @@
 type ApplyExecutionRequest {
-  applyExecutionRequestId: ID!
-  moduleAssignmentId: ID!
+  id: ID!
+  moduleAssignmentID: ID!
   moduleAssignment: ModuleAssignment!
   terraformVersion: String!
   terraformConfigurationBase64: String!
   terraformPlanBase64: String!
-  additionalArguments: [String]!
-  terraformWorkflowRequestId: String!
+  additionalArguments: String
+  terraformExecutionRequestID: ID!
   status: RequestStatus!
   initOutput: String
   applyOutput: String
-  requestTime: Time!
+  startedAt: Time
+  completedAt: Time
 }
 
-type ApplyExecutionRequests {
-  items: [ApplyExecutionRequest]!
-  nextCursor: String
+input ApplyExecutionRequestFilters {
+  startedBefore: Time
+  startedAfter: Time
+  completedBefore: Time
+  completedAfter: Time
+  destroy: Boolean
+  status: RequestStatus
 }
 
 extend type Query {
-  applyExecutionRequest(applyExecutionRequestId: ID!): ApplyExecutionRequest!
-  applyExecutionRequests(
-    limit: Int
-    nextCursor: String
-  ): ApplyExecutionRequests!
+  applyExecutionRequest(applyExecutionRequestID: ID!): ApplyExecutionRequest!
 }

@@ -1,24 +1,34 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type ModulePropagationExecutionRequest struct {
-	ModulePropagationExecutionRequestId string
-	ModulePropagationId                 string
-	RequestTime                         time.Time
-	Status                              RequestStatus
-	WorkflowExecutionId                 string
-}
-
-type ModulePropagationExecutionRequests struct {
-	Items      []ModulePropagationExecutionRequest
-	NextCursor string
+	gorm.Model
+	ModulePropagationID                   uint
+	StartedAt                             *time.Time
+	CompletedAt                           *time.Time
+	Status                                RequestStatus
+	TerraformExecutionRequestsAssociation []*TerraformExecutionRequest `gorm:"foreignKey:ModulePropagationExecutionRequestID"`
 }
 
 type NewModulePropagationExecutionRequest struct {
-	ModulePropagationId string
+	ModulePropagationID uint
 }
 
 type ModulePropagationExecutionRequestUpdate struct {
-	Status *RequestStatus
+	Status      *RequestStatus
+	StartedAt   *time.Time
+	CompletedAt *time.Time
+}
+
+type ModulePropagationExecutionRequestFilters struct {
+	StartedBefore   *time.Time
+	StartedAfter    *time.Time
+	CompletedBefore *time.Time
+	CompletedAfter  *time.Time
+	Status          *RequestStatus
 }

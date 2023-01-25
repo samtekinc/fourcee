@@ -11,7 +11,7 @@ const (
 )
 
 type orgAccountWrapper struct {
-	OrgAccounts []models.OrganizationalAccount
+	OrgAccounts []models.OrgAccount
 }
 
 type ClassifyModuleAssignmentsInput struct {
@@ -22,7 +22,7 @@ type ClassifyModuleAssignmentsInput struct {
 type ClassifyModuleAssignmentsOutput struct {
 	ActiveModuleAssignments          []models.ModuleAssignment
 	InactiveModuleAssignments        []models.ModuleAssignment
-	AccountsNeedingModuleAssignments []models.OrganizationalAccount
+	AccountsNeedingModuleAssignments []models.OrgAccount
 }
 
 func (t *TaskHandler) ClassifyModuleAssignments(ctx context.Context, input ClassifyModuleAssignmentsInput) (*ClassifyModuleAssignmentsOutput, error) {
@@ -30,15 +30,15 @@ func (t *TaskHandler) ClassifyModuleAssignments(ctx context.Context, input Class
 	accountsWithActiveModuleAssignments := make(map[string]bool)
 	// make note of which accounts have existing module assignments
 	for _, moduleAssignment := range input.ActiveModuleAssignments {
-		accountsWithModuleAssignments[moduleAssignment.OrgAccountId] = true
+		accountsWithModuleAssignments[moduleAssignment.OrgAccountID] = true
 	}
 
 	// make note of which accounts do not have existing module assignments
-	accountsNeedingModuleAssignments := make([]models.OrganizationalAccount, 0)
+	accountsNeedingModuleAssignments := make([]models.OrgAccount, 0)
 	for _, orgAccountWrapper := range input.OrgAccountsPerOrgUnit {
 		for _, orgAccount := range orgAccountWrapper.OrgAccounts {
-			accountsWithActiveModuleAssignments[orgAccount.OrgAccountId] = true
-			if !accountsWithModuleAssignments[orgAccount.OrgAccountId] {
+			accountsWithActiveModuleAssignments[orgAccount.OrgAccountID] = true
+			if !accountsWithModuleAssignments[orgAccount.OrgAccountID] {
 				accountsNeedingModuleAssignments = append(accountsNeedingModuleAssignments, orgAccount)
 			}
 		}
@@ -47,14 +47,14 @@ func (t *TaskHandler) ClassifyModuleAssignments(ctx context.Context, input Class
 	// filter out module assignments which don't have an account
 	inactiveModuleAssignments := make([]models.ModuleAssignment, 0)
 	for _, moduleAssignment := range input.ActiveModuleAssignments {
-		if !accountsWithActiveModuleAssignments[moduleAssignment.OrgAccountId] {
+		if !accountsWithActiveModuleAssignments[moduleAssignment.OrgAccountID] {
 			inactiveModuleAssignments = append(inactiveModuleAssignments, moduleAssignment)
 		}
 	}
 
 	filteredActiveModuleAssignments := make([]models.ModuleAssignment, 0)
 	for _, moduleAssignment := range input.ActiveModuleAssignments {
-		if accountsWithActiveModuleAssignments[moduleAssignment.OrgAccountId] {
+		if accountsWithActiveModuleAssignments[moduleAssignment.OrgAccountID] {
 			filteredActiveModuleAssignments = append(filteredActiveModuleAssignments, moduleAssignment)
 		}
 	}

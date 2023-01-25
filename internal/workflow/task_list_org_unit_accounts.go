@@ -11,25 +11,25 @@ const (
 )
 
 type ListOrgUnitAccountsInput struct {
-	OrgUnit       models.OrganizationalUnit
+	OrgUnit       models.OrgUnit
 	CloudPlatform models.CloudPlatform
 }
 
 type ListOrgUnitAccountsOutput struct {
-	OrgAccounts []models.OrganizationalAccount
+	OrgAccounts []models.OrgAccount
 }
 
 func (t *TaskHandler) ListOrgUnitAccounts(ctx context.Context, input ListOrgUnitAccountsInput) (*ListOrgUnitAccountsOutput, error) {
 	// get accounts under OU
-	accounts := []models.OrganizationalAccount{}
+	accounts := []models.OrgAccount{}
 	nextCursor := ""
 	for {
-		accountsPage, err := t.apiClient.GetOrganizationalUnitMembershipsByOrgUnit(ctx, input.OrgUnit.OrgUnitId, 100, nextCursor)
+		accountsPage, err := t.apiClient.GetOrgUnitMembershipsByOrgUnit(ctx, input.OrgUnit.OrgUnitId, 100, nextCursor)
 		if err != nil {
 			return nil, err
 		}
 		for _, accountDetails := range accountsPage.Items {
-			account, err := t.apiClient.GetOrganizationalAccount(ctx, accountDetails.OrgAccountId)
+			account, err := t.apiClient.GetOrgAccount(ctx, accountDetails.OrgAccountID)
 			if err != nil {
 				return nil, err
 			}

@@ -1,32 +1,30 @@
 type PlanExecutionRequest {
-  planExecutionRequestId: ID!
-  moduleAssignmentId: ID!
+  id: ID!
+  moduleAssignmentID: ID!
   moduleAssignment: ModuleAssignment!
   terraformVersion: String!
   terraformConfigurationBase64: String!
-  additionalArguments: [String]!
-  terraformWorkflowRequestId: String!
+  additionalArguments: String
+  terraformExecutionRequestID: ID
+  terraformDriftCheckRequestID: ID
   status: RequestStatus!
   initOutput: String
   planOutput: String
   planFile: String
   planJSON: String
-  requestTime: Time!
+  startedAt: Time
+  completedAt: Time
 }
 
-type PlanExecutionRequests {
-  items: [PlanExecutionRequest]!
-  nextCursor: String
+input PlanExecutionRequestFilters {
+  startedBefore: Time
+  startedAfter: Time
+  completedBefore: Time
+  completedAfter: Time
+  destroy: Boolean
+  status: RequestStatus
 }
 
 extend type Query {
-  planExecutionRequest(
-    planExecutionRequestId: ID!
-    withOutputs: Boolean = false
-  ): PlanExecutionRequest!
-  planExecutionRequests(
-    limit: Int
-    nextCursor: String
-    withOutputs: Boolean = false
-  ): PlanExecutionRequests!
+  planExecutionRequest(planExecutionRequestID: ID!): PlanExecutionRequest!
 }

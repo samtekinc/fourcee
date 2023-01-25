@@ -66,7 +66,7 @@ func (t *TaskHandler) ScheduleTerraformPlan(ctx context.Context, input ScheduleT
 	}
 
 	// get org account details
-	orgAccount, err := t.apiClient.GetOrganizationalAccount(ctx, moduleAssignment.OrgAccountId)
+	orgAccount, err := t.apiClient.GetOrgAccount(ctx, moduleAssignment.OrgAccountID)
 	if err != nil {
 		return nil, err
 	}

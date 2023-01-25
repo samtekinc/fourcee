@@ -1,20 +1,23 @@
 package models
 
-type OrganizationalAccount struct {
-	OrgAccountId    string
-	Name            string
-	CloudPlatform   CloudPlatform
-	CloudIdentifier string
-	AssumeRoleName  string
-	Metadata        []Metadata
+import (
+	"strconv"
+
+	"gorm.io/gorm"
+)
+
+type OrgAccount struct {
+	gorm.Model
+	Name                         string
+	CloudPlatform                CloudPlatform
+	CloudIdentifier              string
+	AssumeRoleName               string
+	Metadata                     []Metadata
+	OrgUnitsAssociation          []OrgUnit          `gorm:"many2many:org_accounts_org_units;"`
+	ModuleAssignmentsAssociation []ModuleAssignment `gorm:"foreignKey:OrgAccountID"`
 }
 
-type OrganizationalAccounts struct {
-	Items      []OrganizationalAccount
-	NextCursor string
-}
-
-type NewOrganizationalAccount struct {
+type NewOrgAccount struct {
 	Name            string
 	CloudPlatform   CloudPlatform
 	CloudIdentifier string
@@ -22,15 +25,25 @@ type NewOrganizationalAccount struct {
 	Metadata        []MetadataInput
 }
 
-type OrganizationalAccountUpdate struct {
-	Metadata []MetadataInput
+type OrgAccountUpdate struct {
+	Name            *string
+	CloudPlatform   *CloudPlatform
+	CloudIdentifier *string
+	AssumeRoleName  *string
+	Metadata        []MetadataInput
 }
 
-func (a *OrganizationalAccount) GetInternalMetadata() []Metadata {
+type OrgAccountFilters struct {
+	NameContains    *string
+	CloudPlatform   *CloudPlatform
+	CloudIdentifier *string
+}
+
+func (a *OrgAccount) GetInternalMetadata() []Metadata {
 	return []Metadata{
 		{
 			Name:  "id",
-			Value: a.OrgAccountId,
+			Value: strconv.FormatUint(uint64(a.ID), 10),
 		},
 		{
 			Name:  "name",

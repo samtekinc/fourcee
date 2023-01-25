@@ -1,28 +1,33 @@
 type TerraformExecutionRequest {
-  terraformExecutionRequestId: ID!
-  moduleAssignmentId: ID!
+  id: ID!
+  moduleAssignmentID: ID!
   moduleAssignment: ModuleAssignment!
-  planExecutionRequestId: ID
+  planExecutionRequestID: ID
   planExecutionRequest: PlanExecutionRequest
-  applyExecutionRequestId: ID
+  applyExecutionRequestID: ID
   applyExecutionRequest: ApplyExecutionRequest
-  requestTime: Time!
+  startedAt: Time
+  completedAt: Time
   status: RequestStatus!
   destroy: Boolean!
-  modulePropagationId: ID
+  modulePropagationID: ID
   modulePropagation: ModulePropagation
-  modulePropagationExecutionRequestId: ID
+  modulePropagationExecutionRequestID: ID
   modulePropagationExecutionRequest: ModulePropagationExecutionRequest
 }
 
-type TerraformExecutionRequests {
-  items: [TerraformExecutionRequest]!
-  nextCursor: String
+input NewTerraformExecutionRequest {
+  moduleAssignmentID: ID!
+  destroy: Boolean!
 }
 
-input NewTerraformExecutionRequest {
-  moduleAssignmentId: ID!
-  destroy: Boolean!
+input TerraformExecutionRequestFilters {
+  startedBefore: Time
+  startedAfter: Time
+  completedBefore: Time
+  completedAfter: Time
+  destroy: Boolean
+  status: RequestStatus
 }
 
 extend type Mutation {

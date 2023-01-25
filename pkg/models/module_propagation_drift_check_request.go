@@ -1,26 +1,37 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type ModulePropagationDriftCheckRequest struct {
-	ModulePropagationDriftCheckRequestId string
-	ModulePropagationId                  string
-	RequestTime                          time.Time
-	Status                               RequestStatus
-	WorkflowRequestId                    string
-	SyncStatus                           TerraformDriftCheckStatus
-}
-
-type ModulePropagationDriftCheckRequests struct {
-	Items      []ModulePropagationDriftCheckRequest
-	NextCursor string
+	gorm.Model
+	ModulePropagationID                    uint
+	StartedAt                              *time.Time
+	CompletedAt                            *time.Time
+	Status                                 RequestStatus
+	SyncStatus                             TerraformDriftCheckStatus
+	TerraformDriftCheckRequestsAssociation []*TerraformDriftCheckRequest `gorm:"foreignKey:ModulePropagationDriftCheckRequestID"`
 }
 
 type NewModulePropagationDriftCheckRequest struct {
-	ModulePropagationId string
+	ModulePropagationID uint
 }
 
 type ModulePropagationDriftCheckRequestUpdate struct {
-	Status     *RequestStatus
-	SyncStatus *TerraformDriftCheckStatus
+	Status      *RequestStatus
+	StartedAt   *time.Time
+	CompletedAt *time.Time
+	SyncStatus  *TerraformDriftCheckStatus
+}
+
+type ModulePropagationDriftCheckRequestFilters struct {
+	StartedBefore   *time.Time
+	StartedAfter    *time.Time
+	CompletedBefore *time.Time
+	CompletedAfter  *time.Time
+	Status          *RequestStatus
+	SyncStatus      *TerraformDriftCheckStatus
 }

@@ -67,8 +67,8 @@ func IdentifierFromString(s string) (*Identifier, error) {
 
 	var resourceType ResourceType
 	switch parts[0] {
-	case string(ResourceTypeOrganizationalDimension):
-		resourceType = ResourceTypeOrganizationalDimension
+	case string(ResourceTypeOrgDimension):
+		resourceType = ResourceTypeOrgDimension
 	default:
 		return nil, &InvalidIdentifierError{wrapped: fmt.Errorf("invalid resource type: %q", parts[0])}
 	}

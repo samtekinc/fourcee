@@ -16,7 +16,7 @@ type ListModulePropagationOrgUnitsInput struct {
 }
 
 type ListModulePropagationOrgUnitsOutput struct {
-	OrgUnits []models.OrganizationalUnit
+	OrgUnits []models.OrgUnit
 }
 
 func (t *TaskHandler) ListModulePropagationOrgUnits(ctx context.Context, input ListModulePropagationOrgUnitsInput) (*ListModulePropagationOrgUnitsOutput, error) {
@@ -27,16 +27,16 @@ func (t *TaskHandler) ListModulePropagationOrgUnits(ctx context.Context, input L
 	}
 
 	// get org unit from module propagation
-	orgUnit, err := t.apiClient.GetOrganizationalUnit(ctx, modulePropagation.OrgDimensionId, modulePropagation.OrgUnitId)
+	orgUnit, err := t.apiClient.GetOrgUnit(ctx, modulePropagation.OrgDimensionId, modulePropagation.OrgUnitId)
 	if err != nil {
 		return nil, err
 	}
 
 	// get OUs under module propagation
-	ouList := []models.OrganizationalUnit{*orgUnit}
+	ouList := []models.OrgUnit{*orgUnit}
 	nextCursor := ""
 	for {
-		ouListPage, err := t.apiClient.GetOrganizationalUnitsByHierarchy(ctx, modulePropagation.OrgDimensionId, orgUnit.Hierarchy+orgUnit.OrgUnitId, 100, nextCursor)
+		ouListPage, err := t.apiClient.GetOrgUnitsByHierarchy(ctx, modulePropagation.OrgDimensionId, orgUnit.Hierarchy+orgUnit.OrgUnitId, 100, nextCursor)
 		if err != nil {
 			return nil, err
 		}

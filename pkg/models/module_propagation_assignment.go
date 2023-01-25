@@ -2,7 +2,7 @@ package models
 
 type ModulePropagationAssignment struct {
 	ModulePropagationId string
-	OrgAccountId        string
+	OrgAccountID        string
 	ModuleAssignmentId  string
 }
 
@@ -13,5 +13,5 @@ type ModulePropagationAssignments struct {
 
 type NewModulePropagationAssignment struct {
 	ModulePropagationId string
-	OrgAccountId        string
+	OrgAccountID        string
 }

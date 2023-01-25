@@ -1,25 +1,24 @@
 package models
 
-type ModuleAssignment struct {
-	ModuleAssignmentId        string
-	ModuleVersionId           string
-	ModuleGroupId             string
-	OrgAccountId              string
-	Name                      string
-	Description               string
-	RemoteStateRegion         string
-	RemoteStateBucket         string
-	RemoteStateKey            string
-	Arguments                 []Argument
-	AwsProviderConfigurations []AwsProviderConfiguration
-	GcpProviderConfigurations []GcpProviderConfiguration
-	ModulePropagationId       *string `dynamodbav:",omitempty"`
-	Status                    ModuleAssignmentStatus
-}
+import "gorm.io/gorm"
 
-type ModuleAssignments struct {
-	Items      []ModuleAssignment
-	NextCursor string
+type ModuleAssignment struct {
+	gorm.Model
+	ModuleVersionID                        uint
+	ModuleGroupID                          uint
+	OrgAccountID                           uint
+	Name                                   string
+	Description                            string
+	RemoteStateRegion                      string
+	RemoteStateBucket                      string
+	RemoteStateKey                         string
+	Arguments                              []Argument
+	AwsProviderConfigurations              []AwsProviderConfiguration
+	GcpProviderConfigurations              []GcpProviderConfiguration
+	ModulePropagationID                    *uint
+	Status                                 ModuleAssignmentStatus
+	TerraformExecutionRequestsAssociation  []*TerraformExecutionRequest  `gorm:"foreignKey:ModuleAssignmentID"`
+	TerraformDriftCheckRequestsAssociation []*TerraformDriftCheckRequest `gorm:"foreignKey:ModuleAssignmentID"`
 }
 
 type ModuleAssignmentStatus string
@@ -30,21 +29,21 @@ const (
 )
 
 type NewModuleAssignment struct {
-	ModuleVersionId           string
-	ModuleGroupId             string
-	OrgAccountId              string
+	ModuleVersionID           uint
+	ModuleGroupID             uint
+	OrgAccountID              uint
 	Name                      string
 	Description               string
 	Arguments                 []ArgumentInput
 	AwsProviderConfigurations []AwsProviderConfigurationInput
 	GcpProviderConfigurations []GcpProviderConfigurationInput
-	ModulePropagationId       *string
+	ModulePropagationID       *uint
 }
 
 type ModuleAssignmentUpdate struct {
 	Name                      *string
 	Description               *string
-	ModuleVersionId           *string
+	ModuleVersionID           *uint
 	Arguments                 []ArgumentInput
 	AwsProviderConfigurations []AwsProviderConfigurationInput
 	GcpProviderConfigurations []GcpProviderConfigurationInput
@@ -52,9 +51,8 @@ type ModuleAssignmentUpdate struct {
 }
 
 type ModuleAssignmentFilters struct {
-	IsPropagated *bool
-}
-
-type ModuleAssignmentFiltersInput struct {
-	IsPropagated *bool
+	NameContains        *string
+	DescriptionContains *string
+	Status              *ModuleAssignmentStatus
+	IsPropagated        *bool
 }

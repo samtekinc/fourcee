@@ -6,141 +6,83 @@ package resolver
 
 import (
 	"context"
-	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
-// CreateOrganizationalUnit is the resolver for the createOrganizationalUnit field.
-func (r *mutationResolver) CreateOrganizationalUnit(ctx context.Context, orgUnit models.NewOrganizationalUnit) (*models.OrganizationalUnit, error) {
-	return r.apiClient.PutOrganizationalUnit(ctx, &orgUnit)
+// CreateOrgUnit is the resolver for the createOrgUnit field.
+func (r *mutationResolver) CreateOrgUnit(ctx context.Context, orgUnit models.NewOrgUnit) (*models.OrgUnit, error) {
+	return r.apiClient.CreateOrgUnit(ctx, &orgUnit)
 }
 
-// DeleteOrganizationalUnit is the resolver for the deleteOrganizationalUnit field.
-func (r *mutationResolver) DeleteOrganizationalUnit(ctx context.Context, orgDimensionID string, orgUnitID string) (bool, error) {
-	err := r.apiClient.DeleteOrganizationalUnit(ctx, orgDimensionID, orgUnitID)
+// DeleteOrgUnit is the resolver for the deleteOrgUnit field.
+func (r *mutationResolver) DeleteOrgUnit(ctx context.Context, orgUnitID uint) (bool, error) {
+	err := r.apiClient.DeleteOrgUnit(ctx, orgUnitID)
 	return err == nil, err
 }
 
-// UpdateOrganizationalUnit is the resolver for the updateOrganizationalUnit field.
-func (r *mutationResolver) UpdateOrganizationalUnit(ctx context.Context, orgDimensionID string, orgUnitID string, update models.OrganizationalUnitUpdate) (*models.OrganizationalUnit, error) {
-	return r.apiClient.UpdateOrganizationalUnit(ctx, orgDimensionID, orgUnitID, &update)
+// UpdateOrgUnit is the resolver for the updateOrgUnit field.
+func (r *mutationResolver) UpdateOrgUnit(ctx context.Context, orgUnitID uint, update models.OrgUnitUpdate) (*models.OrgUnit, error) {
+	return r.apiClient.UpdateOrgUnit(ctx, orgUnitID, &update)
+}
+
+// AddAccountToOrgUnit is the resolver for the addAccountToOrgUnit field.
+func (r *mutationResolver) AddAccountToOrgUnit(ctx context.Context, orgUnitID uint, orgAccountID uint) (bool, error) {
+	err := r.apiClient.AddAccountToOrgUnit(ctx, orgUnitID, orgAccountID)
+	return err == nil, err
+}
+
+// RemoveAccountFromOrgUnit is the resolver for the removeAccountFromOrgUnit field.
+func (r *mutationResolver) RemoveAccountFromOrgUnit(ctx context.Context, orgUnitID uint, orgAccountID uint) (bool, error) {
+	err := r.apiClient.RemoveAccountFromOrgUnit(ctx, orgUnitID, orgAccountID)
+	return err == nil, err
 }
 
 // OrgDimension is the resolver for the orgDimension field.
-func (r *organizationalUnitResolver) OrgDimension(ctx context.Context, obj *models.OrganizationalUnit) (*models.OrganizationalDimension, error) {
-	return r.apiClient.GetOrganizationalDimensionBatched(ctx, obj.OrgDimensionId)
+func (r *orgUnitResolver) OrgDimension(ctx context.Context, obj *models.OrgUnit) (*models.OrgDimension, error) {
+	return r.apiClient.GetOrgDimensionBatched(ctx, obj.OrgDimensionID)
 }
 
 // ParentOrgUnit is the resolver for the parentOrgUnit field.
-func (r *organizationalUnitResolver) ParentOrgUnit(ctx context.Context, obj *models.OrganizationalUnit) (*models.OrganizationalUnit, error) {
-	if obj.ParentOrgUnitId == "" {
+func (r *orgUnitResolver) ParentOrgUnit(ctx context.Context, obj *models.OrgUnit) (*models.OrgUnit, error) {
+	if obj.ParentOrgUnitID == nil {
 		return nil, nil
 	}
-	return r.apiClient.GetOrganizationalUnitBatched(ctx, obj.OrgDimensionId, obj.ParentOrgUnitId)
+	return r.apiClient.GetOrgUnitBatched(ctx, *obj.ParentOrgUnitID)
 }
 
 // Children is the resolver for the children field.
-func (r *organizationalUnitResolver) Children(ctx context.Context, obj *models.OrganizationalUnit, limit *int, nextCursor *string) (*models.OrganizationalUnits, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetOrganizationalUnitsByParent(ctx, obj.OrgDimensionId, obj.OrgUnitId, int32(*limit), aws.ToString(nextCursor))
+func (r *orgUnitResolver) Children(ctx context.Context, obj *models.OrgUnit, filters *models.OrgUnitFilters, limit *int, offset *int) ([]*models.OrgUnit, error) {
+	return r.apiClient.GetOrgUnitsForParent(ctx, obj.ID, filters, limit, offset)
 }
 
 // DownstreamOrgUnits is the resolver for the downstreamOrgUnits field.
-func (r *organizationalUnitResolver) DownstreamOrgUnits(ctx context.Context, obj *models.OrganizationalUnit, limit *int, nextCursor *string) (*models.OrganizationalUnits, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetOrganizationalUnitsByHierarchy(ctx, obj.OrgDimensionId, obj.Hierarchy+obj.OrgUnitId, int32(*limit), aws.ToString(nextCursor))
+func (r *orgUnitResolver) DownstreamOrgUnits(ctx context.Context, obj *models.OrgUnit, filters *models.OrgUnitFilters, limit *int, offset *int) ([]*models.OrgUnit, error) {
+	return r.apiClient.GetDownstreamOrgUnits(ctx, obj.ID, filters, limit, offset)
 }
 
 // UpstreamOrgUnits is the resolver for the upstreamOrgUnits field.
-func (r *organizationalUnitResolver) UpstreamOrgUnits(ctx context.Context, obj *models.OrganizationalUnit) (*models.OrganizationalUnits, error) {
-	// TODO: Improve this by adding a bulk query function to the DB client to do batch GETs
-
-	if obj.Hierarchy == "/" {
-		return &models.OrganizationalUnits{
-			Items:      []models.OrganizationalUnit{},
-			NextCursor: "",
-		}, nil
-	}
-
-	parentOrgUnitIds := strings.Split(strings.Trim(obj.Hierarchy, "/"), "/")
-	parentsOrgUnits := make([]models.OrganizationalUnit, len(parentOrgUnitIds))
-	for i, parentOrgUnitId := range parentOrgUnitIds {
-		parentOrgUnit, err := r.apiClient.GetOrganizationalUnit(ctx, obj.OrgDimensionId, parentOrgUnitId)
-		if err != nil {
-			return nil, err
-		}
-		parentsOrgUnits[i] = *parentOrgUnit
-	}
-
-	return &models.OrganizationalUnits{
-		Items:      parentsOrgUnits,
-		NextCursor: "",
-	}, nil
+func (r *orgUnitResolver) UpstreamOrgUnits(ctx context.Context, obj *models.OrgUnit, filters *models.OrgUnitFilters, limit *int, offset *int) ([]*models.OrgUnit, error) {
+	return r.apiClient.GetUpstreamOrgUnits(ctx, obj.ID, filters, limit, offset)
 }
 
-// OrgUnitMemberships is the resolver for the orgUnitMemberships field.
-func (r *organizationalUnitResolver) OrgUnitMemberships(ctx context.Context, obj *models.OrganizationalUnit, limit *int, nextCursor *string) (*models.OrganizationalUnitMemberships, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetOrganizationalUnitMembershipsByOrgUnit(ctx, obj.OrgUnitId, int32(*limit), aws.ToString(nextCursor))
+// OrgAccounts is the resolver for the orgAccounts field.
+func (r *orgUnitResolver) OrgAccounts(ctx context.Context, obj *models.OrgUnit, filters *models.OrgAccountFilters, limit *int, offset *int) ([]*models.OrgAccount, error) {
+	return r.apiClient.GetOrgAccountsForOrgUnit(ctx, obj.ID, filters, limit, offset)
 }
 
 // ModulePropagations is the resolver for the modulePropagations field.
-func (r *organizationalUnitResolver) ModulePropagations(ctx context.Context, obj *models.OrganizationalUnit, limit *int, nextCursor *string) (*models.ModulePropagations, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetModulePropagationsByOrgUnitId(ctx, obj.OrgUnitId, int32(*limit), aws.ToString(nextCursor))
+func (r *orgUnitResolver) ModulePropagations(ctx context.Context, obj *models.OrgUnit, filters *models.ModulePropagationFilters, limit *int, offset *int) ([]*models.ModulePropagation, error) {
+	return r.apiClient.GetModulePropagationsForOrgUnit(ctx, obj.ID, filters, limit, offset)
 }
 
-// OrganizationalUnit is the resolver for the organizationalUnit field.
-func (r *queryResolver) OrganizationalUnit(ctx context.Context, orgDimensionID string, orgUnitID string) (*models.OrganizationalUnit, error) {
-	return r.apiClient.GetOrganizationalUnit(ctx, orgDimensionID, orgUnitID)
+// OrgUnit is the resolver for the orgUnit field.
+func (r *queryResolver) OrgUnit(ctx context.Context, orgUnitID uint) (*models.OrgUnit, error) {
+	return r.apiClient.GetOrgUnit(ctx, orgUnitID)
 }
 
-// OrganizationalUnits is the resolver for the organizationalUnits field.
-func (r *queryResolver) OrganizationalUnits(ctx context.Context, limit *int, nextCursor *string) (*models.OrganizationalUnits, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetOrganizationalUnits(ctx, int32(*limit), aws.ToString(nextCursor))
-}
+// OrgUnit returns generated.OrgUnitResolver implementation.
+func (r *Resolver) OrgUnit() generated.OrgUnitResolver { return &orgUnitResolver{r} }
 
-// OrganizationalUnitsByDimension is the resolver for the organizationalUnitsByDimension field.
-func (r *queryResolver) OrganizationalUnitsByDimension(ctx context.Context, orgDimensionID string, limit *int, nextCursor *string) (*models.OrganizationalUnits, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetOrganizationalUnitsByDimension(ctx, orgDimensionID, int32(*limit), aws.ToString(nextCursor))
-}
-
-// OrganizationalUnitsByParent is the resolver for the organizationalUnitsByParent field.
-func (r *queryResolver) OrganizationalUnitsByParent(ctx context.Context, orgDimensionID string, parentOrgUnitID string, limit *int, nextCursor *string) (*models.OrganizationalUnits, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetOrganizationalUnitsByParent(ctx, orgDimensionID, parentOrgUnitID, int32(*limit), aws.ToString(nextCursor))
-}
-
-// OrganizationalUnitsByHierarchy is the resolver for the organizationalUnitsByHierarchy field.
-func (r *queryResolver) OrganizationalUnitsByHierarchy(ctx context.Context, orgDimensionID string, hierarchy string, limit *int, nextCursor *string) (*models.OrganizationalUnits, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetOrganizationalUnitsByHierarchy(ctx, orgDimensionID, hierarchy, int32(*limit), aws.ToString(nextCursor))
-}
-
-// OrganizationalUnit returns generated.OrganizationalUnitResolver implementation.
-func (r *Resolver) OrganizationalUnit() generated.OrganizationalUnitResolver {
-	return &organizationalUnitResolver{r}
-}
-
-type organizationalUnitResolver struct{ *Resolver }
+type orgUnitResolver struct{ *Resolver }

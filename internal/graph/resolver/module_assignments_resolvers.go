@@ -6,9 +6,7 @@ package resolver
 
 import (
 	"context"
-	"errors"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/internal/terraform"
 	"github.com/sheacloud/tfom/pkg/models"
@@ -16,76 +14,54 @@ import (
 
 // ModuleVersion is the resolver for the moduleVersion field.
 func (r *moduleAssignmentResolver) ModuleVersion(ctx context.Context, obj *models.ModuleAssignment) (*models.ModuleVersion, error) {
-	return r.apiClient.GetModuleVersionBatched(ctx, obj.ModuleGroupId, obj.ModuleVersionId)
+	return r.apiClient.GetModuleVersionBatched(ctx, obj.ModuleVersionID)
 }
 
 // ModuleGroup is the resolver for the moduleGroup field.
 func (r *moduleAssignmentResolver) ModuleGroup(ctx context.Context, obj *models.ModuleAssignment) (*models.ModuleGroup, error) {
-	return r.apiClient.GetModuleGroupBatched(ctx, obj.ModuleGroupId)
+	return r.apiClient.GetModuleGroupBatched(ctx, obj.ModuleGroupID)
 }
 
 // OrgAccount is the resolver for the orgAccount field.
-func (r *moduleAssignmentResolver) OrgAccount(ctx context.Context, obj *models.ModuleAssignment) (*models.OrganizationalAccount, error) {
-	return r.apiClient.GetOrganizationalAccountBatched(ctx, obj.OrgAccountId)
+func (r *moduleAssignmentResolver) OrgAccount(ctx context.Context, obj *models.ModuleAssignment) (*models.OrgAccount, error) {
+	return r.apiClient.GetOrgAccountBatched(ctx, obj.OrgAccountID)
 }
 
 // ModulePropagation is the resolver for the modulePropagation field.
 func (r *moduleAssignmentResolver) ModulePropagation(ctx context.Context, obj *models.ModuleAssignment) (*models.ModulePropagation, error) {
-	if obj.ModulePropagationId == nil {
+	if obj.ModulePropagationID == nil {
 		return nil, nil
 	}
-	return r.apiClient.GetModulePropagationBatched(ctx, *obj.ModulePropagationId)
+	return r.apiClient.GetModulePropagationBatched(ctx, *obj.ModulePropagationID)
 }
 
 // TerraformDriftCheckRequests is the resolver for the terraformDriftCheckRequests field.
-func (r *moduleAssignmentResolver) TerraformDriftCheckRequests(ctx context.Context, obj *models.ModuleAssignment, limit *int, nextCursor *string) (*models.TerraformDriftCheckRequests, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetTerraformDriftCheckRequestsByModuleAssignmentId(ctx, obj.ModuleAssignmentId, int32(*limit), aws.ToString(nextCursor))
+func (r *moduleAssignmentResolver) TerraformDriftCheckRequests(ctx context.Context, obj *models.ModuleAssignment, filters *models.TerraformDriftCheckRequestFilters, limit *int, offset *int) ([]*models.TerraformDriftCheckRequest, error) {
+	return r.apiClient.GetTerraformDriftCheckRequestsForModuleAssignment(ctx, obj.ID, filters, limit, offset)
 }
 
 // TerraformExecutionRequests is the resolver for the terraformExecutionRequests field.
-func (r *moduleAssignmentResolver) TerraformExecutionRequests(ctx context.Context, obj *models.ModuleAssignment, limit *int, nextCursor *string) (*models.TerraformExecutionRequests, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetTerraformExecutionRequestsByModuleAssignmentId(ctx, obj.ModuleAssignmentId, int32(*limit), aws.ToString(nextCursor))
-}
-
-// PlanExecutionRequests is the resolver for the planExecutionRequests field.
-func (r *moduleAssignmentResolver) PlanExecutionRequests(ctx context.Context, obj *models.ModuleAssignment, limit *int, nextCursor *string) (*models.PlanExecutionRequests, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetPlanExecutionRequestsByModuleAssignmentId(ctx, obj.ModuleAssignmentId, int32(*limit), aws.ToString(nextCursor))
-}
-
-// ApplyExecutionRequests is the resolver for the applyExecutionRequests field.
-func (r *moduleAssignmentResolver) ApplyExecutionRequests(ctx context.Context, obj *models.ModuleAssignment, limit *int, nextCursor *string) (*models.ApplyExecutionRequests, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetApplyExecutionRequestsByModuleAssignmentId(ctx, obj.ModuleAssignmentId, int32(*limit), aws.ToString(nextCursor))
+func (r *moduleAssignmentResolver) TerraformExecutionRequests(ctx context.Context, obj *models.ModuleAssignment, filters *models.TerraformExecutionRequestFilters, limit *int, offset *int) ([]*models.TerraformExecutionRequest, error) {
+	return r.apiClient.GetTerraformExecutionRequestsForModuleAssignment(ctx, obj.ID, filters, limit, offset)
 }
 
 // TerraformConfiguration is the resolver for the terraformConfiguration field.
 func (r *moduleAssignmentResolver) TerraformConfiguration(ctx context.Context, obj *models.ModuleAssignment) (string, error) {
 	var modulePropagation *models.ModulePropagation
 	var err error
-	if obj.ModulePropagationId != nil {
-		modulePropagation, err = r.apiClient.GetModulePropagation(ctx, *obj.ModulePropagationId)
+	if obj.ModulePropagationID != nil {
+		modulePropagation, err = r.apiClient.GetModulePropagation(ctx, *obj.ModulePropagationID)
 		if err != nil {
 			return "", err
 		}
 	}
 
-	moduleVersion, err := r.apiClient.GetModuleVersion(ctx, obj.ModuleGroupId, obj.ModuleVersionId)
+	moduleVersion, err := r.apiClient.GetModuleVersion(ctx, obj.ModuleVersionID)
 	if err != nil {
 		return "", err
 	}
 
-	orgAccount, err := r.apiClient.GetOrganizationalAccount(ctx, obj.OrgAccountId)
+	orgAccount, err := r.apiClient.GetOrgAccount(ctx, obj.OrgAccountID)
 	if err != nil {
 		return "", err
 	}
@@ -103,37 +79,22 @@ func (r *moduleAssignmentResolver) TerraformConfiguration(ctx context.Context, o
 
 // CreateModuleAssignment is the resolver for the createModuleAssignment field.
 func (r *mutationResolver) CreateModuleAssignment(ctx context.Context, moduleAssignment models.NewModuleAssignment) (*models.ModuleAssignment, error) {
-	return r.apiClient.PutModuleAssignment(ctx, &moduleAssignment)
+	return r.apiClient.CreateModuleAssignment(ctx, &moduleAssignment)
 }
 
 // UpdateModuleAssignment is the resolver for the updateModuleAssignment field.
-func (r *mutationResolver) UpdateModuleAssignment(ctx context.Context, moduleAssignmentID string, moduleAssignmentUpdate models.ModuleAssignmentUpdate) (*models.ModuleAssignment, error) {
-	moduleAssignment, err := r.apiClient.GetModuleAssignment(ctx, moduleAssignmentID)
-	if err != nil {
-		return nil, err
-	}
-	if moduleAssignment.ModulePropagationId != nil {
-		return nil, errors.New("cannot update module assignment that is propagated")
-	}
+func (r *mutationResolver) UpdateModuleAssignment(ctx context.Context, moduleAssignmentID uint, moduleAssignmentUpdate models.ModuleAssignmentUpdate) (*models.ModuleAssignment, error) {
 	return r.apiClient.UpdateModuleAssignment(ctx, moduleAssignmentID, &moduleAssignmentUpdate)
 }
 
 // ModuleAssignment is the resolver for the moduleAssignment field.
-func (r *queryResolver) ModuleAssignment(ctx context.Context, moduleAssignmentID string) (*models.ModuleAssignment, error) {
+func (r *queryResolver) ModuleAssignment(ctx context.Context, moduleAssignmentID uint) (*models.ModuleAssignment, error) {
 	return r.apiClient.GetModuleAssignment(ctx, moduleAssignmentID)
 }
 
 // ModuleAssignments is the resolver for the moduleAssignments field.
-func (r *queryResolver) ModuleAssignments(ctx context.Context, filters *models.ModuleAssignmentFiltersInput, limit *int, nextCursor *string) (*models.ModuleAssignments, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	if filters == nil {
-		filters = &models.ModuleAssignmentFiltersInput{}
-	}
-	return r.apiClient.GetModuleAssignments(ctx, &models.ModuleAssignmentFilters{
-		IsPropagated: filters.IsPropagated,
-	}, int32(*limit), aws.ToString(nextCursor))
+func (r *queryResolver) ModuleAssignments(ctx context.Context, filters *models.ModuleAssignmentFilters, limit *int, offset *int) ([]*models.ModuleAssignment, error) {
+	return r.apiClient.GetModuleAssignments(ctx, filters, limit, offset)
 }
 
 // ModuleAssignment returns generated.ModuleAssignmentResolver implementation.
