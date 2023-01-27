@@ -131,7 +131,7 @@ func runPlan(ctx context.Context, request *models.PlanExecutionRequest, apiClien
 	}
 
 	// add the TF config to the directory
-	err = workingDirectory.AddFile(request.TerraformConfigurationBase64, "main.tf")
+	err = workingDirectory.AddFile(request.TerraformConfiguration, "main.tf")
 	if err != nil {
 		return err
 	}
@@ -214,7 +214,7 @@ func runApply(ctx context.Context, request *models.ApplyExecutionRequest, apiCli
 	}
 
 	// add the TF config to the directory
-	err = workingDirectory.AddFile(request.TerraformConfigurationBase64, "main.tf")
+	err = workingDirectory.AddFile(request.TerraformConfiguration, "main.tf")
 	if err != nil {
 		return err
 	}
@@ -249,7 +249,7 @@ func runApply(ctx context.Context, request *models.ApplyExecutionRequest, apiCli
 	if err != nil {
 		return err
 	}
-	err = executable.TerraformApply(workingDirectory, request.TerraformPlanBase64, request.AdditionalArguments, applyOutput)
+	err = executable.TerraformApply(workingDirectory, request.TerraformPlan, request.AdditionalArguments, applyOutput)
 	applyOutput.Close()
 	if err != nil {
 		return err

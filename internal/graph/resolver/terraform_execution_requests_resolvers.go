@@ -23,18 +23,12 @@ func (r *terraformExecutionRequestResolver) ModuleAssignment(ctx context.Context
 
 // PlanExecutionRequest is the resolver for the planExecutionRequest field.
 func (r *terraformExecutionRequestResolver) PlanExecutionRequest(ctx context.Context, obj *models.TerraformExecutionRequest) (*models.PlanExecutionRequest, error) {
-	if obj.PlanExecutionRequestID == nil {
-		return nil, nil
-	}
-	return r.apiClient.GetPlanExecutionRequestBatched(ctx, *obj.PlanExecutionRequestID)
+	return r.apiClient.GetPlanExecutionRequestForTerraformExecutionRequest(ctx, obj.ID)
 }
 
 // ApplyExecutionRequest is the resolver for the applyExecutionRequest field.
 func (r *terraformExecutionRequestResolver) ApplyExecutionRequest(ctx context.Context, obj *models.TerraformExecutionRequest) (*models.ApplyExecutionRequest, error) {
-	if obj.ApplyExecutionRequestID == nil {
-		return nil, nil
-	}
-	return r.apiClient.GetApplyExecutionRequestBatched(ctx, *obj.ApplyExecutionRequestID)
+	return r.apiClient.GetApplyExecutionRequestForTerraformExecutionRequest(ctx, obj.ID)
 }
 
 // ModulePropagation is the resolver for the modulePropagation field.

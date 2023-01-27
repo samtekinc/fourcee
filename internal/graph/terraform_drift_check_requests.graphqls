@@ -2,7 +2,7 @@ type TerraformDriftCheckRequest {
   id: ID!
   moduleAssignmentID: ID!
   moduleAssignment: ModuleAssignment!
-  planExecutionRequestID: ID
+  # planExecutionRequestID: ID
   planExecutionRequest: PlanExecutionRequest
   startedAt: Time
   completedAt: Time

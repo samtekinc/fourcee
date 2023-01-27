@@ -79,4 +79,5 @@ extend type Mutation {
     moduleAssignmentID: ID!
     moduleAssignmentUpdate: ModuleAssignmentUpdate!
   ): ModuleAssignment!
+  deleteModuleAssignment(moduleAssignmentID: ID!): Boolean!
 }

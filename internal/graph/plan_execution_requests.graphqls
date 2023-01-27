@@ -3,7 +3,7 @@ type PlanExecutionRequest {
   moduleAssignmentID: ID!
   moduleAssignment: ModuleAssignment!
   terraformVersion: String!
-  terraformConfigurationBase64: String!
+  terraformConfiguration: String!
   additionalArguments: String
   terraformExecutionRequestID: ID
   terraformDriftCheckRequestID: ID

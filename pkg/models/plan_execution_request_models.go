@@ -11,7 +11,7 @@ type PlanExecutionRequest struct {
 	ModuleAssignmentID           uint
 	TerraformVersion             string
 	CallbackTaskToken            string
-	TerraformConfigurationBase64 string
+	TerraformConfiguration       []byte
 	AdditionalArguments          *string
 	TerraformDriftCheckRequestID *uint
 	TerraformExecutionRequestID  *uint
@@ -30,7 +30,7 @@ type NewPlanExecutionRequest struct {
 	CallbackTaskToken            string
 	TerraformDriftCheckRequestID *uint
 	TerraformExecutionRequestID  *uint
-	TerraformConfigurationBase64 string
+	TerraformConfiguration       []byte
 	AdditionalArguments          *string
 }
 

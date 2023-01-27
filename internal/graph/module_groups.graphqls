@@ -30,7 +30,7 @@ input ModuleGroupFilters {
 }
 
 extend type Query {
-  moduleGroup(id: ID!): ModuleGroup!
+  moduleGroup(moduleGroupID: ID!): ModuleGroup!
   moduleGroups(
     filters: ModuleGroupFilters
     limit: Int
@@ -40,5 +40,5 @@ extend type Query {
 
 extend type Mutation {
   createModuleGroup(moduleGroup: NewModuleGroup!): ModuleGroup!
-  deleteModuleGroup(id: ID!): Boolean!
+  deleteModuleGroup(moduleGroupID: ID!): Boolean!
 }

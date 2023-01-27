@@ -26,7 +26,7 @@ type ModuleVariable {
 }
 
 input NewModuleVersion {
-  moduleGroupId: ID!
+  moduleGroupID: ID!
   name: String!
   remoteSource: String!
   terraformVersion: String!
@@ -39,7 +39,7 @@ input ModuleVersionFilters {
 }
 
 extend type Query {
-  moduleVersion(moduleVersionId: ID!): ModuleVersion!
+  moduleVersion(moduleVersionID: ID!): ModuleVersion!
   moduleVersions(
     filters: ModuleVersionFilters
     limit: Int
@@ -49,5 +49,5 @@ extend type Query {
 
 extend type Mutation {
   createModuleVersion(moduleVersion: NewModuleVersion!): ModuleVersion!
-  deleteModuleVersion(moduleVersionId: ID!): Boolean!
+  deleteModuleVersion(moduleVersionID: ID!): Boolean!
 }

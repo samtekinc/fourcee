@@ -8,28 +8,28 @@ import (
 
 type ApplyExecutionRequest struct {
 	gorm.Model
-	ModuleAssignmentID           uint
-	TerraformVersion             string
-	CallbackTaskToken            string
-	TerraformConfigurationBase64 string
-	TerraformPlanBase64          string
-	AdditionalArguments          *string
-	TerraformExecutionRequestID  uint
-	Status                       RequestStatus
-	InitOutput                   []byte
-	ApplyOutput                  []byte
-	StartedAt                    *time.Time
-	CompletedAt                  *time.Time
+	ModuleAssignmentID          uint
+	TerraformVersion            string
+	CallbackTaskToken           string
+	TerraformConfiguration      []byte
+	TerraformPlan               []byte
+	AdditionalArguments         *string
+	TerraformExecutionRequestID uint
+	Status                      RequestStatus
+	InitOutput                  []byte
+	ApplyOutput                 []byte
+	StartedAt                   *time.Time
+	CompletedAt                 *time.Time
 }
 
 type NewApplyExecutionRequest struct {
-	ModuleAssignmentID           uint
-	TerraformVersion             string
-	CallbackTaskToken            string
-	TerraformConfigurationBase64 string
-	TerraformExecutionRequestID  uint
-	TerraformPlanBase64          string
-	AdditionalArguments          *string
+	ModuleAssignmentID          uint
+	TerraformVersion            string
+	CallbackTaskToken           string
+	TerraformConfiguration      []byte
+	TerraformExecutionRequestID uint
+	TerraformPlan               []byte
+	AdditionalArguments         *string
 }
 
 type ApplyExecutionRequestUpdate struct {

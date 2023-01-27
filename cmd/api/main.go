@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -9,10 +10,10 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sheacloud/tfom/internal/api"
+	"github.com/sheacloud/tfom/internal/api/client"
 	tfomConfig "github.com/sheacloud/tfom/internal/config"
 	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/internal/graph/resolver"
-	"github.com/sheacloud/tfom/pkg/models"
 	"go.uber.org/zap"
 )
 
@@ -52,22 +53,11 @@ func main() {
 	}
 
 	conf := tfomConfig.ConfigFromEnv()
-	// dbClient := conf.GetDatabaseClient(cfg)
-	db, err := conf.GetDatabase(ctx)
-	if err != nil {
-		panic("unable to get database, " + err.Error())
-	}
 
-	err = db.AutoMigrate(&models.OrgAccount{}, &models.OrgDimension{}, &models.OrgUnit{}, &models.Metadata{}, &models.ModuleGroup{}, &models.ModuleVersion{}, &models.ModuleVariable{}, &models.ModulePropagation{}, &models.Argument{}, &models.AwsProviderConfiguration{}, &models.GcpProviderConfiguration{}, &models.ModuleAssignment{},
-		&models.ModulePropagationExecutionRequest{}, &models.ModulePropagationDriftCheckRequest{}, &models.TerraformExecutionRequest{}, &models.TerraformDriftCheckRequest{}, &models.PlanExecutionRequest{}, &models.ApplyExecutionRequest{})
+	apiClient, err := client.APIClientFromConfig(&conf, cfg)
 	if err != nil {
-		panic("unable to migrate database, " + err.Error())
+		log.Fatalln("unable to create API Client", err)
 	}
-
-	if err != nil {
-		panic("unable to get database, " + err.Error())
-	}
-	apiClient := conf.GetApiClient(cfg, db)
 
 	router := gin.Default()
 	config := cors.DefaultConfig()

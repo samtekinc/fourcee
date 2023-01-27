@@ -66,7 +66,7 @@ func (r *moduleAssignmentResolver) TerraformConfiguration(ctx context.Context, o
 		return "", err
 	}
 
-	terraformConfig, err := terraform.GetTerraformConfigurationBase64(&terraform.TerraformConfigurationInput{
+	terraformConfig, err := terraform.GetTerraformConfiguration(&terraform.TerraformConfigurationInput{
 		ModuleAssignment:  obj,
 		ModulePropagation: modulePropagation,
 		ModuleVersion:     moduleVersion,
@@ -74,7 +74,7 @@ func (r *moduleAssignmentResolver) TerraformConfiguration(ctx context.Context, o
 		LockTableName:     r.config.Prefix + "-terraform-lock",
 	})
 
-	return terraformConfig, err
+	return string(terraformConfig), err
 }
 
 // CreateModuleAssignment is the resolver for the createModuleAssignment field.
@@ -85,6 +85,12 @@ func (r *mutationResolver) CreateModuleAssignment(ctx context.Context, moduleAss
 // UpdateModuleAssignment is the resolver for the updateModuleAssignment field.
 func (r *mutationResolver) UpdateModuleAssignment(ctx context.Context, moduleAssignmentID uint, moduleAssignmentUpdate models.ModuleAssignmentUpdate) (*models.ModuleAssignment, error) {
 	return r.apiClient.UpdateModuleAssignment(ctx, moduleAssignmentID, &moduleAssignmentUpdate)
+}
+
+// DeleteModuleAssignment is the resolver for the deleteModuleAssignment field.
+func (r *mutationResolver) DeleteModuleAssignment(ctx context.Context, moduleAssignmentID uint) (bool, error) {
+	err := r.apiClient.DeleteModuleAssignment(ctx, moduleAssignmentID)
+	return err == nil, err
 }
 
 // ModuleAssignment is the resolver for the moduleAssignment field.

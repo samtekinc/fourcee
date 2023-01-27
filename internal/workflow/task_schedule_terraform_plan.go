@@ -71,7 +71,7 @@ func (t *TaskHandler) ScheduleTerraformPlan(ctx context.Context, input ScheduleT
 		return nil, err
 	}
 
-	terraformConfig, err := terraform.GetTerraformConfigurationBase64(&terraform.TerraformConfigurationInput{
+	terraformConfig, err := terraform.GetTerraformConfiguration(&terraform.TerraformConfigurationInput{
 		ModuleAssignment:  moduleAssignment,
 		ModulePropagation: modulePropagation,
 		ModuleVersion:     moduleVersion,
@@ -88,12 +88,12 @@ func (t *TaskHandler) ScheduleTerraformPlan(ctx context.Context, input ScheduleT
 	}
 
 	planRequest, err := t.apiClient.PutPlanExecutionRequest(ctx, &models.NewPlanExecutionRequest{
-		ModuleAssignmentId:           moduleAssignment.ModuleAssignmentId,
-		TerraformVersion:             moduleVersion.TerraformVersion,
-		CallbackTaskToken:            input.TaskToken,
-		TerraformWorkflowRequestId:   input.TerraformWorkflowRequestId,
-		TerraformConfigurationBase64: terraformConfig,
-		AdditionalArguments:          additionalArguments,
+		ModuleAssignmentId:         moduleAssignment.ModuleAssignmentId,
+		TerraformVersion:           moduleVersion.TerraformVersion,
+		CallbackTaskToken:          input.TaskToken,
+		TerraformWorkflowRequestId: input.TerraformWorkflowRequestId,
+		TerraformConfiguration:     terraformConfig,
+		AdditionalArguments:        additionalArguments,
 	})
 	if err != nil {
 		return nil, err

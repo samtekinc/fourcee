@@ -10,7 +10,7 @@ resource "aws_dynamodb_table" "terraform_lock" {
 }
 
 resource "aws_dynamodb_table" "org_dimensions" {
-  name         = "${var.prefix}-organizational-dimensions"
+  name         = "${var.prefix}-org-dimensions"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "OrgDimensionId"
 
@@ -21,7 +21,7 @@ resource "aws_dynamodb_table" "org_dimensions" {
 }
 
 resource "aws_dynamodb_table" "org_units" {
-  name         = "${var.prefix}-organizational-units"
+  name         = "${var.prefix}-org-units"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "OrgDimensionId"
   range_key    = "OrgUnitId"
@@ -62,7 +62,7 @@ resource "aws_dynamodb_table" "org_units" {
 }
 
 resource "aws_dynamodb_table" "org_accounts" {
-  name         = "${var.prefix}-organizational-accounts"
+  name         = "${var.prefix}-org-accounts"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "OrgAccountId"
 
@@ -73,7 +73,7 @@ resource "aws_dynamodb_table" "org_accounts" {
 }
 
 resource "aws_dynamodb_table" "org_unit_memberships" {
-  name         = "${var.prefix}-organizational-unit-memberships"
+  name         = "${var.prefix}-org-unit-memberships"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "OrgDimensionId"
   range_key    = "OrgAccountId"

@@ -1,0 +1,34 @@
+type OrgDimension {
+  id: ID!
+  name: String!
+  rootOrgUnitID: ID!
+  rootOrgUnit: OrgUnit!
+  orgUnits(filters: OrgUnitFilters, limit: Int, offset: Int): [OrgUnit!]!
+  modulePropagations(
+    filters: ModulePropagationFilters
+    limit: Int
+    offset: Int
+  ): [ModulePropagation!]!
+}
+
+input NewOrgDimension {
+  name: String!
+}
+
+input OrgDimensionFilters {
+  nameContains: String
+}
+
+extend type Query {
+  orgDimension(orgDimensionID: ID!): OrgDimension!
+  orgDimensions(
+    filters: OrgDimensionFilters
+    limit: Int
+    offset: Int
+  ): [OrgDimension!]!
+}
+
+extend type Mutation {
+  createOrgDimension(orgDimension: NewOrgDimension!): OrgDimension!
+  deleteOrgDimension(orgDimensionID: ID!): Boolean!
+}

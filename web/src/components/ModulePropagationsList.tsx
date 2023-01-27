@@ -1,12 +1,7 @@
-import React, { useState } from "react";
-import { ModulePropagations } from "../__generated__/graphql";
+import { ModulePropagation } from "../__generated__/graphql";
 import { NavLink, Outlet } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
-import Tab from "react-bootstrap/Tab";
-import Tabs from "react-bootstrap/Tabs";
 import Container from "react-bootstrap/Container";
-import { ModulePropagationPage } from "./ModulePropagationPage";
-import Table from "react-bootstrap/Table";
 import { Card, Col, ListGroup, Nav, Row } from "react-bootstrap";
 import { NewModulePropagationButton } from "./NewModulePropagationButton";
 import { renderCloudPlatform } from "../utils/rendering";
@@ -14,33 +9,31 @@ import { renderCloudPlatform } from "../utils/rendering";
 const MODULE_PROPAGATIONS_QUERY = gql`
   query modulePropagations {
     modulePropagations(limit: 100) {
-      items {
-        modulePropagationId
+      id
+      name
+      moduleGroup {
+        id
         name
-        moduleGroup {
-          moduleGroupId
-          name
-          cloudPlatform
-        }
-        moduleVersion {
-          moduleVersionId
-          name
-        }
-        orgUnit {
-          orgUnitId
-          name
-        }
-        orgDimension {
-          orgDimensionId
-          name
-        }
+        cloudPlatform
+      }
+      moduleVersion {
+        id
+        name
+      }
+      orgUnit {
+        id
+        name
+      }
+      orgDimension {
+        id
+        name
       }
     }
   }
 `;
 
 type Response = {
-  modulePropagations: ModulePropagations;
+  modulePropagations: ModulePropagation[];
 };
 
 export const ModulePropagationsList = () => {
@@ -86,11 +79,11 @@ export const ModulePropagationsList = () => {
               flexWrap: "nowrap",
             }}
           >
-            {data?.modulePropagations.items.map((modulePropagation) => {
+            {data?.modulePropagations.map((modulePropagation) => {
               return (
                 <>
                   <NavLink
-                    to={`/module-propagations/${modulePropagation?.modulePropagationId}`}
+                    to={`/module-propagations/${modulePropagation?.id}`}
                     style={({ isActive }) =>
                       isActive
                         ? {

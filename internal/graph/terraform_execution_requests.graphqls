@@ -2,9 +2,9 @@ type TerraformExecutionRequest {
   id: ID!
   moduleAssignmentID: ID!
   moduleAssignment: ModuleAssignment!
-  planExecutionRequestID: ID
+  # planExecutionRequestID: ID
   planExecutionRequest: PlanExecutionRequest
-  applyExecutionRequestID: ID
+  # applyExecutionRequestID: ID
   applyExecutionRequest: ApplyExecutionRequest
   startedAt: Time
   completedAt: Time

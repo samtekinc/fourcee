@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 import { NotificationContainer } from "react-notifications";
 import { Header } from "./Header";
 import "react-notifications/lib/notifications.css";

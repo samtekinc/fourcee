@@ -9,7 +9,7 @@ import (
 type TerraformDriftCheckRequest struct {
 	gorm.Model
 	ModuleAssignmentID                   uint
-	PlanExecutionRequestID               *uint
+	PlanExecutionRequestAssociation      *PlanExecutionRequest
 	StartedAt                            *time.Time
 	CompletedAt                          *time.Time
 	Status                               RequestStatus
@@ -29,11 +29,10 @@ type NewTerraformDriftCheckRequest struct {
 }
 
 type TerraformDriftCheckRequestUpdate struct {
-	Status                 *RequestStatus
-	PlanExecutionRequestID *uint
-	StartedAt              *time.Time
-	CompletedAt            *time.Time
-	SyncStatus             *TerraformDriftCheckStatus
+	Status      *RequestStatus
+	StartedAt   *time.Time
+	CompletedAt *time.Time
+	SyncStatus  *TerraformDriftCheckStatus
 }
 
 type TerraformDriftCheckRequestFilters struct {

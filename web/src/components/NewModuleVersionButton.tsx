@@ -3,25 +3,25 @@ import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { NotificationManager } from "react-notifications";
 import { Button, Form, Modal } from "react-bootstrap";
-import { CloudPlatform, NewModuleVersion } from "../__generated__/graphql";
+import { NewModuleVersion } from "../__generated__/graphql";
 import { BsPlusCircle } from "react-icons/bs";
 
 const NEW_MODULE_VERSION_MUTATION = gql`
   mutation createModuleVersion($moduleVersion: NewModuleVersion!) {
     createModuleVersion(moduleVersion: $moduleVersion) {
-      moduleVersionId
+      id
     }
   }
 `;
 
 type CreateModuleVersionResponse = {
   createModuleVersion: {
-    moduleVersionId: string;
+    id: string;
   };
 };
 
 interface NewModuleVersionButtonProps {
-  moduleGroupId: string | undefined;
+  moduleGroupID: string | undefined;
   onCompleted: () => void;
 }
 
@@ -34,7 +34,7 @@ export const NewModuleVersionButton: React.VFC<NewModuleVersionButtonProps> = (
   const handleShow = () => setShow(true);
 
   const [formState, setFormState] = useState<NewModuleVersion>({
-    moduleGroupId: props.moduleGroupId,
+    moduleGroupID: props.moduleGroupID,
   } as NewModuleVersion);
 
   const [mutation] = useMutation<CreateModuleVersionResponse>(
@@ -53,7 +53,7 @@ export const NewModuleVersionButton: React.VFC<NewModuleVersionButtonProps> = (
       },
       onCompleted: (data) => {
         NotificationManager.success(
-          `Created ${data.createModuleVersion.moduleVersionId}`,
+          `Created ${data.createModuleVersion.id}`,
           "",
           5000
         );

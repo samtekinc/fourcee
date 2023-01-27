@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { ModuleGroup, ModuleGroups } from "../__generated__/graphql";
+import { ModuleGroup } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
@@ -11,54 +10,48 @@ import {
 import { NewModuleVersionButton } from "./NewModuleVersionButton";
 
 const MODULE_GROUP_QUERY = gql`
-  query moduleGroup($moduleGroupId: ID!) {
-    moduleGroup(moduleGroupId: $moduleGroupId) {
-      moduleGroupId
-      cloudPlatform
+  query moduleGroup($moduleGroupID: ID!) {
+    moduleGroup(moduleGroupID: $moduleGroupID) {
+      id
       name
+      cloudPlatform
       versions {
-        items {
-          moduleVersionId
-          name
-          remoteSource
-          terraformVersion
-        }
+        id
+        name
+        remoteSource
+        terraformVersion
       }
       modulePropagations {
-        items {
+        name
+        id
+        moduleVersion {
+          id
           name
-          modulePropagationId
-          moduleVersion {
-            moduleVersionId
-            name
-          }
-          orgUnit {
-            orgUnitId
-            name
-          }
-          orgDimension {
-            orgDimensionId
-            name
-          }
+        }
+        orgUnit {
+          id
+          name
+        }
+        orgDimension {
+          id
+          name
         }
       }
       moduleAssignments {
-        items {
-          moduleAssignmentId
-          moduleVersion {
-            moduleVersionId
-            name
-          }
-          modulePropagation {
-            modulePropagationId
-            name
-          }
-          orgAccount {
-            orgAccountId
-            name
-          }
-          status
+        id
+        moduleVersion {
+          id
+          name
         }
+        modulePropagation {
+          id
+          name
+        }
+        orgAccount {
+          id
+          name
+        }
+        status
       }
     }
   }
@@ -71,15 +64,13 @@ type Response = {
 export const ModuleGroupPage = () => {
   const params = useParams();
 
-  const moduleGroupId = params.moduleGroupId ? params.moduleGroupId : "";
-
-  console.log("test");
+  const moduleGroupID = params.moduleGroupID ? params.moduleGroupID : "";
 
   const { loading, error, data, refetch } = useQuery<Response>(
     MODULE_GROUP_QUERY,
     {
       variables: {
-        moduleGroupId: moduleGroupId,
+        moduleGroupID: moduleGroupID,
       },
     }
   );
@@ -100,7 +91,7 @@ export const ModuleGroupPage = () => {
           Modules
         </Breadcrumb.Item>
         <Breadcrumb.Item active>
-          {data?.moduleGroup.name} ({data?.moduleGroup.moduleGroupId})
+          {data?.moduleGroup.name} ({data?.moduleGroup.id})
         </Breadcrumb.Item>
       </Breadcrumb>
       <Row>
@@ -114,7 +105,7 @@ export const ModuleGroupPage = () => {
       <h2>
         Versions{" "}
         <NewModuleVersionButton
-          moduleGroupId={moduleGroupId}
+          moduleGroupID={moduleGroupID}
           onCompleted={refetch}
         />
       </h2>
@@ -127,12 +118,12 @@ export const ModuleGroupPage = () => {
           </tr>
         </thead>
         <tbody>
-          {data?.moduleGroup.versions.items.map((version) => {
+          {data?.moduleGroup.versions.map((version) => {
             return (
               <tr>
                 <td>
                   <NavLink
-                    to={`/module-groups/${data?.moduleGroup.moduleGroupId}/versions/${version?.moduleVersionId}`}
+                    to={`/module-groups/${data?.moduleGroup.id}/versions/${version?.id}`}
                   >
                     {version?.name}
                   </NavLink>
@@ -156,32 +147,30 @@ export const ModuleGroupPage = () => {
               </tr>
             </thead>
             <tbody>
-              {data?.moduleGroup.modulePropagations.items.map((propagation) => {
+              {data?.moduleGroup.modulePropagations.map((propagation) => {
                 return (
                   <tr>
                     <td>
-                      <NavLink
-                        to={`/module-propagations/${propagation?.modulePropagationId}`}
-                      >
+                      <NavLink to={`/module-propagations/${propagation?.id}`}>
                         {propagation?.name}
                       </NavLink>
                     </td>
                     <td>
                       <NavLink
-                        to={`/module-groups/${data?.moduleGroup.moduleGroupId}/versions/${propagation?.moduleVersion?.moduleVersionId}`}
+                        to={`/module-groups/${data?.moduleGroup.id}/versions/${propagation?.moduleVersion?.id}`}
                       >
                         {propagation?.moduleVersion?.name}
                       </NavLink>
                     </td>
                     <td>
                       <NavLink
-                        to={`/org-dimensions/${propagation?.orgDimension?.orgDimensionId}`}
+                        to={`/org-dimensions/${propagation?.orgDimension?.id}`}
                       >
                         {propagation?.orgDimension?.name}
                       </NavLink>
                       {" / "}
                       <NavLink
-                        to={`/org-dimensions/${propagation?.orgDimension?.orgDimensionId}/org-units/${propagation?.orgUnit?.orgUnitId}`}
+                        to={`/org-dimensions/${propagation?.orgDimension?.id}/org-units/${propagation?.orgUnit?.id}`}
                       >
                         {propagation?.orgUnit?.name}
                       </NavLink>
@@ -197,7 +186,7 @@ export const ModuleGroupPage = () => {
           <Table hover>
             <thead>
               <tr>
-                <th>Assignment Id</th>
+                <th>Assignment ID</th>
                 <th>Account</th>
                 <th>Module Version</th>
                 <th>Status</th>
@@ -205,26 +194,24 @@ export const ModuleGroupPage = () => {
               </tr>
             </thead>
             <tbody>
-              {data?.moduleGroup.moduleAssignments.items.map((assignment) => {
+              {data?.moduleGroup.moduleAssignments.map((assignment) => {
                 return (
                   <tr>
                     <td>
-                      <NavLink
-                        to={`/module-assignments/${assignment?.moduleAssignmentId}`}
-                      >
-                        {assignment?.moduleAssignmentId}
+                      <NavLink to={`/module-assignments/${assignment?.id}`}>
+                        {assignment?.id}
                       </NavLink>
                     </td>
                     <td>
                       <NavLink
-                        to={`/org-accounts/${assignment?.orgAccount?.orgAccountId}`}
+                        to={`/org-accounts/${assignment?.orgAccount?.id}`}
                       >
                         {assignment?.orgAccount?.name}
                       </NavLink>
                     </td>
                     <td>
                       <NavLink
-                        to={`/module-groups/${moduleGroupId}/versions/${assignment?.moduleVersion?.moduleVersionId}`}
+                        to={`/module-groups/${moduleGroupID}/versions/${assignment?.moduleVersion?.id}`}
                       >
                         {assignment?.moduleVersion?.name}
                       </NavLink>
@@ -233,7 +220,7 @@ export const ModuleGroupPage = () => {
                     <td>
                       {assignment?.modulePropagation ? (
                         <NavLink
-                          to={`/module-propagations/${assignment?.modulePropagation.modulePropagationId}`}
+                          to={`/module-propagations/${assignment?.modulePropagation.id}`}
                         >
                           {assignment?.modulePropagation?.name}
                         </NavLink>

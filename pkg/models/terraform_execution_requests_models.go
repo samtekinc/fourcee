@@ -9,8 +9,8 @@ import (
 type TerraformExecutionRequest struct {
 	gorm.Model
 	ModuleAssignmentID                  uint
-	PlanExecutionRequestID              *uint
-	ApplyExecutionRequestID             *uint
+	PlanExecutionRequestAssociation     *PlanExecutionRequest
+	ApplyExecutionRequestAssociation    *ApplyExecutionRequest
 	StartedAt                           *time.Time
 	CompletedAt                         *time.Time
 	Status                              RequestStatus
@@ -29,11 +29,9 @@ type NewTerraformExecutionRequest struct {
 }
 
 type TerraformExecutionRequestUpdate struct {
-	Status                  *RequestStatus
-	PlanExecutionRequestID  *uint
-	StartedAt               *time.Time
-	CompletedAt             *time.Time
-	ApplyExecutionRequestID *uint
+	Status      *RequestStatus
+	StartedAt   *time.Time
+	CompletedAt *time.Time
 }
 
 type TerraformExecutionRequestFilters struct {

@@ -1,13 +1,11 @@
-import React, { useState } from "react";
 import {
   ModulePropagationDriftCheckRequest,
-  ModulePropagationDriftCheckRequests,
   RequestStatus,
 } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
-import { renderStatus, renderTimeField } from "../utils/table_rendering";
+import { renderStatus } from "../utils/table_rendering";
 import { Col, Container, Row } from "react-bootstrap";
 import {
   renderApplyDestroy,
@@ -17,38 +15,33 @@ import {
 
 const MODULE_PROPAGATION_DRIFT_CHECK_QUERY = gql`
   query modulePropagationDriftCheckRequest(
-    $modulePropagationId: ID!
-    $modulePropagationDriftCheckRequestId: ID!
+    $modulePropagationDriftCheckRequestID: ID!
   ) {
     modulePropagationDriftCheckRequest(
-      modulePropagationId: $modulePropagationId
-      modulePropagationDriftCheckRequestId: $modulePropagationDriftCheckRequestId
+      modulePropagationDriftCheckRequestID: $modulePropagationDriftCheckRequestID
     ) {
-      modulePropagationId
-      modulePropagationDriftCheckRequestId
-      requestTime
+      id
+      startedAt
       status
       terraformDriftCheckRequests {
-        items {
-          terraformDriftCheckRequestId
-          status
-          requestTime
-          destroy
-          moduleAssignment {
-            moduleAssignmentId
-            orgAccount {
-              cloudPlatform
-              orgAccountId
-              name
-            }
+        id
+        status
+        startedAt
+        destroy
+        moduleAssignment {
+          id
+          orgAccount {
+            id
+            cloudPlatform
+            name
           }
-          planExecutionRequest {
-            planExecutionRequestId
-            status
-            requestTime
-          }
-          syncStatus
         }
+        planExecutionRequest {
+          id
+          status
+          startedAt
+        }
+        syncStatus
       }
     }
   }
@@ -61,21 +54,20 @@ type Response = {
 export const ModulePropagationDriftCheckRequestPage = () => {
   const params = useParams();
 
-  const modulePropagationDriftCheckRequestId =
-    params.modulePropagationDriftCheckRequestId
-      ? params.modulePropagationDriftCheckRequestId
+  const modulePropagationDriftCheckRequestID =
+    params.modulePropagationDriftCheckRequestID
+      ? params.modulePropagationDriftCheckRequestID
       : "";
-  const modulePropagationId = params.modulePropagationId
-    ? params.modulePropagationId
+  const modulePropagationID = params.modulePropagationID
+    ? params.modulePropagationID
     : "";
 
   const { loading, error, data, startPolling } = useQuery<Response>(
     MODULE_PROPAGATION_DRIFT_CHECK_QUERY,
     {
       variables: {
-        modulePropagationDriftCheckRequestId:
-          modulePropagationDriftCheckRequestId,
-        modulePropagationId: modulePropagationId,
+        modulePropagationDriftCheckRequestID:
+          modulePropagationDriftCheckRequestID,
       },
       pollInterval: 1000,
     }
@@ -96,12 +88,7 @@ export const ModulePropagationDriftCheckRequestPage = () => {
 
   return (
     <Container fluid>
-      <h1>
-        {
-          data?.modulePropagationDriftCheckRequest
-            .modulePropagationDriftCheckRequestId
-        }
-      </h1>
+      <h1>{data?.modulePropagationDriftCheckRequest.id}</h1>
       Status: {renderStatus(data?.modulePropagationDriftCheckRequest.status)}
       <br />
       <Row>
@@ -118,7 +105,7 @@ export const ModulePropagationDriftCheckRequestPage = () => {
               </tr>
             </thead>
             <tbody>
-              {data?.modulePropagationDriftCheckRequest.terraformDriftCheckRequests.items.map(
+              {data?.modulePropagationDriftCheckRequest.terraformDriftCheckRequests.map(
                 (terraformDriftCheckRequest) => {
                   return (
                     <tr>
@@ -131,7 +118,7 @@ export const ModulePropagationDriftCheckRequestPage = () => {
                             .orgAccount.cloudPlatform
                         )}{" "}
                         <NavLink
-                          to={`/org-accounts/${terraformDriftCheckRequest?.moduleAssignment.orgAccount.orgAccountId}`}
+                          to={`/org-accounts/${terraformDriftCheckRequest?.moduleAssignment.orgAccount.id}`}
                         >
                           {
                             terraformDriftCheckRequest?.moduleAssignment
@@ -146,7 +133,7 @@ export const ModulePropagationDriftCheckRequestPage = () => {
                       </td>
                       <td>
                         <NavLink
-                          to={`/plan-execution-requests/${terraformDriftCheckRequest?.planExecutionRequest?.planExecutionRequestId}`}
+                          to={`/plan-execution-requests/${terraformDriftCheckRequest?.planExecutionRequest?.id}`}
                         >
                           {renderStatus(
                             terraformDriftCheckRequest?.planExecutionRequest

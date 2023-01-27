@@ -32,14 +32,14 @@ func (r *mutationResolver) CreateModuleGroup(ctx context.Context, moduleGroup mo
 }
 
 // DeleteModuleGroup is the resolver for the deleteModuleGroup field.
-func (r *mutationResolver) DeleteModuleGroup(ctx context.Context, id uint) (bool, error) {
-	err := r.apiClient.DeleteModuleGroup(ctx, id)
+func (r *mutationResolver) DeleteModuleGroup(ctx context.Context, moduleGroupID uint) (bool, error) {
+	err := r.apiClient.DeleteModuleGroup(ctx, moduleGroupID)
 	return err == nil, err
 }
 
 // ModuleGroup is the resolver for the moduleGroup field.
-func (r *queryResolver) ModuleGroup(ctx context.Context, id uint) (*models.ModuleGroup, error) {
-	return r.apiClient.GetModuleGroup(ctx, id)
+func (r *queryResolver) ModuleGroup(ctx context.Context, moduleGroupID uint) (*models.ModuleGroup, error) {
+	return r.apiClient.GetModuleGroup(ctx, moduleGroupID)
 }
 
 // ModuleGroups is the resolver for the moduleGroups field.

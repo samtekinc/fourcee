@@ -2,7 +2,6 @@ package terraform
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
 	"text/template"
 
@@ -18,7 +17,7 @@ type TerraformConfigurationInput struct {
 	LockTableName     string
 }
 
-func GetTerraformConfigurationBase64(input *TerraformConfigurationInput) (string, error) {
+func GetTerraformConfiguration(input *TerraformConfigurationInput) ([]byte, error) {
 	providers := []ProviderTemplate{}
 
 	var arguments []models.Argument
@@ -59,7 +58,7 @@ func GetTerraformConfigurationBase64(input *TerraformConfigurationInput) (string
 			})
 		}
 	default:
-		return "", fmt.Errorf("unknown cloud platform: %s", input.OrgAccount.CloudPlatform)
+		return nil, fmt.Errorf("unknown cloud platform: %s", input.OrgAccount.CloudPlatform)
 	}
 
 	templateInput := TemplateInput{
@@ -82,11 +81,11 @@ func GetTerraformConfigurationBase64(input *TerraformConfigurationInput) (string
 	buf := bytes.NewBuffer([]byte{})
 	err := moduleTemplate.Execute(buf, templateInput)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	configBytes := hclwrite.Format(buf.Bytes())
-	return base64.StdEncoding.EncodeToString(configBytes), nil
+	return configBytes, nil
 }
 
 type TemplateInput struct {

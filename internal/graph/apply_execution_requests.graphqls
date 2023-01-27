@@ -3,8 +3,8 @@ type ApplyExecutionRequest {
   moduleAssignmentID: ID!
   moduleAssignment: ModuleAssignment!
   terraformVersion: String!
-  terraformConfigurationBase64: String!
-  terraformPlanBase64: String!
+  terraformConfiguration: String!
+  terraformPlan: String!
   additionalArguments: String
   terraformExecutionRequestID: ID!
   status: RequestStatus!

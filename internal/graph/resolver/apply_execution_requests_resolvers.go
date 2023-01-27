@@ -16,6 +16,16 @@ func (r *applyExecutionRequestResolver) ModuleAssignment(ctx context.Context, ob
 	return r.apiClient.GetModuleAssignmentBatched(ctx, obj.ModuleAssignmentID)
 }
 
+// TerraformConfiguration is the resolver for the terraformConfiguration field.
+func (r *applyExecutionRequestResolver) TerraformConfiguration(ctx context.Context, obj *models.ApplyExecutionRequest) (string, error) {
+	return string(obj.TerraformConfiguration), nil
+}
+
+// TerraformPlan is the resolver for the terraformPlan field.
+func (r *applyExecutionRequestResolver) TerraformPlan(ctx context.Context, obj *models.ApplyExecutionRequest) (string, error) {
+	return string(obj.TerraformPlan), nil
+}
+
 // InitOutput is the resolver for the initOutput field.
 func (r *applyExecutionRequestResolver) InitOutput(ctx context.Context, obj *models.ApplyExecutionRequest) (*string, error) {
 	response := string(obj.InitOutput)

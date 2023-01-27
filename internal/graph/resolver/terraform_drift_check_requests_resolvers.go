@@ -23,10 +23,7 @@ func (r *terraformDriftCheckRequestResolver) ModuleAssignment(ctx context.Contex
 
 // PlanExecutionRequest is the resolver for the planExecutionRequest field.
 func (r *terraformDriftCheckRequestResolver) PlanExecutionRequest(ctx context.Context, obj *models.TerraformDriftCheckRequest) (*models.PlanExecutionRequest, error) {
-	if obj.PlanExecutionRequestID == nil {
-		return nil, nil
-	}
-	return r.apiClient.GetPlanExecutionRequestBatched(ctx, *obj.PlanExecutionRequestID)
+	return r.apiClient.GetPlanExecutionRequestForTerraformDriftCheckRequest(ctx, obj.ID)
 }
 
 // ModulePropagation is the resolver for the modulePropagation field.

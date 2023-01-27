@@ -3,25 +3,25 @@ import { Button } from "react-bootstrap";
 import { NotificationManager } from "react-notifications";
 
 const EXECUTE_MODULE_PROPAGATION_MUTATION = gql`
-  mutation createModulePropagationExecutionRequest($modulePropagationId: ID!) {
+  mutation createModulePropagationExecutionRequest($modulePropagationID: ID!) {
     createModulePropagationExecutionRequest(
       modulePropagationExecutionRequest: {
-        modulePropagationId: $modulePropagationId
+        modulePropagationID: $modulePropagationID
       }
     ) {
-      modulePropagationExecutionRequestId
+      id
       status
     }
   }
 `;
 
 interface ExecuteModulePropagationButtonProps {
-  modulePropagationId: string;
+  modulePropagationID: string;
 }
 
 type ExecuteModulePropagationResponse = {
   createModulePropagationExecutionRequest: {
-    modulePropagationExecutionRequestId: string;
+    id: string;
     status: string;
   };
 };
@@ -33,7 +33,7 @@ export const ExecuteModulePropagationButton: React.VFC<
     EXECUTE_MODULE_PROPAGATION_MUTATION,
     {
       variables: {
-        modulePropagationId: props.modulePropagationId,
+        modulePropagationID: props.modulePropagationID,
       },
       onError: (error) => {
         console.log(error);
@@ -45,7 +45,7 @@ export const ExecuteModulePropagationButton: React.VFC<
       },
       onCompleted: (data) => {
         NotificationManager.success(
-          `Initiated ${data.createModulePropagationExecutionRequest.modulePropagationExecutionRequestId}`,
+          `Initiated ${data.createModulePropagationExecutionRequest.id}`,
           "",
           5000
         );

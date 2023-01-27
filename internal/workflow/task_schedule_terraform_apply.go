@@ -60,13 +60,13 @@ func (t *TaskHandler) ScheduleTerraformApply(ctx context.Context, input Schedule
 	additionalArguments := []string{} // no need to add the destroy flag here, it's already in the plan
 
 	applyRequest, err := t.apiClient.PutApplyExecutionRequest(ctx, &models.NewApplyExecutionRequest{
-		ModuleAssignmentId:           moduleAssignment.ModuleAssignmentId,
-		TerraformVersion:             moduleVersion.TerraformVersion,
-		CallbackTaskToken:            input.TaskToken,
-		TerraformWorkflowRequestId:   input.TerraformWorkflowRequestId,
-		TerraformConfigurationBase64: planRequest.TerraformConfigurationBase64,
-		TerraformPlanBase64:          planBase64,
-		AdditionalArguments:          additionalArguments,
+		ModuleAssignmentId:         moduleAssignment.ModuleAssignmentId,
+		TerraformVersion:           moduleVersion.TerraformVersion,
+		CallbackTaskToken:          input.TaskToken,
+		TerraformWorkflowRequestId: input.TerraformWorkflowRequestId,
+		TerraformConfiguration:     planRequest.TerraformConfiguration,
+		TerraformPlan:              planBase64,
+		AdditionalArguments:        additionalArguments,
 	})
 	if err != nil {
 		return nil, err
