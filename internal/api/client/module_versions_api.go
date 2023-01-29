@@ -43,10 +43,17 @@ func (c *APIClient) GetModuleVersionsByIDs(ctx context.Context, keys dataloader.
 		return output
 	}
 
+	var keyToIndex = map[string]int{}
 	for i := range keys {
-		output[i] = &dataloader.Result{Data: moduleVersions[i], Error: nil}
+		keyToIndex[keys[i].String()] = i
 	}
-	return output
+
+	response := make([]*dataloader.Result, len(moduleVersions))
+	for i := range moduleVersions {
+		index := keyToIndex[idToString(moduleVersions[i].ID)]
+		response[index] = &dataloader.Result{Data: moduleVersions[i], Error: nil}
+	}
+	return response
 }
 
 func (c *APIClient) GetModuleVersion(ctx context.Context, id uint) (*models.ModuleVersion, error) {

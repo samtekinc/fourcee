@@ -15,6 +15,7 @@ type Config struct {
 	AccountId                    string
 	Region                       string
 	AlertsTopic                  string
+	DBConnectionString           string
 }
 
 func ConfigFromEnv() Config {
@@ -58,6 +59,10 @@ func ConfigFromEnv() Config {
 	if alertsTopic == "" {
 		panic("TFOM_ALERTS_TOPIC must be set")
 	}
+	dbConnectionString := os.Getenv("TFOM_DB_CONNECTION_STRING")
+	if dbConnectionString == "" {
+		panic("TFOM_DB_CONNECTION_STRING must be set")
+	}
 
 	return Config{
 		VersionInstallationDirectory: versionInstallationDirectory,
@@ -70,5 +75,6 @@ func ConfigFromEnv() Config {
 		AccountId:                    accountId,
 		Region:                       region,
 		AlertsTopic:                  alertsTopic,
+		DBConnectionString:           dbConnectionString,
 	}
 }

@@ -50,10 +50,17 @@ func (c *APIClient) GetApplyExecutionRequestsByIDs(ctx context.Context, keys dat
 		return output
 	}
 
+	var keyToIndex = map[string]int{}
 	for i := range keys {
-		output[i] = &dataloader.Result{Data: applyExecutionRequests[i], Error: nil}
+		keyToIndex[keys[i].String()] = i
 	}
-	return output
+
+	response := make([]*dataloader.Result, len(applyExecutionRequests))
+	for i := range applyExecutionRequests {
+		index := keyToIndex[idToString(applyExecutionRequests[i].ID)]
+		response[index] = &dataloader.Result{Data: applyExecutionRequests[i], Error: nil}
+	}
+	return response
 }
 
 func (c *APIClient) GetApplyExecutionRequest(ctx context.Context, id uint) (*models.ApplyExecutionRequest, error) {

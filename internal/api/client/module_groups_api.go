@@ -33,10 +33,17 @@ func (c *APIClient) GetModuleGroupsByIDs(ctx context.Context, keys dataloader.Ke
 		return output
 	}
 
+	var keyToIndex = map[string]int{}
 	for i := range keys {
-		output[i] = &dataloader.Result{Data: moduleGroups[i], Error: nil}
+		keyToIndex[keys[i].String()] = i
 	}
-	return output
+
+	response := make([]*dataloader.Result, len(moduleGroups))
+	for i := range moduleGroups {
+		index := keyToIndex[idToString(moduleGroups[i].ID)]
+		response[index] = &dataloader.Result{Data: moduleGroups[i], Error: nil}
+	}
+	return response
 }
 
 func (c *APIClient) GetModuleGroup(ctx context.Context, id uint) (*models.ModuleGroup, error) {

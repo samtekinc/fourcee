@@ -28,6 +28,9 @@ func applyModuleAssignmentFilters(tx *gorm.DB, filters *models.ModuleAssignmentF
 				tx = tx.Where("module_propagation_id IS NULL")
 			}
 		}
+		if filters.OrgAccountID != nil {
+			tx = tx.Where("org_account_id = ?", *filters.OrgAccountID)
+		}
 	}
 	return tx
 }
@@ -49,10 +52,17 @@ func (c *APIClient) GetModuleAssignmentsByIDs(ctx context.Context, keys dataload
 		return output
 	}
 
+	var keyToIndex = map[string]int{}
 	for i := range keys {
-		output[i] = &dataloader.Result{Data: moduleAssignments[i], Error: nil}
+		keyToIndex[keys[i].String()] = i
 	}
-	return output
+
+	response := make([]*dataloader.Result, len(moduleAssignments))
+	for i := range moduleAssignments {
+		index := keyToIndex[idToString(moduleAssignments[i].ID)]
+		response[index] = &dataloader.Result{Data: moduleAssignments[i], Error: nil}
+	}
+	return response
 }
 
 func (c *APIClient) GetModuleAssignment(ctx context.Context, id uint) (*models.ModuleAssignment, error) {
@@ -147,6 +157,7 @@ func (c *APIClient) CreateModuleAssignment(ctx context.Context, input *models.Ne
 		Arguments:                 ArgumentInputsToArguments(input.Arguments),
 		AwsProviderConfigurations: AwsProviderConfigurationInputsToAwsProviderConfigurations(input.AwsProviderConfigurations),
 		GcpProviderConfigurations: GcpProviderConfigurationInputsToGcpProviderConfigurations(input.GcpProviderConfigurations),
+		ModulePropagationID:       input.ModulePropagationID,
 	}
 
 	err := c.db.Transaction(func(tx *gorm.DB) error {
@@ -194,27 +205,27 @@ func (c *APIClient) UpdateModuleAssignment(ctx context.Context, id uint, update 
 			updates.Status = *update.Status
 		}
 
-		err := tx.Model(&moduleAssignment).Updates(updates).Error
+		err := tx.Model(&moduleAssignment).Clauses(clause.Returning{}).Updates(updates).Error
 		if err != nil {
 			return err
 		}
 
 		if update.Arguments != nil {
-			err = tx.Model(&moduleAssignment).Association("Arguments").Replace(ArgumentInputsToArguments(update.Arguments))
+			err = tx.Model(&moduleAssignment).Clauses(clause.Returning{}).Association("Arguments").Replace(ArgumentInputsToArguments(update.Arguments))
 			if err != nil {
 				return err
 			}
 		}
 
 		if update.AwsProviderConfigurations != nil {
-			err = tx.Model(&moduleAssignment).Association("AwsProviderConfigurations").Replace(AwsProviderConfigurationInputsToAwsProviderConfigurations(update.AwsProviderConfigurations))
+			err = tx.Model(&moduleAssignment).Clauses(clause.Returning{}).Association("AwsProviderConfigurations").Replace(AwsProviderConfigurationInputsToAwsProviderConfigurations(update.AwsProviderConfigurations))
 			if err != nil {
 				return err
 			}
 		}
 
 		if update.GcpProviderConfigurations != nil {
-			err = tx.Model(&moduleAssignment).Association("GcpProviderConfigurations").Replace(GcpProviderConfigurationInputsToGcpProviderConfigurations(update.GcpProviderConfigurations))
+			err = tx.Model(&moduleAssignment).Clauses(clause.Returning{}).Association("GcpProviderConfigurations").Replace(GcpProviderConfigurationInputsToGcpProviderConfigurations(update.GcpProviderConfigurations))
 			if err != nil {
 				return err
 			}

@@ -13,7 +13,7 @@ import (
 
 // CreateTerraformDriftCheckRequest is the resolver for the createTerraformDriftCheckRequest field.
 func (r *mutationResolver) CreateTerraformDriftCheckRequest(ctx context.Context, terraformDriftCheckRequest models.NewTerraformDriftCheckRequest) (*models.TerraformDriftCheckRequest, error) {
-	return r.apiClient.CreateTerraformDriftCheckRequest(ctx, &terraformDriftCheckRequest)
+	return r.apiClient.CreateTerraformDriftCheckRequest(ctx, &terraformDriftCheckRequest, true)
 }
 
 // ModuleAssignment is the resolver for the moduleAssignment field.

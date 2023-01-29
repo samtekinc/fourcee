@@ -38,10 +38,17 @@ func (c *APIClient) GetModulePropagationsByIDs(ctx context.Context, keys dataloa
 		return output
 	}
 
+	var keyToIndex = map[string]int{}
 	for i := range keys {
-		output[i] = &dataloader.Result{Data: modulePropagations[i], Error: nil}
+		keyToIndex[keys[i].String()] = i
 	}
-	return output
+
+	response := make([]*dataloader.Result, len(modulePropagations))
+	for i := range modulePropagations {
+		index := keyToIndex[idToString(modulePropagations[i].ID)]
+		response[index] = &dataloader.Result{Data: modulePropagations[i], Error: nil}
+	}
+	return response
 }
 
 func (c *APIClient) GetModulePropagation(ctx context.Context, id uint) (*models.ModulePropagation, error) {

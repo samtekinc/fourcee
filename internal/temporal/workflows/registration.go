@@ -6,4 +6,5 @@ func RegisterWorkflows(w worker.Worker) {
 	w.RegisterWorkflow(TerraformExecutionWorkflow)
 	w.RegisterWorkflow(TerraformDriftCheckWorkflow)
 	w.RegisterWorkflow(ModulePropagationExecutionWorkflow)
+	w.RegisterWorkflow(ModulePropagationDriftCheckWorkflow)
 }

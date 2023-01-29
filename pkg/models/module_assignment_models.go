@@ -55,4 +55,5 @@ type ModuleAssignmentFilters struct {
 	DescriptionContains *string
 	Status              *ModuleAssignmentStatus
 	IsPropagated        *bool
+	OrgAccountID        *uint
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/sheacloud/tfom/internal/config"
 	"github.com/sheacloud/tfom/pkg/models"
 	"go.temporal.io/sdk/client"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -111,7 +111,12 @@ func NewAPIClient(input *APIClientInput) *APIClient {
 }
 
 func APIClientFromConfig(conf *config.Config, cfg aws.Config) (*APIClient, error) {
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  conf.DBConnectionString,
+		PreferSimpleProtocol: true, // disables implicit prepared statement usage
+	}), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: false,
+	})
 	if err != nil {
 		return nil, err
 	}

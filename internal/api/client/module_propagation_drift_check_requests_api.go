@@ -4,7 +4,10 @@ import (
 	"context"
 
 	"github.com/graph-gophers/dataloader"
+	"github.com/sheacloud/tfom/internal/temporal/constants"
+	"github.com/sheacloud/tfom/internal/temporal/workflows"
 	"github.com/sheacloud/tfom/pkg/models"
+	"go.temporal.io/sdk/client"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -50,10 +53,17 @@ func (c *APIClient) GetModulePropagationDriftCheckRequestsByIDs(ctx context.Cont
 		return output
 	}
 
+	var keyToIndex = map[string]int{}
 	for i := range keys {
-		output[i] = &dataloader.Result{Data: modulePropagationDriftCheckRequests[i], Error: nil}
+		keyToIndex[keys[i].String()] = i
 	}
-	return output
+
+	response := make([]*dataloader.Result, len(modulePropagationDriftCheckRequests))
+	for i := range modulePropagationDriftCheckRequests {
+		index := keyToIndex[idToString(modulePropagationDriftCheckRequests[i].ID)]
+		response[index] = &dataloader.Result{Data: modulePropagationDriftCheckRequests[i], Error: nil}
+	}
+	return response
 }
 
 func (c *APIClient) GetModulePropagationDriftCheckRequest(ctx context.Context, id uint) (*models.ModulePropagationDriftCheckRequest, error) {
@@ -80,6 +90,7 @@ func (c *APIClient) GetModulePropagationDriftCheckRequests(ctx context.Context, 
 	tx := applyPagination(c.db, limit, offset)
 	tx = applyModulePropagationDriftCheckRequestFilters(tx, filters)
 	tx = applyModulePropagationDriftCheckRequestPreloads(tx)
+	tx = tx.Order("created_at DESC")
 	err := tx.Find(&modulePropagationDriftCheckRequests).Error
 	if err != nil {
 		return nil, err
@@ -92,6 +103,7 @@ func (c *APIClient) GetModulePropagationDriftCheckRequestsForModulePropagation(c
 	tx := applyPagination(c.db, limit, offset)
 	tx = applyModulePropagationDriftCheckRequestFilters(tx, filters)
 	tx = applyModulePropagationDriftCheckRequestPreloads(tx)
+	tx = tx.Order("created_at DESC")
 	err := tx.Model(&models.ModulePropagation{Model: gorm.Model{ID: modulePropagationId}}).Association("ModulePropagationDriftCheckRequestsAssociation").Find(&modulePropagationDriftCheckRequests)
 	if err != nil {
 		return nil, err
@@ -105,7 +117,20 @@ func (c *APIClient) CreateModulePropagationDriftCheckRequest(ctx context.Context
 		Status:              models.RequestStatusPending,
 		SyncStatus:          models.TerraformDriftCheckStatusPending,
 	}
-	err := c.db.Create(&modulePropagationDriftCheckRequest).Error
+	err := c.db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Create(&modulePropagationDriftCheckRequest).Error
+		if err != nil {
+			return err
+		}
+
+		// start the temporal workflow
+		_, err = c.temporalClient.ExecuteWorkflow(context.Background(), client.StartWorkflowOptions{TaskQueue: constants.TFOMTaskQueue}, workflows.ModulePropagationDriftCheckWorkflow, &modulePropagationDriftCheckRequest)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}

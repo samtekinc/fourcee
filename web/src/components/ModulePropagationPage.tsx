@@ -368,24 +368,18 @@ const UpdateModulePropagationButton: React.VFC<
 
 const MODULE_PROPAGATION_UPDATE_OPTIONS_QUERY = gql`
   query modulePropagationUpdateOptions($moduleGroupID: ID!) {
-    orgDimensions(limit: 10000) {
-      items {
-        orgDimensionID
+    orgDimensions {
+      id
+      name
+      orgUnits {
+        id
         name
-        orgUnits(limit: 10000) {
-          items {
-            orgUnitID
-            name
-          }
-        }
       }
     }
     moduleGroup(moduleGroupID: $moduleGroupID) {
       versions {
-        items {
-          moduleVersionID
-          name
-        }
+        id
+        name
       }
     }
   }
@@ -400,7 +394,7 @@ const UPDATE_MODULE_PROPAGATION_MUTATION = gql`
       modulePropagationID: $modulePropagationID
       update: $update
     ) {
-      modulePropagationID
+      id
     }
   }
 `;
@@ -490,9 +484,12 @@ const UpdateModulePropagationForm: React.VFC<
     });
 
     if (name === "orgDimensionID") {
+      console.log(value);
       const orgDimension = data.orgDimensions.find(
-        (item) => item?.id === value
+        (item) => item?.id.toString() === value
       );
+      console.log(data?.orgDimensions);
+      console.log(orgDimension);
       setOrgUnits(orgDimension?.orgUnits ?? []);
     }
   };

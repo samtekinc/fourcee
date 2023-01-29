@@ -56,10 +56,17 @@ func (c *APIClient) GetTerraformDriftCheckRequestsByIDs(ctx context.Context, key
 		return output
 	}
 
+	var keyToIndex = map[string]int{}
 	for i := range keys {
-		output[i] = &dataloader.Result{Data: terraformDriftCheckRequests[i], Error: nil}
+		keyToIndex[keys[i].String()] = i
 	}
-	return output
+
+	response := make([]*dataloader.Result, len(terraformDriftCheckRequests))
+	for i := range terraformDriftCheckRequests {
+		index := keyToIndex[idToString(terraformDriftCheckRequests[i].ID)]
+		response[index] = &dataloader.Result{Data: terraformDriftCheckRequests[i], Error: nil}
+	}
+	return response
 }
 
 func (c *APIClient) GetTerraformDriftCheckRequest(ctx context.Context, id uint) (*models.TerraformDriftCheckRequest, error) {
@@ -120,7 +127,7 @@ func (c *APIClient) GetTerraformDriftCheckRequestsForModuleAssignment(ctx contex
 	return terraformDriftCheckRequests, nil
 }
 
-func (c *APIClient) CreateTerraformDriftCheckRequest(ctx context.Context, input *models.NewTerraformDriftCheckRequest) (*models.TerraformDriftCheckRequest, error) {
+func (c *APIClient) CreateTerraformDriftCheckRequest(ctx context.Context, input *models.NewTerraformDriftCheckRequest, triggerWorkflow bool) (*models.TerraformDriftCheckRequest, error) {
 	terraformDriftCheckRequest := models.TerraformDriftCheckRequest{
 		ModuleAssignmentID:                   input.ModuleAssignmentID,
 		ModulePropagationID:                  input.ModulePropagationID,
@@ -137,10 +144,12 @@ func (c *APIClient) CreateTerraformDriftCheckRequest(ctx context.Context, input 
 			return err
 		}
 
-		// start the temporal workflow
-		_, err = c.temporalClient.ExecuteWorkflow(context.Background(), client.StartWorkflowOptions{TaskQueue: constants.TFOMTaskQueue}, workflows.TerraformDriftCheckWorkflow, &terraformDriftCheckRequest)
-		if err != nil {
-			return err
+		if triggerWorkflow {
+			// start the temporal workflow
+			_, err = c.temporalClient.ExecuteWorkflow(context.Background(), client.StartWorkflowOptions{TaskQueue: constants.TFOMTaskQueue}, workflows.TerraformDriftCheckWorkflow, &terraformDriftCheckRequest)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil

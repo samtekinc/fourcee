@@ -13,7 +13,7 @@ import (
 
 // CreateTerraformExecutionRequest is the resolver for the createTerraformExecutionRequest field.
 func (r *mutationResolver) CreateTerraformExecutionRequest(ctx context.Context, terraformExecutionRequest models.NewTerraformExecutionRequest) (*models.TerraformExecutionRequest, error) {
-	return r.apiClient.CreateTerraformExecutionRequest(ctx, &terraformExecutionRequest)
+	return r.apiClient.CreateTerraformExecutionRequest(ctx, &terraformExecutionRequest, true)
 }
 
 // ModuleAssignment is the resolver for the moduleAssignment field.

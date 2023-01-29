@@ -19,7 +19,7 @@ import { renderCloudPlatform } from "../utils/rendering";
 const NEW_MODULE_PROPAGATION_MUTATION = gql`
   mutation createModulePropagation($modulePropagation: NewModulePropagation!) {
     createModulePropagation(modulePropagation: $modulePropagation) {
-      modulePropagationID
+      id
     }
   }
 `;
@@ -235,20 +235,22 @@ export const NewModulePropagationForm: React.VFC<
 
     if (name === "orgDimensionID") {
       setOrgDimension(
-        data?.orgDimensions?.find((dimension) => dimension?.id === value) ??
-          null
+        data?.orgDimensions?.find(
+          (dimension) => dimension?.id.toString() === value
+        ) ?? null
       );
     } else if (name === "moduleGroupID") {
       setModuleGroup(
-        data?.moduleGroups?.find((moduleGroup) => moduleGroup?.id === value) ??
-          null
+        data?.moduleGroups?.find(
+          (moduleGroup) => moduleGroup?.id.toString() === value
+        ) ?? null
       );
       setModuleVersion(null as Maybe<ModuleVersion>);
       setModuleArguments(new Map());
     } else if (name === "moduleVersionID") {
       setModuleVersion(
         moduleGroup?.versions?.find(
-          (moduleVersion) => moduleVersion?.id === value
+          (moduleVersion) => moduleVersion?.id.toString() === value
         ) ?? null
       );
       setModuleArguments(new Map());

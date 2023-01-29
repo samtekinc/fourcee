@@ -1,8 +1,6 @@
 type OrgDimension {
   id: ID!
   name: String!
-  rootOrgUnitID: ID!
-  rootOrgUnit: OrgUnit!
   orgUnits(filters: OrgUnitFilters, limit: Int, offset: Int): [OrgUnit!]!
   modulePropagations(
     filters: ModulePropagationFilters

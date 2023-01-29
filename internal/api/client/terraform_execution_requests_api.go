@@ -53,10 +53,17 @@ func (c *APIClient) GetTerraformExecutionRequestsByIDs(ctx context.Context, keys
 		return output
 	}
 
+	var keyToIndex = map[string]int{}
 	for i := range keys {
-		output[i] = &dataloader.Result{Data: terraformExecutionRequests[i], Error: nil}
+		keyToIndex[keys[i].String()] = i
 	}
-	return output
+
+	response := make([]*dataloader.Result, len(terraformExecutionRequests))
+	for i := range terraformExecutionRequests {
+		index := keyToIndex[idToString(terraformExecutionRequests[i].ID)]
+		response[index] = &dataloader.Result{Data: terraformExecutionRequests[i], Error: nil}
+	}
+	return response
 }
 
 func (c *APIClient) GetTerraformExecutionRequest(ctx context.Context, id uint) (*models.TerraformExecutionRequest, error) {
@@ -117,7 +124,7 @@ func (c *APIClient) GetTerraformExecutionRequestsForModuleAssignment(ctx context
 	return terraformExecutionRequests, nil
 }
 
-func (c *APIClient) CreateTerraformExecutionRequest(ctx context.Context, input *models.NewTerraformExecutionRequest) (*models.TerraformExecutionRequest, error) {
+func (c *APIClient) CreateTerraformExecutionRequest(ctx context.Context, input *models.NewTerraformExecutionRequest, triggerWorkflow bool) (*models.TerraformExecutionRequest, error) {
 	terraformExecutionRequest := models.TerraformExecutionRequest{
 		ModuleAssignmentID:                  input.ModuleAssignmentID,
 		ModulePropagationID:                 input.ModulePropagationID,
@@ -132,10 +139,12 @@ func (c *APIClient) CreateTerraformExecutionRequest(ctx context.Context, input *
 			return err
 		}
 
-		// start the temporal workflow
-		_, err = c.temporalClient.ExecuteWorkflow(context.Background(), client.StartWorkflowOptions{TaskQueue: constants.TFOMTaskQueue}, workflows.TerraformExecutionWorkflow, &terraformExecutionRequest)
-		if err != nil {
-			return err
+		if triggerWorkflow {
+			// start the temporal workflow
+			_, err = c.temporalClient.ExecuteWorkflow(context.Background(), client.StartWorkflowOptions{TaskQueue: constants.TFOMTaskQueue}, workflows.TerraformExecutionWorkflow, &terraformExecutionRequest)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil

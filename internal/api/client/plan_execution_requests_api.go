@@ -50,10 +50,17 @@ func (c *APIClient) GetPlanExecutionRequestsByIDs(ctx context.Context, keys data
 		return output
 	}
 
+	var keyToIndex = map[string]int{}
 	for i := range keys {
-		output[i] = &dataloader.Result{Data: planExecutionRequests[i], Error: nil}
+		keyToIndex[keys[i].String()] = i
 	}
-	return output
+
+	response := make([]*dataloader.Result, len(planExecutionRequests))
+	for i := range planExecutionRequests {
+		index := keyToIndex[idToString(planExecutionRequests[i].ID)]
+		response[index] = &dataloader.Result{Data: planExecutionRequests[i], Error: nil}
+	}
+	return response
 }
 
 func (c *APIClient) GetPlanExecutionRequest(ctx context.Context, id uint) (*models.PlanExecutionRequest, error) {

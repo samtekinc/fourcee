@@ -12,7 +12,6 @@ const ORG_DIMENSION_QUERY = gql`
     orgDimension(orgDimensionID: $orgDimensionID) {
       id
       name
-      rootOrgUnitID
       orgUnits {
         id
         name
@@ -44,6 +43,10 @@ export const OrgDimensionPage = () => {
 
   if (loading) return null;
   if (error) return <div>Error</div>;
+
+  let rootOrgUnit = data?.orgDimension.orgUnits.find((orgUnit) => {
+    return orgUnit.parentOrgUnitID === null;
+  });
 
   let orgUnitsMap = GetOrgUnitTree(
     orgDimensionID,
@@ -81,9 +84,7 @@ export const OrgDimensionPage = () => {
           lineWidth={"2px"}
           nodePadding={"30px"}
         >
-          <OrgUnitTreeNode
-            orgUnit={orgUnitsMap.get(data?.orgDimension.rootOrgUnitID ?? "")}
-          />
+          <OrgUnitTreeNode orgUnit={orgUnitsMap.get(rootOrgUnit?.id ?? "")} />
         </Tree>
         <br />
       </Container>

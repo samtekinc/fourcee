@@ -230,8 +230,6 @@ type ComplexityRoot struct {
 		ModulePropagations func(childComplexity int, filters *models.ModulePropagationFilters, limit *int, offset *int) int
 		Name               func(childComplexity int) int
 		OrgUnits           func(childComplexity int, filters *models.OrgUnitFilters, limit *int, offset *int) int
-		RootOrgUnit        func(childComplexity int) int
-		RootOrgUnitID      func(childComplexity int) int
 	}
 
 	OrgUnit struct {
@@ -409,7 +407,6 @@ type OrgAccountResolver interface {
 	ModuleAssignments(ctx context.Context, obj *models.OrgAccount, filters *models.ModuleAssignmentFilters, limit *int, offset *int) ([]*models.ModuleAssignment, error)
 }
 type OrgDimensionResolver interface {
-	RootOrgUnit(ctx context.Context, obj *models.OrgDimension) (*models.OrgUnit, error)
 	OrgUnits(ctx context.Context, obj *models.OrgDimension, filters *models.OrgUnitFilters, limit *int, offset *int) ([]*models.OrgUnit, error)
 	ModulePropagations(ctx context.Context, obj *models.OrgDimension, filters *models.ModulePropagationFilters, limit *int, offset *int) ([]*models.ModulePropagation, error)
 }
@@ -1589,20 +1586,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.OrgDimension.OrgUnits(childComplexity, args["filters"].(*models.OrgUnitFilters), args["limit"].(*int), args["offset"].(*int)), true
-
-	case "OrgDimension.rootOrgUnit":
-		if e.complexity.OrgDimension.RootOrgUnit == nil {
-			break
-		}
-
-		return e.complexity.OrgDimension.RootOrgUnit(childComplexity), true
-
-	case "OrgDimension.rootOrgUnitID":
-		if e.complexity.OrgDimension.RootOrgUnitID == nil {
-			break
-		}
-
-		return e.complexity.OrgDimension.RootOrgUnitID(childComplexity), true
 
 	case "OrgUnit.children":
 		if e.complexity.OrgUnit.Children == nil {
@@ -2812,8 +2795,6 @@ extend type Mutation {
 	{Name: "../org_dimensions.graphqls", Input: `type OrgDimension {
   id: ID!
   name: String!
-  rootOrgUnitID: ID!
-  rootOrgUnit: OrgUnit!
   orgUnits(filters: OrgUnitFilters, limit: Int, offset: Int): [OrgUnit!]!
   modulePropagations(
     filters: ModulePropagationFilters
@@ -7514,10 +7495,6 @@ func (ec *executionContext) fieldContext_ModulePropagation_orgDimension(ctx cont
 				return ec.fieldContext_OrgDimension_id(ctx, field)
 			case "name":
 				return ec.fieldContext_OrgDimension_name(ctx, field)
-			case "rootOrgUnitID":
-				return ec.fieldContext_OrgDimension_rootOrgUnitID(ctx, field)
-			case "rootOrgUnit":
-				return ec.fieldContext_OrgDimension_rootOrgUnit(ctx, field)
 			case "orgUnits":
 				return ec.fieldContext_OrgDimension_orgUnits(ctx, field)
 			case "modulePropagations":
@@ -10629,10 +10606,6 @@ func (ec *executionContext) fieldContext_Mutation_createOrgDimension(ctx context
 				return ec.fieldContext_OrgDimension_id(ctx, field)
 			case "name":
 				return ec.fieldContext_OrgDimension_name(ctx, field)
-			case "rootOrgUnitID":
-				return ec.fieldContext_OrgDimension_rootOrgUnitID(ctx, field)
-			case "rootOrgUnit":
-				return ec.fieldContext_OrgDimension_rootOrgUnit(ctx, field)
 			case "orgUnits":
 				return ec.fieldContext_OrgDimension_orgUnits(ctx, field)
 			case "modulePropagations":
@@ -11741,120 +11714,6 @@ func (ec *executionContext) fieldContext_OrgDimension_name(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _OrgDimension_rootOrgUnitID(ctx context.Context, field graphql.CollectedField, obj *models.OrgDimension) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_OrgDimension_rootOrgUnitID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.RootOrgUnitID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(uint)
-	fc.Result = res
-	return ec.marshalNID2uint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_OrgDimension_rootOrgUnitID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "OrgDimension",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _OrgDimension_rootOrgUnit(ctx context.Context, field graphql.CollectedField, obj *models.OrgDimension) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_OrgDimension_rootOrgUnit(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.OrgDimension().RootOrgUnit(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.OrgUnit)
-	fc.Result = res
-	return ec.marshalNOrgUnit2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐOrgUnit(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_OrgDimension_rootOrgUnit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "OrgDimension",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_OrgUnit_id(ctx, field)
-			case "name":
-				return ec.fieldContext_OrgUnit_name(ctx, field)
-			case "orgDimensionID":
-				return ec.fieldContext_OrgUnit_orgDimensionID(ctx, field)
-			case "orgDimension":
-				return ec.fieldContext_OrgUnit_orgDimension(ctx, field)
-			case "hierarchy":
-				return ec.fieldContext_OrgUnit_hierarchy(ctx, field)
-			case "parentOrgUnitID":
-				return ec.fieldContext_OrgUnit_parentOrgUnitID(ctx, field)
-			case "parentOrgUnit":
-				return ec.fieldContext_OrgUnit_parentOrgUnit(ctx, field)
-			case "children":
-				return ec.fieldContext_OrgUnit_children(ctx, field)
-			case "downstreamOrgUnits":
-				return ec.fieldContext_OrgUnit_downstreamOrgUnits(ctx, field)
-			case "upstreamOrgUnits":
-				return ec.fieldContext_OrgUnit_upstreamOrgUnits(ctx, field)
-			case "orgAccounts":
-				return ec.fieldContext_OrgUnit_orgAccounts(ctx, field)
-			case "modulePropagations":
-				return ec.fieldContext_OrgUnit_modulePropagations(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type OrgUnit", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _OrgDimension_orgUnits(ctx context.Context, field graphql.CollectedField, obj *models.OrgDimension) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_OrgDimension_orgUnits(ctx, field)
 	if err != nil {
@@ -12202,10 +12061,6 @@ func (ec *executionContext) fieldContext_OrgUnit_orgDimension(ctx context.Contex
 				return ec.fieldContext_OrgDimension_id(ctx, field)
 			case "name":
 				return ec.fieldContext_OrgDimension_name(ctx, field)
-			case "rootOrgUnitID":
-				return ec.fieldContext_OrgDimension_rootOrgUnitID(ctx, field)
-			case "rootOrgUnit":
-				return ec.fieldContext_OrgDimension_rootOrgUnit(ctx, field)
 			case "orgUnits":
 				return ec.fieldContext_OrgDimension_orgUnits(ctx, field)
 			case "modulePropagations":
@@ -14681,10 +14536,6 @@ func (ec *executionContext) fieldContext_Query_orgDimension(ctx context.Context,
 				return ec.fieldContext_OrgDimension_id(ctx, field)
 			case "name":
 				return ec.fieldContext_OrgDimension_name(ctx, field)
-			case "rootOrgUnitID":
-				return ec.fieldContext_OrgDimension_rootOrgUnitID(ctx, field)
-			case "rootOrgUnit":
-				return ec.fieldContext_OrgDimension_rootOrgUnit(ctx, field)
 			case "orgUnits":
 				return ec.fieldContext_OrgDimension_orgUnits(ctx, field)
 			case "modulePropagations":
@@ -14750,10 +14601,6 @@ func (ec *executionContext) fieldContext_Query_orgDimensions(ctx context.Context
 				return ec.fieldContext_OrgDimension_id(ctx, field)
 			case "name":
 				return ec.fieldContext_OrgDimension_name(ctx, field)
-			case "rootOrgUnitID":
-				return ec.fieldContext_OrgDimension_rootOrgUnitID(ctx, field)
-			case "rootOrgUnit":
-				return ec.fieldContext_OrgDimension_rootOrgUnit(ctx, field)
 			case "orgUnits":
 				return ec.fieldContext_OrgDimension_orgUnits(ctx, field)
 			case "modulePropagations":
@@ -21422,33 +21269,6 @@ func (ec *executionContext) _OrgDimension(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "rootOrgUnitID":
-
-			out.Values[i] = ec._OrgDimension_rootOrgUnitID(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "rootOrgUnit":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._OrgDimension_rootOrgUnit(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "orgUnits":
 			field := field
 
