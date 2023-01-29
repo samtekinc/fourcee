@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -9,6 +10,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sheacloud/tfom/internal/api"
+	"github.com/sheacloud/tfom/internal/api/client"
 	tfomConfig "github.com/sheacloud/tfom/internal/config"
 	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/internal/graph/resolver"
@@ -51,8 +53,11 @@ func main() {
 	}
 
 	conf := tfomConfig.ConfigFromEnv()
-	dbClient := conf.GetDatabaseClient(cfg)
-	apiClient := conf.GetApiClient(cfg, dbClient)
+
+	apiClient, err := client.APIClientFromConfig(&conf, cfg)
+	if err != nil {
+		log.Fatalln("unable to create API Client", err)
+	}
 
 	router := gin.Default()
 	config := cors.DefaultConfig()

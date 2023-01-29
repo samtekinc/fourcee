@@ -1,47 +1,37 @@
-import React, { useState } from "react";
-import { ModuleAssignments } from "../__generated__/graphql";
+import { ModuleAssignment } from "../__generated__/graphql";
 import { NavLink, Outlet } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
-import Tab from "react-bootstrap/Tab";
-import Tabs from "react-bootstrap/Tabs";
 import Container from "react-bootstrap/Container";
-import { ModuleAssignmentPage } from "./ModuleAssignmentPage";
-import Table from "react-bootstrap/Table";
-import { Accordion, Card, Col, ListGroup, Nav, Row } from "react-bootstrap";
+import { Card, Col, ListGroup, Nav, Row } from "react-bootstrap";
 import { NewModuleAssignmentButton } from "./NewModuleAssignmentButton";
 import { renderCloudPlatform } from "../utils/rendering";
 
 const MODULE_ASSIGNMENTS_QUERY = gql`
   query moduleAssignments {
-    unpropagated: moduleAssignments(
-      filters: { isPropagated: false }
-      limit: 100
-    ) {
-      items {
-        moduleAssignmentId
+    unpropagated: moduleAssignments(filters: { isPropagated: false }) {
+      id
+      name
+      description
+      moduleGroup {
+        id
         name
-        description
-        moduleGroup {
-          moduleGroupId
-          name
-          cloudPlatform
-        }
-        moduleVersion {
-          moduleVersionId
-          name
-        }
-        orgAccount {
-          orgAccountId
-          name
-          cloudPlatform
-        }
+        cloudPlatform
+      }
+      moduleVersion {
+        id
+        name
+      }
+      orgAccount {
+        id
+        name
+        cloudPlatform
       }
     }
   }
 `;
 
 type Response = {
-  unpropagated: ModuleAssignments;
+  unpropagated: ModuleAssignment[];
 };
 
 export const ModuleAssignmentsList = () => {
@@ -85,10 +75,10 @@ export const ModuleAssignmentsList = () => {
               flexWrap: "nowrap",
             }}
           >
-            {data?.unpropagated.items.map((moduleAssignment) => {
+            {data?.unpropagated.map((moduleAssignment) => {
               return (
                 <NavLink
-                  to={`/module-assignments/${moduleAssignment?.moduleAssignmentId}`}
+                  to={`/module-assignments/${moduleAssignment?.id}`}
                   style={({ isActive }) =>
                     isActive
                       ? {

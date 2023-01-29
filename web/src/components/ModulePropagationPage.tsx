@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import {
   Maybe,
   ModulePropagation,
-  ModulePropagations,
-  OrganizationalDimensions,
-  OrganizationalUnit,
+  OrgDimension,
+  OrgUnit,
   ModulePropagationUpdate,
   ModuleGroup,
 } from "../__generated__/graphql";
@@ -12,15 +11,7 @@ import { NavLink, Outlet, useParams } from "react-router-dom";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
 import { renderStatus, renderTimeField } from "../utils/table_rendering";
-import {
-  Breadcrumb,
-  Col,
-  Container,
-  Form,
-  ListGroup,
-  Modal,
-  Row,
-} from "react-bootstrap";
+import { Breadcrumb, Col, Container, Form, Modal, Row } from "react-bootstrap";
 import { NotificationManager } from "react-notifications";
 import { Button } from "react-bootstrap";
 import { DriftCheckModulePropagationButton } from "./TriggerModulePropagationDriftCheckButton";
@@ -31,66 +22,62 @@ import {
 } from "../utils/rendering";
 
 const MODULE_PROPAGATION_QUERY = gql`
-  query modulePropagation($modulePropagationId: ID!) {
-    modulePropagation(modulePropagationId: $modulePropagationId) {
-      modulePropagationId
+  query modulePropagation($modulePropagationID: ID!) {
+    modulePropagation(modulePropagationID: $modulePropagationID) {
+      id
+      name
+      description
+
       moduleGroup {
-        moduleGroupId
+        id
         name
       }
+
       moduleVersion {
-        moduleVersionId
+        id
         name
       }
-      orgUnitId
+
       orgUnit {
-        orgUnitId
+        id
         name
         orgDimension {
-          orgDimensionId
+          id
           name
         }
         downstreamOrgUnits {
-          items {
-            orgUnitId
+          id
+          name
+          orgDimension {
+            id
             name
-            orgDimension {
-              orgDimensionId
-              name
-            }
           }
         }
       }
-      modulePropagationId
-      name
-      description
+
       executionRequests(limit: 5) {
-        items {
-          modulePropagationId
-          modulePropagationExecutionRequestId
-          requestTime
-          status
-        }
+        id
+        modulePropagationID
+        startedAt
+        status
       }
+
       driftCheckRequests(limit: 5) {
-        items {
-          modulePropagationId
-          modulePropagationDriftCheckRequestId
-          requestTime
-          status
-          syncStatus
-        }
+        id
+        modulePropagationID
+        startedAt
+        status
+        syncStatus
       }
+
       moduleAssignments {
-        items {
-          moduleAssignmentId
-          modulePropagationId
-          orgAccount {
-            orgAccountId
-            name
-          }
-          status
+        id
+        modulePropagationID
+        orgAccount {
+          id
+          name
         }
+        status
       }
     }
   }
@@ -103,15 +90,15 @@ type Response = {
 export const ModulePropagationPage = () => {
   const params = useParams();
 
-  const modulePropagationId = params.modulePropagationId
-    ? params.modulePropagationId
+  const modulePropagationID = params.modulePropagationID
+    ? params.modulePropagationID
     : "";
 
   const { loading, error, data } = useQuery<Response>(
     MODULE_PROPAGATION_QUERY,
     {
       variables: {
-        modulePropagationId: modulePropagationId,
+        modulePropagationID: modulePropagationID,
       },
       pollInterval: 3000,
     }
@@ -134,8 +121,7 @@ export const ModulePropagationPage = () => {
           Propagations
         </Breadcrumb.Item>
         <Breadcrumb.Item active>
-          {data?.modulePropagation.name} (
-          {data?.modulePropagation.modulePropagationId})
+          {data?.modulePropagation.name} ({data?.modulePropagation.id})
         </Breadcrumb.Item>
       </Breadcrumb>
 
@@ -147,7 +133,7 @@ export const ModulePropagationPage = () => {
           <Container fluid style={{ paddingTop: "0.7rem" }}>
             <UpdateModulePropagationButton
               modulePropagation={data.modulePropagation}
-              key={data.modulePropagation.modulePropagationId}
+              key={data.modulePropagation.id}
             />
           </Container>
         </Col>
@@ -155,13 +141,13 @@ export const ModulePropagationPage = () => {
       <h5>
         Module:{" "}
         <NavLink
-          to={`/module-groups/${data?.modulePropagation.moduleGroup.moduleGroupId}`}
+          to={`/module-groups/${data?.modulePropagation.moduleGroup.id}`}
         >
           {data?.modulePropagation.moduleGroup.name}
         </NavLink>{" "}
         /{" "}
         <NavLink
-          to={`/module-groups/${data?.modulePropagation.moduleGroup.moduleGroupId}/versions/${data?.modulePropagation.moduleVersion.moduleVersionId}`}
+          to={`/module-groups/${data?.modulePropagation.moduleGroup.id}/versions/${data?.modulePropagation.moduleVersion.id}`}
         >
           {data?.modulePropagation.moduleVersion.name}
         </NavLink>
@@ -173,7 +159,7 @@ export const ModulePropagationPage = () => {
           <h2>
             Recent Executions{" "}
             <ExecuteModulePropagationButton
-              modulePropagationId={modulePropagationId}
+              modulePropagationID={modulePropagationID}
             />
           </h2>
           <Table hover>
@@ -185,13 +171,13 @@ export const ModulePropagationPage = () => {
               </tr>
             </thead>
             <tbody>
-              {data?.modulePropagation.executionRequests.items.map(
+              {data?.modulePropagation.executionRequests.map(
                 (executionRequest) => {
                   return (
                     <tr>
                       <td>
                         <NavLink
-                          to={`/module-propagations/${executionRequest?.modulePropagationId}/executions/${executionRequest?.modulePropagationExecutionRequestId}`}
+                          to={`/module-propagations/${executionRequest?.modulePropagationID}/executions/${executionRequest?.id}`}
                           style={({ isActive }) =>
                             isActive
                               ? {
@@ -202,13 +188,11 @@ export const ModulePropagationPage = () => {
                                 }
                           }
                         >
-                          {
-                            executionRequest?.modulePropagationExecutionRequestId
-                          }
+                          {executionRequest?.id}
                         </NavLink>
                       </td>
                       <td>{renderStatus(executionRequest?.status)}</td>
-                      {renderTimeField(executionRequest?.requestTime)}
+                      {renderTimeField(executionRequest?.startedAt)}
                     </tr>
                   );
                 }
@@ -218,7 +202,7 @@ export const ModulePropagationPage = () => {
           <h2>
             Recent Drift Checks{" "}
             <DriftCheckModulePropagationButton
-              modulePropagationId={modulePropagationId}
+              modulePropagationID={modulePropagationID}
             />
           </h2>
           <Table hover>
@@ -231,13 +215,13 @@ export const ModulePropagationPage = () => {
               </tr>
             </thead>
             <tbody>
-              {data?.modulePropagation.driftCheckRequests.items.map(
+              {data?.modulePropagation.driftCheckRequests.map(
                 (driftCheckRequest) => {
                   return (
                     <tr>
                       <td>
                         <NavLink
-                          to={`/module-propagations/${driftCheckRequest?.modulePropagationId}/drift-checks/${driftCheckRequest?.modulePropagationDriftCheckRequestId}`}
+                          to={`/module-propagations/${driftCheckRequest?.modulePropagationID}/drift-checks/${driftCheckRequest?.id}`}
                           style={({ isActive }) =>
                             isActive
                               ? {
@@ -248,14 +232,12 @@ export const ModulePropagationPage = () => {
                                 }
                           }
                         >
-                          {
-                            driftCheckRequest?.modulePropagationDriftCheckRequestId
-                          }
+                          {driftCheckRequest?.id}
                         </NavLink>
                       </td>
                       <td>{renderStatus(driftCheckRequest?.status)}</td>
                       <td>{renderSyncStatus(driftCheckRequest?.syncStatus)}</td>
-                      {renderTimeField(driftCheckRequest?.requestTime)}
+                      {renderTimeField(driftCheckRequest?.startedAt)}
                     </tr>
                   );
                 }
@@ -282,28 +264,27 @@ export const ModulePropagationPage = () => {
               </tr>
             </thead>
             <tbody>
-              {data?.modulePropagation.orgUnit.downstreamOrgUnits.items
+              {data?.modulePropagation.orgUnit.downstreamOrgUnits
                 .concat([data?.modulePropagation.orgUnit])
                 .map((orgUnit) => {
                   return (
                     <tr>
                       <td>
                         <NavLink
-                          to={`/org-dimensions/${orgUnit?.orgDimension.orgDimensionId}`}
+                          to={`/org-dimensions/${orgUnit?.orgDimension.id}`}
                         >
                           {orgUnit?.orgDimension.name}
                         </NavLink>
                       </td>
                       <td>
                         <NavLink
-                          to={`/org-dimensions/${orgUnit?.orgDimension.orgDimensionId}/org-units/${orgUnit?.orgUnitId}`}
+                          to={`/org-dimensions/${orgUnit?.orgDimension.id}/org-units/${orgUnit?.id}`}
                         >
                           {orgUnit?.name}
                         </NavLink>
                       </td>
                       <td>
-                        {data?.modulePropagation.orgUnit.orgUnitId ==
-                        orgUnit?.orgUnitId
+                        {data?.modulePropagation.orgUnit.id == orgUnit?.id
                           ? "Direct"
                           : "Propagated"}
                       </td>
@@ -321,11 +302,11 @@ export const ModulePropagationPage = () => {
               <tr>
                 <th>Status</th>
                 <th>Account</th>
-                <th>Assignment Id</th>
+                <th>Assignment ID</th>
               </tr>
             </thead>
             <tbody>
-              {data?.modulePropagation.moduleAssignments.items.map(
+              {data?.modulePropagation.moduleAssignments.map(
                 (moduleAssignment) => {
                   return (
                     <tr>
@@ -334,16 +315,16 @@ export const ModulePropagationPage = () => {
                       </td>
                       <td>
                         <NavLink
-                          to={`/org-accounts/${moduleAssignment?.orgAccount.orgAccountId}`}
+                          to={`/org-accounts/${moduleAssignment?.orgAccount.id}`}
                         >
                           {moduleAssignment?.orgAccount.name}
                         </NavLink>
                       </td>
                       <td>
                         <NavLink
-                          to={`/module-assignments/${moduleAssignment?.moduleAssignmentId}`}
+                          to={`/module-assignments/${moduleAssignment?.id}`}
                         >
-                          {moduleAssignment?.moduleAssignmentId}
+                          {moduleAssignment?.id}
                         </NavLink>
                       </td>
                     </tr>
@@ -386,25 +367,19 @@ const UpdateModulePropagationButton: React.VFC<
 };
 
 const MODULE_PROPAGATION_UPDATE_OPTIONS_QUERY = gql`
-  query modulePropagationUpdateOptions($moduleGroupId: ID!) {
-    organizationalDimensions(limit: 10000) {
-      items {
-        orgDimensionId
+  query modulePropagationUpdateOptions($moduleGroupID: ID!) {
+    orgDimensions {
+      id
+      name
+      orgUnits {
+        id
         name
-        orgUnits(limit: 10000) {
-          items {
-            orgUnitId
-            name
-          }
-        }
       }
     }
-    moduleGroup(moduleGroupId: $moduleGroupId) {
+    moduleGroup(moduleGroupID: $moduleGroupID) {
       versions {
-        items {
-          moduleVersionId
-          name
-        }
+        id
+        name
       }
     }
   }
@@ -412,20 +387,20 @@ const MODULE_PROPAGATION_UPDATE_OPTIONS_QUERY = gql`
 
 const UPDATE_MODULE_PROPAGATION_MUTATION = gql`
   mutation updateModulePropagation(
-    $modulePropagationId: ID!
+    $modulePropagationID: ID!
     $update: ModulePropagationUpdate!
   ) {
     updateModulePropagation(
-      modulePropagationId: $modulePropagationId
+      modulePropagationID: $modulePropagationID
       update: $update
     ) {
-      modulePropagationId
+      id
     }
   }
 `;
 
 type ModulePropagationUpdateOptionsResponse = {
-  organizationalDimensions: OrganizationalDimensions;
+  orgDimensions: OrgDimension[];
   moduleGroup: ModuleGroup;
 };
 
@@ -438,11 +413,11 @@ const UpdateModulePropagationForm: React.VFC<
   UpdateModulePropagationFormProps
 > = (props: UpdateModulePropagationFormProps) => {
   const [formState, setFormState] = useState<ModulePropagationUpdate>({});
-  const [orgUnits, setOrgUnits] = useState(Array<Maybe<OrganizationalUnit>>());
+  const [orgUnits, setOrgUnits] = useState(Array<Maybe<OrgUnit>>());
 
   const [mutation] = useMutation(UPDATE_MODULE_PROPAGATION_MUTATION, {
     variables: {
-      modulePropagationId: props.modulePropagation.modulePropagationId,
+      modulePropagationID: props.modulePropagation.id,
       update: formState,
     },
     onError: (error) => {
@@ -455,7 +430,7 @@ const UpdateModulePropagationForm: React.VFC<
     },
     onCompleted: (data) => {
       NotificationManager.success(
-        `Updated ${data.updateModulePropagation.modulePropagationId}`,
+        `Updated ${data.updateModulePropagation.modulePropagationID}`,
         "",
         5000
       );
@@ -467,7 +442,7 @@ const UpdateModulePropagationForm: React.VFC<
       MODULE_PROPAGATION_UPDATE_OPTIONS_QUERY,
       {
         variables: {
-          moduleGroupId: props.modulePropagation.moduleGroup.moduleGroupId,
+          moduleGroupID: props.modulePropagation.moduleGroup.id,
         },
       }
     );
@@ -508,11 +483,14 @@ const UpdateModulePropagationForm: React.VFC<
       [name]: value,
     });
 
-    if (name === "orgDimensionId") {
-      const orgDimension = data.organizationalDimensions.items.find(
-        (item) => item?.orgDimensionId === value
+    if (name === "orgDimensionID") {
+      console.log(value);
+      const orgDimension = data.orgDimensions.find(
+        (item) => item?.id.toString() === value
       );
-      setOrgUnits(orgDimension?.orgUnits.items ?? []);
+      console.log(data?.orgDimensions);
+      console.log(orgDimension);
+      setOrgUnits(orgDimension?.orgUnits ?? []);
     }
   };
 
@@ -543,18 +521,18 @@ const UpdateModulePropagationForm: React.VFC<
           </Form.Group>
           <Form.Group>
             <Form.Label>Module Version</Form.Label>
-            <Form.Select name="moduleVersionId" onChange={handleSelectChange}>
+            <Form.Select name="moduleVersionID" onChange={handleSelectChange}>
               <option selected={true} disabled={true}>
                 Select Module Version
               </option>
-              {data.moduleGroup?.versions.items.map((moduleVersion) => {
+              {data.moduleGroup?.versions.map((moduleVersion) => {
                 return (
                   <option
-                    value={moduleVersion?.moduleVersionId}
-                    key={moduleVersion?.moduleVersionId}
+                    value={moduleVersion?.id}
+                    key={moduleVersion?.id}
                     disabled={
-                      props.modulePropagation.moduleVersion.moduleVersionId ===
-                      moduleVersion?.moduleVersionId
+                      props.modulePropagation.moduleVersion.id ===
+                      moduleVersion?.id
                     }
                   >
                     {moduleVersion?.name}
@@ -565,16 +543,13 @@ const UpdateModulePropagationForm: React.VFC<
           </Form.Group>
           <Form.Group>
             <Form.Label>Org Dimension</Form.Label>
-            <Form.Select name="orgDimensionId" onChange={handleSelectChange}>
+            <Form.Select name="orgDimensionID" onChange={handleSelectChange}>
               <option selected={true} disabled={true}>
                 Select Org Dimension
               </option>
-              {data.organizationalDimensions.items.map((orgDimension) => {
+              {data.orgDimensions.map((orgDimension) => {
                 return (
-                  <option
-                    value={orgDimension?.orgDimensionId}
-                    key={orgDimension?.orgDimensionId}
-                  >
+                  <option value={orgDimension?.id} key={orgDimension?.id}>
                     {orgDimension?.name}
                   </option>
                 );
@@ -583,13 +558,13 @@ const UpdateModulePropagationForm: React.VFC<
           </Form.Group>
           <Form.Group>
             <Form.Label>Org Unit</Form.Label>
-            <Form.Select name="orgUnitId" onChange={handleSelectChange}>
+            <Form.Select name="orgUnitID" onChange={handleSelectChange}>
               <option selected={true} disabled={true}>
                 Select Org Unit
               </option>
               {orgUnits.map((orgUnit) => {
                 return (
-                  <option value={orgUnit?.orgUnitId} key={orgUnit?.orgUnitId}>
+                  <option value={orgUnit?.id} key={orgUnit?.id}>
                     {orgUnit?.name}
                   </option>
                 );

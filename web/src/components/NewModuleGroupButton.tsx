@@ -9,14 +9,14 @@ import { BsPlusCircle } from "react-icons/bs";
 const NEW_MODULE_GROUP_MUTATION = gql`
   mutation createModuleGroup($moduleGroup: NewModuleGroup!) {
     createModuleGroup(moduleGroup: $moduleGroup) {
-      moduleGroupId
+      id
     }
   }
 `;
 
 type CreateModuleGroupResponse = {
   createModuleGroup: {
-    moduleGroupId: string;
+    id: string;
   };
 };
 
@@ -52,7 +52,7 @@ export const NewModuleGroupButton: React.VFC<NewModuleGroupButtonProps> = (
       },
       onCompleted: (data) => {
         NotificationManager.success(
-          `Created ${data.createModuleGroup.moduleGroupId}`,
+          `Created ${data.createModuleGroup.id}`,
           "",
           5000
         );

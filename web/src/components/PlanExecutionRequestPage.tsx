@@ -6,33 +6,32 @@ import { Col, Container, Row } from "react-bootstrap";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import Ansi from "ansi-to-react";
-import { b64DecodeUnicode } from "../utils/decoding";
 
 const PLAN_EXECUTION_REQUEST_QUERY = gql`
-  query planExecutionRequest($planExecutionRequestId: ID!) {
-    planExecutionRequest(planExecutionRequestId: $planExecutionRequestId) {
-      planExecutionRequestId
+  query planExecutionRequest($planExecutionRequestID: ID!) {
+    planExecutionRequest(planExecutionRequestID: $planExecutionRequestID) {
+      id
       status
-      requestTime
-      terraformConfigurationBase64
+      startedAt
+      terraformConfiguration
       moduleAssignment {
+        id
         name
-        moduleAssignmentId
         modulePropagation {
-          modulePropagationId
+          id
           name
         }
         orgAccount {
-          orgAccountId
+          id
           name
           cloudPlatform
         }
         moduleGroup {
-          moduleGroupId
+          id
           name
         }
         moduleVersion {
-          moduleVersionId
+          id
           name
         }
       }
@@ -49,15 +48,15 @@ type Response = {
 export const PlanExecutionRequestPage = () => {
   const params = useParams();
 
-  const planExecutionRequestId = params.planExecutionRequestId
-    ? params.planExecutionRequestId
+  const planExecutionRequestID = params.planExecutionRequestID
+    ? params.planExecutionRequestID
     : "";
 
   const { loading, error, data, startPolling } = useQuery<Response>(
     PLAN_EXECUTION_REQUEST_QUERY,
     {
       variables: {
-        planExecutionRequestId: planExecutionRequestId,
+        planExecutionRequestID: planExecutionRequestID,
       },
       pollInterval: 1000,
     }
@@ -75,9 +74,8 @@ export const PlanExecutionRequestPage = () => {
     startPolling(30000);
   }
 
-  let terraformConfiguration = data?.planExecutionRequest
-    .terraformConfigurationBase64
-    ? b64DecodeUnicode(data?.planExecutionRequest.terraformConfigurationBase64)
+  let terraformConfiguration = data?.planExecutionRequest.terraformConfiguration
+    ? data?.planExecutionRequest.terraformConfiguration
     : "...";
 
   let initOutput = data?.planExecutionRequest.initOutput ?? "...";
@@ -94,25 +92,25 @@ export const PlanExecutionRequestPage = () => {
       }}
     >
       <h1>
-        <b>{data?.planExecutionRequest.planExecutionRequestId}</b>
+        <b>{data?.planExecutionRequest.id}</b>
       </h1>
       <p>
         <b>Org Account: </b>
         <NavLink
-          to={`/org-accounts/${data?.planExecutionRequest.moduleAssignment.orgAccount.orgAccountId}`}
+          to={`/org-accounts/${data?.planExecutionRequest.moduleAssignment.orgAccount.id}`}
         >
           {data?.planExecutionRequest.moduleAssignment.orgAccount.name}
         </NavLink>
         <br />
         <b>Module: </b>
         <NavLink
-          to={`/module-groups/${data?.planExecutionRequest.moduleAssignment.moduleGroup.moduleGroupId}`}
+          to={`/module-groups/${data?.planExecutionRequest.moduleAssignment.moduleGroup.id}`}
         >
           {data?.planExecutionRequest.moduleAssignment.moduleGroup.name}
         </NavLink>
         {" / "}
         <NavLink
-          to={`/module-groups/${data?.planExecutionRequest.moduleAssignment.moduleGroup.moduleGroupId}/versions/${data?.planExecutionRequest.moduleAssignment.moduleVersion.moduleVersionId}`}
+          to={`/module-groups/${data?.planExecutionRequest.moduleAssignment.moduleGroup.id}/versions/${data?.planExecutionRequest.moduleAssignment.moduleVersion.id}`}
         >
           {data?.planExecutionRequest.moduleAssignment.moduleVersion.name}
         </NavLink>

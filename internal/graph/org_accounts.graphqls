@@ -1,0 +1,54 @@
+type OrgAccount {
+  id: ID!
+  name: String!
+  cloudPlatform: CloudPlatform!
+  cloudIdentifier: String!
+  assumeRoleName: String!
+  orgUnits(filters: OrgUnitFilters, limit: Int, offset: Int): [OrgUnit!]!
+  metadata: [Metadata!]!
+  moduleAssignments(
+    filters: ModuleAssignmentFilters
+    limit: Int
+    offset: Int
+  ): [ModuleAssignment!]!
+}
+
+input NewOrgAccount {
+  name: String!
+  cloudPlatform: CloudPlatform!
+  cloudIdentifier: String!
+  assumeRoleName: String!
+  metadata: [MetadataInput!]!
+}
+
+input OrgAccountUpdate {
+  name: String
+  cloudPlatform: CloudPlatform
+  cloudIdentifier: String
+  assumeRoleName: String
+  metadata: [MetadataInput!]
+}
+
+input OrgAccountFilters {
+  nameContains: String
+  cloudPlatform: CloudPlatform
+  cloudIdentifier: String
+}
+
+extend type Query {
+  orgAccount(orgAccountID: ID!): OrgAccount!
+  orgAccounts(
+    filters: OrgAccountFilters
+    limit: Int
+    offset: Int
+  ): [OrgAccount!]!
+}
+
+extend type Mutation {
+  createOrgAccount(orgAccount: NewOrgAccount!): OrgAccount!
+  deleteOrgAccount(orgAccountID: ID!): Boolean!
+  updateOrgAccount(
+    orgAccountID: ID!
+    orgAccount: OrgAccountUpdate!
+  ): OrgAccount!
+}

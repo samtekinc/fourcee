@@ -7,86 +7,69 @@ package resolver
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
 // ModuleVersion is the resolver for the moduleVersion field.
 func (r *modulePropagationResolver) ModuleVersion(ctx context.Context, obj *models.ModulePropagation) (*models.ModuleVersion, error) {
-	return r.apiClient.GetModuleVersionBatched(ctx, obj.ModuleGroupId, obj.ModuleVersionId)
+	return r.apiClient.GetModuleVersionBatched(ctx, obj.ModuleVersionID)
 }
 
 // ModuleGroup is the resolver for the moduleGroup field.
 func (r *modulePropagationResolver) ModuleGroup(ctx context.Context, obj *models.ModulePropagation) (*models.ModuleGroup, error) {
-	return r.apiClient.GetModuleGroupBatched(ctx, obj.ModuleGroupId)
+	return r.apiClient.GetModuleGroupBatched(ctx, obj.ModuleGroupID)
 }
 
 // OrgUnit is the resolver for the orgUnit field.
-func (r *modulePropagationResolver) OrgUnit(ctx context.Context, obj *models.ModulePropagation) (*models.OrganizationalUnit, error) {
-	return r.apiClient.GetOrganizationalUnitBatched(ctx, obj.OrgDimensionId, obj.OrgUnitId)
+func (r *modulePropagationResolver) OrgUnit(ctx context.Context, obj *models.ModulePropagation) (*models.OrgUnit, error) {
+	return r.apiClient.GetOrgUnitBatched(ctx, obj.OrgUnitID)
 }
 
 // OrgDimension is the resolver for the orgDimension field.
-func (r *modulePropagationResolver) OrgDimension(ctx context.Context, obj *models.ModulePropagation) (*models.OrganizationalDimension, error) {
-	return r.apiClient.GetOrganizationalDimensionBatched(ctx, obj.OrgDimensionId)
+func (r *modulePropagationResolver) OrgDimension(ctx context.Context, obj *models.ModulePropagation) (*models.OrgDimension, error) {
+	return r.apiClient.GetOrgDimensionBatched(ctx, obj.OrgDimensionID)
 }
 
 // ModuleAssignments is the resolver for the moduleAssignments field.
-func (r *modulePropagationResolver) ModuleAssignments(ctx context.Context, obj *models.ModulePropagation, limit *int, nextCursor *string) (*models.ModuleAssignments, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-
-	return r.apiClient.GetModuleAssignmentsByModulePropagationId(ctx, obj.ModulePropagationId, int32(*limit), aws.ToString(nextCursor))
+func (r *modulePropagationResolver) ModuleAssignments(ctx context.Context, obj *models.ModulePropagation, filters *models.ModuleAssignmentFilters, limit *int, offset *int) ([]*models.ModuleAssignment, error) {
+	return r.apiClient.GetModuleAssignmentsForModulePropagation(ctx, obj.ID, filters, limit, offset)
 }
 
 // ExecutionRequests is the resolver for the executionRequests field.
-func (r *modulePropagationResolver) ExecutionRequests(ctx context.Context, obj *models.ModulePropagation, limit *int, nextCursor *string) (*models.ModulePropagationExecutionRequests, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-
-	return r.apiClient.GetModulePropagationExecutionRequestsByModulePropagationId(ctx, obj.ModulePropagationId, int32(*limit), aws.ToString(nextCursor))
+func (r *modulePropagationResolver) ExecutionRequests(ctx context.Context, obj *models.ModulePropagation, filters *models.ModulePropagationExecutionRequestFilters, limit *int, offset *int) ([]*models.ModulePropagationExecutionRequest, error) {
+	return r.apiClient.GetModulePropagationExecutionRequestsForModulePropagation(ctx, obj.ID, filters, limit, offset)
 }
 
 // DriftCheckRequests is the resolver for the driftCheckRequests field.
-func (r *modulePropagationResolver) DriftCheckRequests(ctx context.Context, obj *models.ModulePropagation, limit *int, nextCursor *string) (*models.ModulePropagationDriftCheckRequests, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-
-	return r.apiClient.GetModulePropagationDriftCheckRequestsByModulePropagationId(ctx, obj.ModulePropagationId, int32(*limit), aws.ToString(nextCursor))
+func (r *modulePropagationResolver) DriftCheckRequests(ctx context.Context, obj *models.ModulePropagation, filters *models.ModulePropagationDriftCheckRequestFilters, limit *int, offset *int) ([]*models.ModulePropagationDriftCheckRequest, error) {
+	return r.apiClient.GetModulePropagationDriftCheckRequestsForModulePropagation(ctx, obj.ID, filters, limit, offset)
 }
 
 // CreateModulePropagation is the resolver for the createModulePropagation field.
 func (r *mutationResolver) CreateModulePropagation(ctx context.Context, modulePropagation models.NewModulePropagation) (*models.ModulePropagation, error) {
-	return r.apiClient.PutModulePropagation(ctx, &modulePropagation)
+	return r.apiClient.CreateModulePropagation(ctx, &modulePropagation)
 }
 
 // DeleteModulePropagation is the resolver for the deleteModulePropagation field.
-func (r *mutationResolver) DeleteModulePropagation(ctx context.Context, modulePropagationID string) (bool, error) {
+func (r *mutationResolver) DeleteModulePropagation(ctx context.Context, modulePropagationID uint) (bool, error) {
 	err := r.apiClient.DeleteModulePropagation(ctx, modulePropagationID)
 	return err == nil, err
 }
 
 // UpdateModulePropagation is the resolver for the updateModulePropagation field.
-func (r *mutationResolver) UpdateModulePropagation(ctx context.Context, modulePropagationID string, update models.ModulePropagationUpdate) (*models.ModulePropagation, error) {
+func (r *mutationResolver) UpdateModulePropagation(ctx context.Context, modulePropagationID uint, update models.ModulePropagationUpdate) (*models.ModulePropagation, error) {
 	return r.apiClient.UpdateModulePropagation(ctx, modulePropagationID, &update)
 }
 
 // ModulePropagation is the resolver for the modulePropagation field.
-func (r *queryResolver) ModulePropagation(ctx context.Context, modulePropagationID string) (*models.ModulePropagation, error) {
+func (r *queryResolver) ModulePropagation(ctx context.Context, modulePropagationID uint) (*models.ModulePropagation, error) {
 	return r.apiClient.GetModulePropagation(ctx, modulePropagationID)
 }
 
 // ModulePropagations is the resolver for the modulePropagations field.
-func (r *queryResolver) ModulePropagations(ctx context.Context, limit *int, nextCursor *string) (*models.ModulePropagations, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-
-	return r.apiClient.GetModulePropagations(ctx, int32(*limit), aws.ToString(nextCursor))
+func (r *queryResolver) ModulePropagations(ctx context.Context, filters *models.ModulePropagationFilters, limit *int, offset *int) ([]*models.ModulePropagation, error) {
+	return r.apiClient.GetModulePropagations(ctx, filters, limit, offset)
 }
 
 // ModulePropagation returns generated.ModulePropagationResolver implementation.

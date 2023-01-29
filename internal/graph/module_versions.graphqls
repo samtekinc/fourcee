@@ -1,13 +1,21 @@
 type ModuleVersion {
-  moduleVersionId: ID!
-  moduleGroupId: ID!
+  id: ID!
+  moduleGroupID: ID!
   moduleGroup: ModuleGroup!
   name: String!
   remoteSource: String!
   terraformVersion: String!
-  variables: [ModuleVariable]!
-  modulePropagations(limit: Int, nextCursor: String): ModulePropagations!
-  moduleAssignments(limit: Int, nextCursor: String): ModuleAssignments!
+  variables: [ModuleVariable!]!
+  modulePropagations(
+    filters: ModulePropagationFilters
+    limit: Int
+    offset: Int
+  ): [ModulePropagation!]!
+  moduleAssignments(
+    filters: ModuleAssignmentFilters
+    limit: Int
+    offset: Int
+  ): [ModuleAssignment!]!
 }
 
 type ModuleVariable {
@@ -17,28 +25,29 @@ type ModuleVariable {
   default: String
 }
 
-type ModuleVersions {
-  items: [ModuleVersion]!
-  nextCursor: String
-}
-
 input NewModuleVersion {
-  moduleGroupId: ID!
+  moduleGroupID: ID!
   name: String!
   remoteSource: String!
   terraformVersion: String!
 }
 
+input ModuleVersionFilters {
+  nameContains: String
+  remoteSourceContains: String
+  terraformVersion: String
+}
+
 extend type Query {
-  moduleVersion(moduleGroupId: ID!, moduleVersionId: ID!): ModuleVersion!
+  moduleVersion(moduleVersionID: ID!): ModuleVersion!
   moduleVersions(
-    moduleGroupId: ID!
+    filters: ModuleVersionFilters
     limit: Int
-    nextCursor: String
-  ): ModuleVersions!
+    offset: Int
+  ): [ModuleVersion!]!
 }
 
 extend type Mutation {
   createModuleVersion(moduleVersion: NewModuleVersion!): ModuleVersion!
-  deleteModuleVersion(moduleGroupId: ID!, moduleVersionId: ID!): Boolean!
+  deleteModuleVersion(moduleVersionID: ID!): Boolean!
 }

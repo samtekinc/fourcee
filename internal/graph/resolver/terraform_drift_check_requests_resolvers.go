@@ -13,36 +13,33 @@ import (
 
 // CreateTerraformDriftCheckRequest is the resolver for the createTerraformDriftCheckRequest field.
 func (r *mutationResolver) CreateTerraformDriftCheckRequest(ctx context.Context, terraformDriftCheckRequest models.NewTerraformDriftCheckRequest) (*models.TerraformDriftCheckRequest, error) {
-	return r.apiClient.PutTerraformDriftCheckRequest(ctx, &terraformDriftCheckRequest)
+	return r.apiClient.CreateTerraformDriftCheckRequest(ctx, &terraformDriftCheckRequest, true)
 }
 
 // ModuleAssignment is the resolver for the moduleAssignment field.
 func (r *terraformDriftCheckRequestResolver) ModuleAssignment(ctx context.Context, obj *models.TerraformDriftCheckRequest) (*models.ModuleAssignment, error) {
-	return r.apiClient.GetModuleAssignmentBatched(ctx, obj.ModuleAssignmentId)
+	return r.apiClient.GetModuleAssignmentBatched(ctx, obj.ModuleAssignmentID)
 }
 
 // PlanExecutionRequest is the resolver for the planExecutionRequest field.
 func (r *terraformDriftCheckRequestResolver) PlanExecutionRequest(ctx context.Context, obj *models.TerraformDriftCheckRequest) (*models.PlanExecutionRequest, error) {
-	if obj.PlanExecutionRequestId == nil {
-		return nil, nil
-	}
-	return r.apiClient.GetPlanExecutionRequestBatched(ctx, *obj.PlanExecutionRequestId)
+	return r.apiClient.GetPlanExecutionRequestForTerraformDriftCheckRequest(ctx, obj.ID)
 }
 
 // ModulePropagation is the resolver for the modulePropagation field.
 func (r *terraformDriftCheckRequestResolver) ModulePropagation(ctx context.Context, obj *models.TerraformDriftCheckRequest) (*models.ModulePropagation, error) {
-	if obj.ModulePropagationId == nil {
+	if obj.ModulePropagationID == nil {
 		return nil, nil
 	}
-	return r.apiClient.GetModulePropagationBatched(ctx, *obj.ModulePropagationId)
+	return r.apiClient.GetModulePropagationBatched(ctx, *obj.ModulePropagationID)
 }
 
 // ModulePropagationDriftCheckRequest is the resolver for the modulePropagationDriftCheckRequest field.
 func (r *terraformDriftCheckRequestResolver) ModulePropagationDriftCheckRequest(ctx context.Context, obj *models.TerraformDriftCheckRequest) (*models.ModulePropagationDriftCheckRequest, error) {
-	if obj.ModulePropagationId == nil || obj.ModulePropagationDriftCheckRequestId == nil {
+	if obj.ModulePropagationDriftCheckRequestID == nil {
 		return nil, nil
 	}
-	return r.apiClient.GetModulePropagationDriftCheckRequest(ctx, *obj.ModulePropagationId, *obj.ModulePropagationDriftCheckRequestId)
+	return r.apiClient.GetModulePropagationDriftCheckRequestBatched(ctx, *obj.ModulePropagationDriftCheckRequestID)
 }
 
 // TerraformDriftCheckRequest returns generated.TerraformDriftCheckRequestResolver implementation.

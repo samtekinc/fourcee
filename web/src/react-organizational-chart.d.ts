@@ -1,1 +1,1 @@
-declare module 'react-organizational-chart';
+declare module 'react-org-chart';

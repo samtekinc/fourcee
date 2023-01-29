@@ -6,9 +6,7 @@ import { Button, Col, Form, Modal, Row } from "react-bootstrap";
 import {
   Maybe,
   NewModuleAssignment,
-  OrganizationalAccount,
-  OrganizationalAccounts,
-  ModuleGroups,
+  OrgAccount,
   ModuleGroup,
   ModuleVersion,
   AwsProviderConfigurationInput,
@@ -21,37 +19,31 @@ import { renderCloudPlatform } from "../utils/rendering";
 const NEW_MODULE_ASSIGNMENT_MUTATION = gql`
   mutation createModuleAssignment($moduleAssignment: NewModuleAssignment!) {
     createModuleAssignment(moduleAssignment: $moduleAssignment) {
-      moduleAssignmentId
+      id
     }
   }
 `;
 
 const MODULE_ASSIGNMENT_OPTIONS_QUERY = gql`
   query moduleAssignmentOptions {
-    organizationalAccounts {
-      items {
-        orgAccountId
-        name
-        cloudPlatform
-        cloudIdentifier
-      }
+    orgAccounts {
+      id
+      name
+      cloudPlatform
+      cloudIdentifier
     }
     moduleGroups {
-      items {
-        moduleGroupId
+      id
+      name
+      cloudPlatform
+      versions {
+        id
         name
-        cloudPlatform
-        versions {
-          items {
-            moduleVersionId
-            name
-            variables {
-              name
-              type
-              default
-              description
-            }
-          }
+        variables {
+          name
+          type
+          default
+          description
         }
       }
     }
@@ -60,13 +52,13 @@ const MODULE_ASSIGNMENT_OPTIONS_QUERY = gql`
 
 type CreateModuleAssignmentResponse = {
   createModuleAssignment: {
-    moduleAssignmentId: string;
+    moduleAssignmentID: string;
   };
 };
 
 type ModuleAssignmentOptionsResponse = {
-  organizationalAccounts: OrganizationalAccounts;
-  moduleGroups: ModuleGroups;
+  orgAccounts: OrgAccount[];
+  moduleGroups: ModuleGroup[];
 };
 
 type NewModuleAssignmentButtonProps = {
@@ -145,7 +137,7 @@ export const NewModuleAssignmentForm: React.VFC<
       },
       onCompleted: (data) => {
         NotificationManager.success(
-          `Created module assignment ${data?.createModuleAssignment?.moduleAssignmentId}`,
+          `Created module assignment ${data?.createModuleAssignment?.moduleAssignmentID}`,
           "",
           5000
         );
@@ -235,18 +227,17 @@ export const NewModuleAssignmentForm: React.VFC<
     const value = target.value;
     const name = target.name;
 
-    if (name === "moduleGroupId") {
+    if (name === "moduleGroupID") {
       setModuleGroup(
-        data?.moduleGroups?.items?.find(
-          (moduleGroup) => moduleGroup?.moduleGroupId === value
-        ) ?? null
+        data?.moduleGroups?.find((moduleGroup) => moduleGroup?.id === value) ??
+          null
       );
       setModuleVersion(null as Maybe<ModuleVersion>);
       setModuleArguments(new Map());
-    } else if (name === "moduleVersionId") {
+    } else if (name === "moduleVersionID") {
       setModuleVersion(
-        moduleGroup?.versions?.items?.find(
-          (moduleVersion) => moduleVersion?.moduleVersionId === value
+        moduleGroup?.versions?.find(
+          (moduleVersion) => moduleVersion?.id === value
         ) ?? null
       );
       setModuleArguments(new Map());
@@ -287,16 +278,13 @@ export const NewModuleAssignmentForm: React.VFC<
           </Form.Group>
           <Form.Group>
             <Form.Label>Org Account</Form.Label>
-            <Form.Select name="orgAccountId" onChange={handleSelectChange}>
+            <Form.Select name="orgAccountID" onChange={handleSelectChange}>
               <option selected={true} disabled={true}>
                 Select an Org Account
               </option>
-              {data?.organizationalAccounts.items?.map((orgAccount) => {
+              {data?.orgAccounts.map((orgAccount) => {
                 return (
-                  <option
-                    value={orgAccount?.orgAccountId}
-                    key={orgAccount?.orgAccountId}
-                  >
+                  <option value={orgAccount?.id} key={orgAccount?.id}>
                     {orgAccount?.name}
                   </option>
                 );
@@ -305,16 +293,13 @@ export const NewModuleAssignmentForm: React.VFC<
           </Form.Group>
           <Form.Group>
             <Form.Label>Module Group</Form.Label>
-            <Form.Select name="moduleGroupId" onChange={handleSelectChange}>
+            <Form.Select name="moduleGroupID" onChange={handleSelectChange}>
               <option selected={true} disabled={true}>
                 Select a Module Group
               </option>
-              {data?.moduleGroups.items?.map((moduleGroup) => {
+              {data?.moduleGroups.map((moduleGroup) => {
                 return (
-                  <option
-                    value={moduleGroup?.moduleGroupId}
-                    key={moduleGroup?.moduleGroupId}
-                  >
+                  <option value={moduleGroup?.id} key={moduleGroup?.id}>
                     {renderCloudPlatform(moduleGroup?.cloudPlatform)}{" "}
                     {moduleGroup?.name}
                   </option>
@@ -325,19 +310,16 @@ export const NewModuleAssignmentForm: React.VFC<
           <Form.Group>
             <Form.Label>Module Version</Form.Label>
             <Form.Select
-              name="moduleVersionId"
+              name="moduleVersionID"
               onChange={handleSelectChange}
-              key={moduleGroup?.moduleGroupId}
+              key={moduleGroup?.id}
             >
               <option selected={true} disabled={true}>
                 Select a Module Version
               </option>
-              {moduleGroup?.versions?.items.map((moduleVersion) => {
+              {moduleGroup?.versions?.map((moduleVersion) => {
                 return (
-                  <option
-                    value={moduleVersion?.moduleVersionId}
-                    key={moduleVersion?.moduleVersionId}
-                  >
+                  <option value={moduleVersion?.id} key={moduleVersion?.id}>
                     {moduleVersion?.name}
                   </option>
                 );

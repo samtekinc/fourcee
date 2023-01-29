@@ -2,17 +2,11 @@ import React, { useEffect, useState } from "react";
 
 import { useMutation, gql, useQuery } from "@apollo/client";
 import { NotificationManager } from "react-notifications";
-import { Button, Col, FloatingLabel, Form, Modal, Row } from "react-bootstrap";
+import { Button, Col, Form, Modal, Row } from "react-bootstrap";
 import {
   Maybe,
-  NewOrganizationalUnit,
   NewModulePropagation,
-  OrganizationalAccount,
-  OrganizationalAccounts,
-  OrganizationalDimension,
-  OrganizationalDimensions,
-  OrganizationalUnit,
-  ModuleGroups,
+  OrgDimension,
   ModuleGroup,
   ModuleVersion,
   AwsProviderConfigurationInput,
@@ -25,41 +19,33 @@ import { renderCloudPlatform } from "../utils/rendering";
 const NEW_MODULE_PROPAGATION_MUTATION = gql`
   mutation createModulePropagation($modulePropagation: NewModulePropagation!) {
     createModulePropagation(modulePropagation: $modulePropagation) {
-      modulePropagationId
+      id
     }
   }
 `;
 
 const MODULE_PROPAGATION_OPTIONS_QUERY = gql`
   query modulePropagationOptions {
-    organizationalDimensions {
-      items {
-        orgDimensionId
+    orgDimensions {
+      id
+      name
+      orgUnits {
+        id
         name
-        orgUnits {
-          items {
-            orgUnitId
-            name
-          }
-        }
       }
     }
     moduleGroups {
-      items {
-        moduleGroupId
+      id
+      name
+      cloudPlatform
+      versions {
+        id
         name
-        cloudPlatform
-        versions {
-          items {
-            moduleVersionId
-            name
-            variables {
-              name
-              type
-              default
-              description
-            }
-          }
+        variables {
+          name
+          type
+          default
+          description
         }
       }
     }
@@ -68,13 +54,13 @@ const MODULE_PROPAGATION_OPTIONS_QUERY = gql`
 
 type CreateModulePropagationResponse = {
   createModulePropagation: {
-    modulePropagationId: string;
+    id: string;
   };
 };
 
 type ModulePropagationOptionsResponse = {
-  organizationalDimensions: OrganizationalDimensions;
-  moduleGroups: ModuleGroups;
+  orgDimensions: OrgDimension[];
+  moduleGroups: ModuleGroup[];
 };
 
 type NewModulePropagationButtonProps = {
@@ -126,9 +112,9 @@ export const NewModulePropagationForm: React.VFC<
     Map<string, ArgumentInput>
   >(new Map());
 
-  const [orgDimension, setOrgDimension] = useState<
-    Maybe<OrganizationalDimension>
-  >(null as Maybe<OrganizationalDimension>);
+  const [orgDimension, setOrgDimension] = useState<Maybe<OrgDimension>>(
+    null as Maybe<OrgDimension>
+  );
 
   const [moduleGroup, setModuleGroup] = useState<Maybe<ModuleGroup>>(
     null as Maybe<ModuleGroup>
@@ -157,7 +143,7 @@ export const NewModulePropagationForm: React.VFC<
       },
       onCompleted: (data) => {
         NotificationManager.success(
-          `Created module propagation ${data?.createModulePropagation?.modulePropagationId}`,
+          `Created module propagation ${data?.createModulePropagation?.id}`,
           "",
           5000
         );
@@ -247,24 +233,24 @@ export const NewModulePropagationForm: React.VFC<
     const value = target.value;
     const name = target.name;
 
-    if (name === "orgDimensionId") {
+    if (name === "orgDimensionID") {
       setOrgDimension(
-        data?.organizationalDimensions?.items?.find(
-          (dimension) => dimension?.orgDimensionId === value
+        data?.orgDimensions?.find(
+          (dimension) => dimension?.id.toString() === value
         ) ?? null
       );
-    } else if (name === "moduleGroupId") {
+    } else if (name === "moduleGroupID") {
       setModuleGroup(
-        data?.moduleGroups?.items?.find(
-          (moduleGroup) => moduleGroup?.moduleGroupId === value
+        data?.moduleGroups?.find(
+          (moduleGroup) => moduleGroup?.id.toString() === value
         ) ?? null
       );
       setModuleVersion(null as Maybe<ModuleVersion>);
       setModuleArguments(new Map());
-    } else if (name === "moduleVersionId") {
+    } else if (name === "moduleVersionID") {
       setModuleVersion(
-        moduleGroup?.versions?.items?.find(
-          (moduleVersion) => moduleVersion?.moduleVersionId === value
+        moduleGroup?.versions?.find(
+          (moduleVersion) => moduleVersion?.id.toString() === value
         ) ?? null
       );
       setModuleArguments(new Map());
@@ -315,18 +301,15 @@ export const NewModulePropagationForm: React.VFC<
               <Form.Group>
                 <Form.Label>Org Dimension</Form.Label>
                 <Form.Select
-                  name="orgDimensionId"
+                  name="orgDimensionID"
                   onChange={handleSelectChange}
                 >
                   <option selected={true} disabled={true}>
                     Select an Org Dimension
                   </option>
-                  {data?.organizationalDimensions.items?.map((orgDimension) => {
+                  {data?.orgDimensions.map((orgDimension) => {
                     return (
-                      <option
-                        value={orgDimension?.orgDimensionId}
-                        key={orgDimension?.orgDimensionId}
-                      >
+                      <option value={orgDimension?.id} key={orgDimension?.id}>
                         {orgDimension?.name}
                       </option>
                     );
@@ -337,16 +320,13 @@ export const NewModulePropagationForm: React.VFC<
             <Col md={6}>
               <Form.Group>
                 <Form.Label>Org Unit</Form.Label>
-                <Form.Select name="orgUnitId" onChange={handleSelectChange}>
+                <Form.Select name="orgUnitID" onChange={handleSelectChange}>
                   <option selected={true} disabled={true}>
                     Select an Org Unit
                   </option>
-                  {orgDimension?.orgUnits?.items.map((orgUnit) => {
+                  {orgDimension?.orgUnits?.map((orgUnit) => {
                     return (
-                      <option
-                        value={orgUnit?.orgUnitId}
-                        key={orgUnit?.orgUnitId}
-                      >
+                      <option value={orgUnit?.id} key={orgUnit?.id}>
                         {orgUnit?.name}
                       </option>
                     );
@@ -360,16 +340,13 @@ export const NewModulePropagationForm: React.VFC<
             <Col md={6}>
               <Form.Group>
                 <Form.Label>Module Group</Form.Label>
-                <Form.Select name="moduleGroupId" onChange={handleSelectChange}>
+                <Form.Select name="moduleGroupID" onChange={handleSelectChange}>
                   <option selected={true} disabled={true}>
                     Select a Module Group
                   </option>
-                  {data?.moduleGroups.items?.map((moduleGroup) => {
+                  {data?.moduleGroups.map((moduleGroup) => {
                     return (
-                      <option
-                        value={moduleGroup?.moduleGroupId}
-                        key={moduleGroup?.moduleGroupId}
-                      >
+                      <option value={moduleGroup?.id} key={moduleGroup?.id}>
                         {renderCloudPlatform(moduleGroup?.cloudPlatform)}{" "}
                         {moduleGroup?.name}
                       </option>
@@ -382,19 +359,16 @@ export const NewModulePropagationForm: React.VFC<
               <Form.Group>
                 <Form.Label>Module Version</Form.Label>
                 <Form.Select
-                  name="moduleVersionId"
+                  name="moduleVersionID"
                   onChange={handleSelectChange}
-                  key={moduleGroup?.moduleGroupId}
+                  key={moduleGroup?.id}
                 >
                   <option selected={true} disabled={true}>
                     Select a Module Version
                   </option>
-                  {moduleGroup?.versions?.items.map((moduleVersion) => {
+                  {moduleGroup?.versions?.map((moduleVersion) => {
                     return (
-                      <option
-                        value={moduleVersion?.moduleVersionId}
-                        key={moduleVersion?.moduleVersionId}
-                      >
+                      <option value={moduleVersion?.id} key={moduleVersion?.id}>
                         {moduleVersion?.name}
                       </option>
                     );

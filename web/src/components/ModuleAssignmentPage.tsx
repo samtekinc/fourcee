@@ -1,12 +1,9 @@
-import React, { useState } from "react";
-import { ModuleAssignment, ModuleAssignments } from "../__generated__/graphql";
+import { ModuleAssignment } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
-import { useQuery, useMutation, gql } from "@apollo/client";
+import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
 import { renderStatus, renderTimeField } from "../utils/table_rendering";
 import { Breadcrumb, Col, Container, Row } from "react-bootstrap";
-import { NotificationManager } from "react-notifications";
-import { Button } from "react-bootstrap";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { TriggerTerraformExecutionButton } from "./TriggerTerraformExecutionButton";
@@ -19,76 +16,75 @@ import {
 } from "../utils/rendering";
 
 const MODULE_ACCOUNT_ASSOCIATION_QUERY = gql`
-  query moduleAssignment($moduleAssignmentId: ID!) {
-    moduleAssignment(moduleAssignmentId: $moduleAssignmentId) {
+  query moduleAssignment($moduleAssignmentID: ID!) {
+    moduleAssignment(moduleAssignmentID: $moduleAssignmentID) {
+      id
       name
-      moduleAssignmentId
+      status
+      terraformConfiguration
+
       modulePropagation {
-        modulePropagationId
+        id
         name
       }
       orgAccount {
-        orgAccountId
+        id
         name
         cloudPlatform
       }
       moduleGroup {
-        moduleGroupId
+        id
         name
       }
       moduleVersion {
-        moduleVersionId
+        id
         name
       }
-      status
-      terraformConfiguration
+
       terraformExecutionRequests(limit: 5) {
-        items {
-          terraformExecutionRequestId
+        id
+        status
+        startedAt
+        destroy
+        moduleAssignment {
+          id
+          orgAccount {
+            id
+            cloudPlatform
+            name
+          }
+        }
+        planExecutionRequest {
+          id
           status
-          requestTime
-          destroy
-          moduleAssignment {
-            moduleAssignmentId
-            orgAccount {
-              cloudPlatform
-              orgAccountId
-              name
-            }
-          }
-          planExecutionRequest {
-            planExecutionRequestId
-            status
-            requestTime
-          }
-          applyExecutionRequest {
-            applyExecutionRequestId
-            status
-            requestTime
-          }
+          startedAt
+        }
+        applyExecutionRequest {
+          id
+          status
+          startedAt
         }
       }
+
       terraformDriftCheckRequests(limit: 5) {
-        items {
-          terraformDriftCheckRequestId
-          status
-          requestTime
-          destroy
-          moduleAssignment {
-            moduleAssignmentId
-            orgAccount {
-              cloudPlatform
-              orgAccountId
-              name
-            }
+        id
+        status
+        startedAt
+        destroy
+        moduleAssignment {
+          id
+          orgAccount {
+            id
+            cloudPlatform
+            name
           }
-          planExecutionRequest {
-            planExecutionRequestId
-            status
-            requestTime
-          }
-          syncStatus
         }
+        planExecutionRequest {
+          id
+          status
+          startedAt
+        }
+        syncStatus
       }
     }
   }
@@ -101,15 +97,15 @@ type Response = {
 export const ModuleAssignmentPage = () => {
   const params = useParams();
 
-  const moduleAssignmentId = params.moduleAssignmentId
-    ? params.moduleAssignmentId
+  const moduleAssignmentID = params.moduleAssignmentID
+    ? params.moduleAssignmentID
     : "";
 
   const { loading, error, data } = useQuery<Response>(
     MODULE_ACCOUNT_ASSOCIATION_QUERY,
     {
       variables: {
-        moduleAssignmentId: moduleAssignmentId,
+        moduleAssignmentID: moduleAssignmentID,
       },
       pollInterval: 3000,
     }
@@ -119,7 +115,7 @@ export const ModuleAssignmentPage = () => {
   if (error) return <div>Error</div>;
 
   let terraformConfiguration = data?.moduleAssignment.terraformConfiguration
-    ? atob(data?.moduleAssignment.terraformConfiguration)
+    ? data?.moduleAssignment.terraformConfiguration
     : "...";
 
   let isPropagated = data?.moduleAssignment.modulePropagation ? true : false;
@@ -137,8 +133,7 @@ export const ModuleAssignmentPage = () => {
           Assignments
         </Breadcrumb.Item>
         <Breadcrumb.Item active>
-          {data?.moduleAssignment.name} (
-          {data?.moduleAssignment.moduleAssignmentId})
+          {data?.moduleAssignment.name} ({data?.moduleAssignment.id})
         </Breadcrumb.Item>
       </Breadcrumb>
 
@@ -153,9 +148,7 @@ export const ModuleAssignmentPage = () => {
       </Row>
       <p>
         <b>Account:</b>{" "}
-        <NavLink
-          to={`/org-accounts/${data?.moduleAssignment.orgAccount.orgAccountId}`}
-        >
+        <NavLink to={`/org-accounts/${data?.moduleAssignment.orgAccount.id}`}>
           {renderCloudPlatform(data?.moduleAssignment.orgAccount.cloudPlatform)}{" "}
           {data?.moduleAssignment.orgAccount.name}
         </NavLink>
@@ -164,7 +157,7 @@ export const ModuleAssignmentPage = () => {
           <>
             <b>Module Propagation</b>{" "}
             <NavLink
-              to={`/module-propagations/${data?.moduleAssignment.modulePropagation?.modulePropagationId}`}
+              to={`/module-propagations/${data?.moduleAssignment.modulePropagation?.id}`}
             >
               {data?.moduleAssignment.modulePropagation?.name}
             </NavLink>
@@ -172,14 +165,12 @@ export const ModuleAssignmentPage = () => {
           </>
         )}
         <b>Module:</b>{" "}
-        <NavLink
-          to={`/module-groups/${data?.moduleAssignment.moduleGroup.moduleGroupId}`}
-        >
+        <NavLink to={`/module-groups/${data?.moduleAssignment.moduleGroup.id}`}>
           {data?.moduleAssignment.moduleGroup.name}
         </NavLink>
         {" / "}
         <NavLink
-          to={`/module-groups/${data?.moduleAssignment.moduleGroup.moduleGroupId}/versions/${data?.moduleAssignment.moduleVersion.moduleVersionId}`}
+          to={`/module-groups/${data?.moduleAssignment.moduleGroup.id}/versions/${data?.moduleAssignment.moduleVersion.id}`}
         >
           {data?.moduleAssignment.moduleVersion.name}
         </NavLink>
@@ -191,12 +182,12 @@ export const ModuleAssignmentPage = () => {
       <h2>
         Terraform Execution Workflows{" "}
         <TriggerTerraformExecutionButton
-          moduleAssignmentId={moduleAssignmentId}
+          moduleAssignmentID={moduleAssignmentID}
           destroy={false}
         />
         {"\t"}
         <TriggerTerraformExecutionButton
-          moduleAssignmentId={moduleAssignmentId}
+          moduleAssignmentID={moduleAssignmentID}
           destroy={true}
         />
       </h2>
@@ -214,7 +205,7 @@ export const ModuleAssignmentPage = () => {
               </tr>
             </thead>
             <tbody>
-              {data?.moduleAssignment.terraformExecutionRequests.items.map(
+              {data?.moduleAssignment.terraformExecutionRequests.map(
                 (terraformExecutionRequest) => {
                   return (
                     <tr>
@@ -225,7 +216,7 @@ export const ModuleAssignmentPage = () => {
                             .cloudPlatform
                         )}{" "}
                         <NavLink
-                          to={`/org-accounts/${terraformExecutionRequest?.moduleAssignment.orgAccount.orgAccountId}`}
+                          to={`/org-accounts/${terraformExecutionRequest?.moduleAssignment.orgAccount.id}`}
                         >
                           {
                             terraformExecutionRequest?.moduleAssignment
@@ -240,7 +231,7 @@ export const ModuleAssignmentPage = () => {
                       </td>
                       <td>
                         <NavLink
-                          to={`/plan-execution-requests/${terraformExecutionRequest?.planExecutionRequest?.planExecutionRequestId}`}
+                          to={`/plan-execution-requests/${terraformExecutionRequest?.planExecutionRequest?.id}`}
                         >
                           {renderStatus(
                             terraformExecutionRequest?.planExecutionRequest
@@ -250,7 +241,7 @@ export const ModuleAssignmentPage = () => {
                       </td>
                       <td>
                         <NavLink
-                          to={`/apply-execution-requests/${terraformExecutionRequest?.applyExecutionRequest?.applyExecutionRequestId}`}
+                          to={`/apply-execution-requests/${terraformExecutionRequest?.applyExecutionRequest?.id}`}
                         >
                           {renderStatus(
                             terraformExecutionRequest?.applyExecutionRequest
@@ -258,7 +249,7 @@ export const ModuleAssignmentPage = () => {
                           )}
                         </NavLink>
                       </td>
-                      {renderTimeField(terraformExecutionRequest?.requestTime)}
+                      {renderTimeField(terraformExecutionRequest?.startedAt)}
                     </tr>
                   );
                 }
@@ -271,7 +262,7 @@ export const ModuleAssignmentPage = () => {
       <h2>
         Terraform Drift Check Workflows{" "}
         <TriggerTerraformDriftCheckButton
-          moduleAssignmentId={moduleAssignmentId}
+          moduleAssignmentID={moduleAssignmentID}
         />
       </h2>
       <Row>
@@ -288,7 +279,7 @@ export const ModuleAssignmentPage = () => {
               </tr>
             </thead>
             <tbody>
-              {data?.moduleAssignment.terraformDriftCheckRequests.items.map(
+              {data?.moduleAssignment.terraformDriftCheckRequests.map(
                 (terraformDriftCheckRequest) => {
                   return (
                     <tr>
@@ -301,7 +292,7 @@ export const ModuleAssignmentPage = () => {
                             .orgAccount.cloudPlatform
                         )}{" "}
                         <NavLink
-                          to={`/org-accounts/${terraformDriftCheckRequest?.moduleAssignment.orgAccount.orgAccountId}`}
+                          to={`/org-accounts/${terraformDriftCheckRequest?.moduleAssignment.orgAccount.id}`}
                         >
                           {
                             terraformDriftCheckRequest?.moduleAssignment
@@ -316,7 +307,7 @@ export const ModuleAssignmentPage = () => {
                       </td>
                       <td>
                         <NavLink
-                          to={`/plan-execution-requests/${terraformDriftCheckRequest?.planExecutionRequest?.planExecutionRequestId}`}
+                          to={`/plan-execution-requests/${terraformDriftCheckRequest?.planExecutionRequest?.id}`}
                         >
                           {renderStatus(
                             terraformDriftCheckRequest?.planExecutionRequest
@@ -329,7 +320,7 @@ export const ModuleAssignmentPage = () => {
                           terraformDriftCheckRequest?.syncStatus
                         )}
                       </td>
-                      {renderTimeField(terraformDriftCheckRequest?.requestTime)}
+                      {renderTimeField(terraformDriftCheckRequest?.startedAt)}
                     </tr>
                   );
                 }

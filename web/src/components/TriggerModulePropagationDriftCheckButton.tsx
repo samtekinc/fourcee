@@ -3,25 +3,25 @@ import { gql, useMutation } from "@apollo/client";
 import { Button } from "react-bootstrap";
 
 const DRIFT_CHECK_MODULE_PROPAGATION_MUTATION = gql`
-  mutation createModulePropagationDriftCheckRequest($modulePropagationId: ID!) {
+  mutation createModulePropagationDriftCheckRequest($modulePropagationID: ID!) {
     createModulePropagationDriftCheckRequest(
       modulePropagationDriftCheckRequest: {
-        modulePropagationId: $modulePropagationId
+        modulePropagationID: $modulePropagationID
       }
     ) {
-      modulePropagationDriftCheckRequestId
+      id
       status
     }
   }
 `;
 
 interface DriftCheckModulePropagationButtonProps {
-  modulePropagationId: string;
+  modulePropagationID: string;
 }
 
 type DriftCheckModulePropagationResponse = {
   createModulePropagationDriftCheckRequest: {
-    modulePropagationDriftCheckRequestId: string;
+    id: string;
     status: string;
   };
 };
@@ -34,7 +34,7 @@ export const DriftCheckModulePropagationButton: React.VFC<
       DRIFT_CHECK_MODULE_PROPAGATION_MUTATION,
       {
         variables: {
-          modulePropagationId: props.modulePropagationId,
+          modulePropagationID: props.modulePropagationID,
         },
         onError: (error) => {
           console.log(error);
@@ -46,7 +46,7 @@ export const DriftCheckModulePropagationButton: React.VFC<
         },
         onCompleted: (data) => {
           NotificationManager.success(
-            `Initiated ${data.createModulePropagationDriftCheckRequest.modulePropagationDriftCheckRequestId}`,
+            `Initiated ${data.createModulePropagationDriftCheckRequest.id}`,
             "",
             5000
           );

@@ -1,56 +1,49 @@
-import React, { useState } from "react";
 import {
   ModulePropagationExecutionRequest,
-  ModulePropagationExecutionRequests,
   RequestStatus,
 } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
-import { renderStatus, renderTimeField } from "../utils/table_rendering";
-import { Breadcrumb, Col, Container, Row } from "react-bootstrap";
+import { renderStatus } from "../utils/table_rendering";
+import { Col, Container, Row } from "react-bootstrap";
 import { renderApplyDestroy, renderCloudPlatform } from "../utils/rendering";
 
 const MODULE_PROPAGATION_EXECUTION_QUERY = gql`
   query modulePropagationExecutionRequest(
-    $modulePropagationId: ID!
-    $modulePropagationExecutionRequestId: ID!
+    $modulePropagationExecutionRequestID: ID!
   ) {
     modulePropagationExecutionRequest(
-      modulePropagationId: $modulePropagationId
-      modulePropagationExecutionRequestId: $modulePropagationExecutionRequestId
+      modulePropagationExecutionRequestID: $modulePropagationExecutionRequestID
     ) {
-      modulePropagationId
+      id
       modulePropagation {
         name
       }
-      modulePropagationExecutionRequestId
-      requestTime
+      startedAt
       status
       terraformExecutionRequests {
-        items {
-          terraformExecutionRequestId
+        id
+        status
+        startedAt
+        destroy
+        moduleAssignment {
+          id
+          orgAccount {
+            id
+            cloudPlatform
+            name
+          }
+        }
+        planExecutionRequest {
+          id
           status
-          requestTime
-          destroy
-          moduleAssignment {
-            moduleAssignmentId
-            orgAccount {
-              cloudPlatform
-              orgAccountId
-              name
-            }
-          }
-          planExecutionRequest {
-            planExecutionRequestId
-            status
-            requestTime
-          }
-          applyExecutionRequest {
-            applyExecutionRequestId
-            status
-            requestTime
-          }
+          startedAt
+        }
+        applyExecutionRequest {
+          id
+          status
+          startedAt
         }
       }
     }
@@ -64,21 +57,20 @@ type Response = {
 export const ModulePropagationExecutionRequestPage = () => {
   const params = useParams();
 
-  const modulePropagationExecutionRequestId =
-    params.modulePropagationExecutionRequestId
-      ? params.modulePropagationExecutionRequestId
+  const modulePropagationExecutionRequestID =
+    params.modulePropagationExecutionRequestID
+      ? params.modulePropagationExecutionRequestID
       : "";
-  const modulePropagationId = params.modulePropagationId
-    ? params.modulePropagationId
+  const modulePropagationID = params.modulePropagationID
+    ? params.modulePropagationID
     : "";
 
   const { loading, error, data, startPolling } = useQuery<Response>(
     MODULE_PROPAGATION_EXECUTION_QUERY,
     {
       variables: {
-        modulePropagationExecutionRequestId:
-          modulePropagationExecutionRequestId,
-        modulePropagationId: modulePropagationId,
+        modulePropagationExecutionRequestID:
+          modulePropagationExecutionRequestID,
       },
       pollInterval: 1000,
     }
@@ -98,12 +90,7 @@ export const ModulePropagationExecutionRequestPage = () => {
 
   return (
     <Container fluid>
-      <h1>
-        {
-          data?.modulePropagationExecutionRequest
-            .modulePropagationExecutionRequestId
-        }
-      </h1>
+      <h1>{data?.modulePropagationExecutionRequest.id}</h1>
       Status: {renderStatus(data?.modulePropagationExecutionRequest.status)}
       <br />
       <Row>
@@ -120,7 +107,7 @@ export const ModulePropagationExecutionRequestPage = () => {
               </tr>
             </thead>
             <tbody>
-              {data?.modulePropagationExecutionRequest.terraformExecutionRequests.items.map(
+              {data?.modulePropagationExecutionRequest.terraformExecutionRequests.map(
                 (terraformExecutionRequest) => {
                   return (
                     <tr>
@@ -131,7 +118,7 @@ export const ModulePropagationExecutionRequestPage = () => {
                             .cloudPlatform
                         )}{" "}
                         <NavLink
-                          to={`/org-accounts/${terraformExecutionRequest?.moduleAssignment.orgAccount.orgAccountId}`}
+                          to={`/org-accounts/${terraformExecutionRequest?.moduleAssignment.orgAccount.id}`}
                         >
                           {
                             terraformExecutionRequest?.moduleAssignment
@@ -146,7 +133,7 @@ export const ModulePropagationExecutionRequestPage = () => {
                       </td>
                       <td>
                         <NavLink
-                          to={`/plan-execution-requests/${terraformExecutionRequest?.planExecutionRequest?.planExecutionRequestId}`}
+                          to={`/plan-execution-requests/${terraformExecutionRequest?.planExecutionRequest?.id}`}
                         >
                           {renderStatus(
                             terraformExecutionRequest?.planExecutionRequest
@@ -156,7 +143,7 @@ export const ModulePropagationExecutionRequestPage = () => {
                       </td>
                       <td>
                         <NavLink
-                          to={`/apply-execution-requests/${terraformExecutionRequest?.applyExecutionRequest?.applyExecutionRequestId}`}
+                          to={`/apply-execution-requests/${terraformExecutionRequest?.applyExecutionRequest?.id}`}
                         >
                           {renderStatus(
                             terraformExecutionRequest?.applyExecutionRequest

@@ -7,80 +7,47 @@ package resolver
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
 // ModuleAssignment is the resolver for the moduleAssignment field.
 func (r *planExecutionRequestResolver) ModuleAssignment(ctx context.Context, obj *models.PlanExecutionRequest) (*models.ModuleAssignment, error) {
-	return r.apiClient.GetModuleAssignmentBatched(ctx, obj.ModuleAssignmentId)
+	return r.apiClient.GetModuleAssignmentBatched(ctx, obj.ModuleAssignmentID)
+}
+
+// TerraformConfiguration is the resolver for the terraformConfiguration field.
+func (r *planExecutionRequestResolver) TerraformConfiguration(ctx context.Context, obj *models.PlanExecutionRequest) (string, error) {
+	return string(obj.TerraformConfiguration), nil
 }
 
 // InitOutput is the resolver for the initOutput field.
 func (r *planExecutionRequestResolver) InitOutput(ctx context.Context, obj *models.PlanExecutionRequest) (*string, error) {
-	if obj.InitOutputKey == nil {
-		return nil, nil
-	}
-	output, err := r.apiClient.DownloadResultObject(ctx, *obj.InitOutputKey)
-	if err != nil {
-		return nil, err
-	}
-	outputString := string(output)
-	return &outputString, nil
+	response := string(obj.InitOutput)
+	return &response, nil
 }
 
 // PlanOutput is the resolver for the planOutput field.
 func (r *planExecutionRequestResolver) PlanOutput(ctx context.Context, obj *models.PlanExecutionRequest) (*string, error) {
-	if obj.PlanOutputKey == nil {
-		return nil, nil
-	}
-	output, err := r.apiClient.DownloadResultObject(ctx, *obj.PlanOutputKey)
-	if err != nil {
-		return nil, err
-	}
-	outputString := string(output)
-	return &outputString, nil
+	response := string(obj.PlanOutput)
+	return &response, nil
 }
 
 // PlanFile is the resolver for the planFile field.
 func (r *planExecutionRequestResolver) PlanFile(ctx context.Context, obj *models.PlanExecutionRequest) (*string, error) {
-	if obj.PlanFileKey == nil {
-		return nil, nil
-	}
-	output, err := r.apiClient.DownloadResultObject(ctx, *obj.PlanFileKey)
-	if err != nil {
-		return nil, err
-	}
-	outputString := string(output)
-	return &outputString, nil
+	response := string(obj.PlanFile)
+	return &response, nil
 }
 
 // PlanJSON is the resolver for the planJSON field.
 func (r *planExecutionRequestResolver) PlanJSON(ctx context.Context, obj *models.PlanExecutionRequest) (*string, error) {
-	if obj.PlanJSONKey == nil {
-		return nil, nil
-	}
-	output, err := r.apiClient.DownloadResultObject(ctx, *obj.PlanJSONKey)
-	if err != nil {
-		return nil, err
-	}
-	outputString := string(output)
-	return &outputString, nil
+	response := string(obj.PlanJSON)
+	return &response, nil
 }
 
 // PlanExecutionRequest is the resolver for the planExecutionRequest field.
-func (r *queryResolver) PlanExecutionRequest(ctx context.Context, planExecutionRequestID string, withOutputs *bool) (*models.PlanExecutionRequest, error) {
+func (r *queryResolver) PlanExecutionRequest(ctx context.Context, planExecutionRequestID uint) (*models.PlanExecutionRequest, error) {
 	return r.apiClient.GetPlanExecutionRequest(ctx, planExecutionRequestID)
-}
-
-// PlanExecutionRequests is the resolver for the planExecutionRequests field.
-func (r *queryResolver) PlanExecutionRequests(ctx context.Context, limit *int, nextCursor *string, withOutputs *bool) (*models.PlanExecutionRequests, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-
-	return r.apiClient.GetPlanExecutionRequests(ctx, int32(*limit), aws.ToString(nextCursor))
 }
 
 // PlanExecutionRequest returns generated.PlanExecutionRequestResolver implementation.

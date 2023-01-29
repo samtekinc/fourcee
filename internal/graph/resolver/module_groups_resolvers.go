@@ -7,57 +7,44 @@ package resolver
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
 // Versions is the resolver for the versions field.
-func (r *moduleGroupResolver) Versions(ctx context.Context, obj *models.ModuleGroup, limit *int, nextCursor *string) (*models.ModuleVersions, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetModuleVersions(ctx, obj.ModuleGroupId, int32(*limit), aws.ToString(nextCursor))
+func (r *moduleGroupResolver) Versions(ctx context.Context, obj *models.ModuleGroup, filters *models.ModuleVersionFilters, limit *int, offset *int) ([]*models.ModuleVersion, error) {
+	return r.apiClient.GetModuleVersionsForModuleGroup(ctx, obj.ID, filters, limit, offset)
 }
 
 // ModulePropagations is the resolver for the modulePropagations field.
-func (r *moduleGroupResolver) ModulePropagations(ctx context.Context, obj *models.ModuleGroup, limit *int, nextCursor *string) (*models.ModulePropagations, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetModulePropagationsByModuleGroupId(ctx, obj.ModuleGroupId, int32(*limit), aws.ToString(nextCursor))
+func (r *moduleGroupResolver) ModulePropagations(ctx context.Context, obj *models.ModuleGroup, filters *models.ModulePropagationFilters, limit *int, offset *int) ([]*models.ModulePropagation, error) {
+	return r.apiClient.GetModulePropagationsForModuleGroup(ctx, obj.ID, filters, limit, offset)
 }
 
 // ModuleAssignments is the resolver for the moduleAssignments field.
-func (r *moduleGroupResolver) ModuleAssignments(ctx context.Context, obj *models.ModuleGroup, limit *int, nextCursor *string) (*models.ModuleAssignments, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetModuleAssignmentsByModuleGroupId(ctx, obj.ModuleGroupId, int32(*limit), aws.ToString(nextCursor))
+func (r *moduleGroupResolver) ModuleAssignments(ctx context.Context, obj *models.ModuleGroup, filters *models.ModuleAssignmentFilters, limit *int, offset *int) ([]*models.ModuleAssignment, error) {
+	return r.apiClient.GetModuleAssignmentsForModuleGroup(ctx, obj.ID, filters, limit, offset)
 }
 
 // CreateModuleGroup is the resolver for the createModuleGroup field.
 func (r *mutationResolver) CreateModuleGroup(ctx context.Context, moduleGroup models.NewModuleGroup) (*models.ModuleGroup, error) {
-	return r.apiClient.PutModuleGroup(ctx, &moduleGroup)
+	return r.apiClient.CreateModuleGroup(ctx, &moduleGroup)
 }
 
 // DeleteModuleGroup is the resolver for the deleteModuleGroup field.
-func (r *mutationResolver) DeleteModuleGroup(ctx context.Context, moduleGroupID string) (bool, error) {
+func (r *mutationResolver) DeleteModuleGroup(ctx context.Context, moduleGroupID uint) (bool, error) {
 	err := r.apiClient.DeleteModuleGroup(ctx, moduleGroupID)
 	return err == nil, err
 }
 
 // ModuleGroup is the resolver for the moduleGroup field.
-func (r *queryResolver) ModuleGroup(ctx context.Context, moduleGroupID string) (*models.ModuleGroup, error) {
+func (r *queryResolver) ModuleGroup(ctx context.Context, moduleGroupID uint) (*models.ModuleGroup, error) {
 	return r.apiClient.GetModuleGroup(ctx, moduleGroupID)
 }
 
 // ModuleGroups is the resolver for the moduleGroups field.
-func (r *queryResolver) ModuleGroups(ctx context.Context, limit *int, nextCursor *string) (*models.ModuleGroups, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-	return r.apiClient.GetModuleGroups(ctx, int32(*limit), aws.ToString(nextCursor))
+func (r *queryResolver) ModuleGroups(ctx context.Context, filters *models.ModuleGroupFilters, limit *int, offset *int) ([]*models.ModuleGroup, error) {
+	return r.apiClient.GetModuleGroups(ctx, filters, limit, offset)
 }
 
 // ModuleGroup returns generated.ModuleGroupResolver implementation.

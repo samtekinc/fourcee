@@ -63,3 +63,5 @@ yarn-error.log*
 
 tmp/
 dev.env
+
+test.db

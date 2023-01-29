@@ -1,46 +1,36 @@
-import React, { useState } from "react";
-import {
-  ApplyExecutionRequest,
-  ApplyExecutionRequests,
-  RequestStatus,
-} from "../__generated__/graphql";
+import { ApplyExecutionRequest, RequestStatus } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
-import Table from "react-bootstrap/Table";
-import { renderStatus, renderTimeField } from "../utils/table_rendering";
+import { renderStatus } from "../utils/table_rendering";
 import { Col, Container, Row } from "react-bootstrap";
-import Accordion from "react-bootstrap/Accordion";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import Ansi from "ansi-to-react";
-import { encode, decode, labels } from "windows-1252";
-import { b64DecodeUnicode } from "../utils/decoding";
 
 const APPLY_EXECUTION_REQUEST_QUERY = gql`
-  query applyExecutionRequest($applyExecutionRequestId: ID!) {
-    applyExecutionRequest(applyExecutionRequestId: $applyExecutionRequestId) {
-      applyExecutionRequestId
+  query applyExecutionRequest($applyExecutionRequestID: ID!) {
+    applyExecutionRequest(applyExecutionRequestID: $applyExecutionRequestID) {
+      id
       status
-      requestTime
-      terraformConfigurationBase64
+      startedAt
+      completedAt
+      terraformConfiguration
       moduleAssignment {
         name
-        moduleAssignmentId
         modulePropagation {
-          modulePropagationId
           name
         }
         orgAccount {
-          orgAccountId
+          id
           name
           cloudPlatform
         }
         moduleGroup {
-          moduleGroupId
+          id
           name
         }
         moduleVersion {
-          moduleVersionId
+          id
           name
         }
       }
@@ -57,15 +47,15 @@ type Response = {
 export const ApplyExecutionRequestPage = () => {
   const params = useParams();
 
-  const applyExecutionRequestId = params.applyExecutionRequestId
-    ? params.applyExecutionRequestId
+  const applyExecutionRequestID = params.applyExecutionRequestID
+    ? params.applyExecutionRequestID
     : "";
 
   const { loading, error, data, startPolling } = useQuery<Response>(
     APPLY_EXECUTION_REQUEST_QUERY,
     {
       variables: {
-        applyExecutionRequestId: applyExecutionRequestId,
+        applyExecutionRequestID: applyExecutionRequestID,
       },
       pollInterval: 1000,
     }
@@ -84,8 +74,8 @@ export const ApplyExecutionRequestPage = () => {
   }
 
   let terraformConfiguration = data?.applyExecutionRequest
-    .terraformConfigurationBase64
-    ? b64DecodeUnicode(data?.applyExecutionRequest.terraformConfigurationBase64)
+    .terraformConfiguration
+    ? data?.applyExecutionRequest.terraformConfiguration
     : "...";
 
   let initOutput = data?.applyExecutionRequest.initOutput ?? "...";
@@ -101,25 +91,25 @@ export const ApplyExecutionRequestPage = () => {
       }}
     >
       <h1>
-        <b>{data?.applyExecutionRequest.applyExecutionRequestId}</b>
+        <b>{data?.applyExecutionRequest.id}</b>
       </h1>
       <p>
         <b>Org Account: </b>
         <NavLink
-          to={`/org-accounts/${data?.applyExecutionRequest.moduleAssignment.orgAccount.orgAccountId}`}
+          to={`/org-accounts/${data?.applyExecutionRequest.moduleAssignment.orgAccount.id}`}
         >
           {data?.applyExecutionRequest.moduleAssignment.orgAccount.name}
         </NavLink>
         <br />
         <b>Module: </b>
         <NavLink
-          to={`/module-groups/${data?.applyExecutionRequest.moduleAssignment.moduleGroup.moduleGroupId}`}
+          to={`/module-groups/${data?.applyExecutionRequest.moduleAssignment.moduleGroup.id}`}
         >
           {data?.applyExecutionRequest.moduleAssignment.moduleGroup.name}
         </NavLink>
         {" / "}
         <NavLink
-          to={`/module-groups/${data?.applyExecutionRequest.moduleAssignment.moduleGroup.moduleGroupId}/versions/${data?.applyExecutionRequest.moduleAssignment.moduleVersion.moduleVersionId}`}
+          to={`/module-groups/${data?.applyExecutionRequest.moduleAssignment.moduleGroup.id}/versions/${data?.applyExecutionRequest.moduleAssignment.moduleVersion.id}`}
         >
           {data?.applyExecutionRequest.moduleAssignment.moduleVersion.name}
         </NavLink>

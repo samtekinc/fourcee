@@ -1,10 +1,6 @@
-import { TreeNode } from "react-organizational-chart";
+import { TreeNode } from "react-org-chart";
 import { NavLink } from "react-router-dom";
-import {
-  Maybe,
-  OrganizationalDimension,
-  OrganizationalUnit,
-} from "../__generated__/graphql";
+import { Maybe, OrgDimension, OrgUnit } from "../__generated__/graphql";
 
 type OrgUnitTreeNode = {
   orgDimensionId: string;
@@ -57,15 +53,15 @@ export const OrgUnitTreeNode = (props: OrgUnitTreeNodeProps) => {
 
 export function GetOrgUnitTree(
   orgDimensionId: string,
-  orgUnits: Maybe<OrganizationalUnit>[]
+  orgUnits: Maybe<OrgUnit>[]
 ): Map<string, OrgUnitTreeNode> {
   var rootOrgUnitId: string | null = null;
   let orgUnitsMap: Map<string, OrgUnitTreeNode> = new Map();
   for (let orgUnit of orgUnits) {
     if (orgUnit == null) continue;
-    orgUnitsMap.set(orgUnit.orgUnitId, {
+    orgUnitsMap.set(orgUnit.id, {
       orgDimensionId: orgDimensionId ?? "",
-      orgUnitId: orgUnit.orgUnitId,
+      orgUnitId: orgUnit.id,
       name: orgUnit.name,
       children: [],
     });
@@ -74,10 +70,10 @@ export function GetOrgUnitTree(
   for (let orgUnit of orgUnits) {
     if (orgUnit == null) continue;
     // add the org unit to it's parents children
-    if (orgUnit.parentOrgUnitId) {
-      let parentOrgUnit = orgUnitsMap.get(orgUnit.parentOrgUnitId);
+    if (orgUnit.parentOrgUnitID) {
+      let parentOrgUnit = orgUnitsMap.get(orgUnit.parentOrgUnitID);
       if (parentOrgUnit) {
-        parentOrgUnit.children.push(orgUnitsMap.get(orgUnit.orgUnitId)!);
+        parentOrgUnit.children.push(orgUnitsMap.get(orgUnit.id)!);
       }
     }
   }

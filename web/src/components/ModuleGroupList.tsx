@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Maybe, ModuleGroups, ModuleVersion } from "../__generated__/graphql";
+import { Maybe, ModuleVersion, ModuleGroup } from "../__generated__/graphql";
 import { NavLink, Outlet, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import Container from "react-bootstrap/Container";
@@ -18,7 +18,7 @@ import { NewModuleVersionButton } from "./NewModuleVersionButton";
 import { renderCloudPlatform } from "../utils/rendering";
 
 interface ModuleVersionCollapseProps {
-  moduleGroupId: string | undefined;
+  moduleGroupID: string | undefined;
   moduleVersions: Maybe<ModuleVersion>[];
 }
 
@@ -41,7 +41,7 @@ const ModuleVersionCollapse: React.VFC<ModuleVersionCollapseProps> = (
           {props.moduleVersions.map((moduleVersion) => {
             return (
               <NavLink
-                to={`/module-groups/${props.moduleGroupId}/versions/${moduleVersion?.moduleVersionId}`}
+                to={`/module-groups/${props.moduleGroupID}/versions/${moduleVersion?.id}`}
               >
                 {moduleVersion?.name}
               </NavLink>
@@ -56,31 +56,27 @@ const ModuleVersionCollapse: React.VFC<ModuleVersionCollapseProps> = (
 const MODULE_GROUPS_QUERY = gql`
   query moduleGroups {
     moduleGroups(limit: 100) {
-      items {
-        moduleGroupId
-        cloudPlatform
+      id
+      cloudPlatform
+      name
+      versions {
+        id
+        remoteSource
+        terraformVersion
         name
-        versions {
-          items {
-            moduleVersionId
-            remoteSource
-            terraformVersion
-            name
-          }
-        }
       }
     }
   }
 `;
 
 type Response = {
-  moduleGroups: ModuleGroups;
+  moduleGroups: ModuleGroup[];
 };
 
 export const ModuleGroupsList = () => {
   const params = useParams();
 
-  const moduleGroupId = params.moduleGroupId ? params.moduleGroupId : "";
+  const moduleGroupID = params.moduleGroupID ? params.moduleGroupID : "";
 
   const { loading, error, data, refetch } = useQuery<Response>(
     MODULE_GROUPS_QUERY,
@@ -122,13 +118,13 @@ export const ModuleGroupsList = () => {
               flexWrap: "nowrap",
             }}
           >
-            {data?.moduleGroups.items.map((moduleGroup) => {
+            {data?.moduleGroups.map((moduleGroup) => {
               return (
                 <div style={{ padding: "0.25rem" }}>
                   <Card style={{}}>
                     <Card.Body>
                       <NavLink
-                        to={`/module-groups/${moduleGroup?.moduleGroupId}`}
+                        to={`/module-groups/${moduleGroup?.id}`}
                         style={({ isActive }) =>
                           isActive
                             ? {
@@ -148,10 +144,10 @@ export const ModuleGroupsList = () => {
                       </NavLink>
                       <Card.Text style={{}}>
                         Versions
-                        {moduleGroup?.versions.items.map((version) => {
+                        {moduleGroup?.versions.map((version) => {
                           return (
                             <NavLink
-                              to={`/module-groups/${moduleGroup?.moduleGroupId}/versions/${version?.moduleVersionId}`}
+                              to={`/module-groups/${moduleGroup?.id}/versions/${version?.id}`}
                               style={({ isActive }) =>
                                 isActive
                                   ? {

@@ -76,9 +76,9 @@ func (t *TerraformExecutable) TerraformPlan(workingDirectory *TerraformWorkingDi
 	return nil
 }
 
-func (t *TerraformExecutable) TerraformApply(workingDirectory *TerraformWorkingDirectory, terraformPlanFileBase64 string, additionalArguments []string, output io.Writer) error {
+func (t *TerraformExecutable) TerraformApply(workingDirectory *TerraformWorkingDirectory, terraformPlanFile []byte, additionalArguments []string, output io.Writer) error {
 	// write the plan file
-	err := workingDirectory.AddFile(terraformPlanFileBase64, "plan.tfplan")
+	err := workingDirectory.AddFile(terraformPlanFile, "plan.tfplan")
 	if err != nil {
 		output.Write([]byte(fmt.Sprintf("failed to write plan file: %s", err.Error())))
 		return err

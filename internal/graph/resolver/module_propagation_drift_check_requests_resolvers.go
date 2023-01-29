@@ -7,42 +7,33 @@ package resolver
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/sheacloud/tfom/internal/graph/generated"
 	"github.com/sheacloud/tfom/pkg/models"
 )
 
 // ModulePropagation is the resolver for the modulePropagation field.
 func (r *modulePropagationDriftCheckRequestResolver) ModulePropagation(ctx context.Context, obj *models.ModulePropagationDriftCheckRequest) (*models.ModulePropagation, error) {
-	return r.apiClient.GetModulePropagationBatched(ctx, obj.ModulePropagationId)
+	return r.apiClient.GetModulePropagationBatched(ctx, obj.ModulePropagationID)
 }
 
 // TerraformDriftCheckRequests is the resolver for the terraformDriftCheckRequests field.
-func (r *modulePropagationDriftCheckRequestResolver) TerraformDriftCheckRequests(ctx context.Context, obj *models.ModulePropagationDriftCheckRequest, limit *int, nextCursor *string) (*models.TerraformDriftCheckRequests, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-
-	return r.apiClient.GetTerraformDriftCheckRequestsByModulePropagationDriftCheckRequestId(ctx, obj.ModulePropagationDriftCheckRequestId, int32(*limit), aws.ToString(nextCursor))
+func (r *modulePropagationDriftCheckRequestResolver) TerraformDriftCheckRequests(ctx context.Context, obj *models.ModulePropagationDriftCheckRequest, filters *models.TerraformDriftCheckRequestFilters, limit *int, offset *int) ([]*models.TerraformDriftCheckRequest, error) {
+	return r.apiClient.GetTerraformDriftCheckRequestsForModulePropagationDriftCheckRequest(ctx, obj.ID, filters, limit, offset)
 }
 
 // CreateModulePropagationDriftCheckRequest is the resolver for the createModulePropagationDriftCheckRequest field.
 func (r *mutationResolver) CreateModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationDriftCheckRequest models.NewModulePropagationDriftCheckRequest) (*models.ModulePropagationDriftCheckRequest, error) {
-	return r.apiClient.PutModulePropagationDriftCheckRequest(ctx, &modulePropagationDriftCheckRequest)
+	return r.apiClient.CreateModulePropagationDriftCheckRequest(ctx, &modulePropagationDriftCheckRequest)
 }
 
 // ModulePropagationDriftCheckRequest is the resolver for the modulePropagationDriftCheckRequest field.
-func (r *queryResolver) ModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationID string, modulePropagationDriftCheckRequestID string) (*models.ModulePropagationDriftCheckRequest, error) {
-	return r.apiClient.GetModulePropagationDriftCheckRequest(ctx, modulePropagationID, modulePropagationDriftCheckRequestID)
+func (r *queryResolver) ModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationDriftCheckRequestID uint) (*models.ModulePropagationDriftCheckRequest, error) {
+	return r.apiClient.GetModulePropagationDriftCheckRequest(ctx, modulePropagationDriftCheckRequestID)
 }
 
 // ModulePropagationDriftCheckRequests is the resolver for the modulePropagationDriftCheckRequests field.
-func (r *queryResolver) ModulePropagationDriftCheckRequests(ctx context.Context, limit *int, nextCursor *string) (*models.ModulePropagationDriftCheckRequests, error) {
-	if limit == nil {
-		limit = aws.Int(100)
-	}
-
-	return r.apiClient.GetModulePropagationDriftCheckRequests(ctx, int32(*limit), aws.ToString(nextCursor))
+func (r *queryResolver) ModulePropagationDriftCheckRequests(ctx context.Context, filters *models.ModulePropagationDriftCheckRequestFilters, limit *int, offset *int) ([]*models.ModulePropagationDriftCheckRequest, error) {
+	return r.apiClient.GetModulePropagationDriftCheckRequests(ctx, filters, limit, offset)
 }
 
 // ModulePropagationDriftCheckRequest returns generated.ModulePropagationDriftCheckRequestResolver implementation.

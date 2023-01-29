@@ -1,34 +1,40 @@
 type ModulePropagationDriftCheckRequest {
-  modulePropagationDriftCheckRequestId: ID!
-  modulePropagationId: ID!
+  id: ID!
+  modulePropagationID: ID!
   modulePropagation: ModulePropagation!
-  requestTime: Time!
+  startedAt: Time
+  completedAt: Time
   status: RequestStatus!
   syncStatus: TerraformDriftCheckStatus!
   terraformDriftCheckRequests(
+    filters: TerraformDriftCheckRequestFilters
     limit: Int
-    nextCursor: String
-  ): TerraformDriftCheckRequests!
-}
-
-type ModulePropagationDriftCheckRequests {
-  items: [ModulePropagationDriftCheckRequest]!
-  nextCursor: String
+    offset: Int
+  ): [TerraformDriftCheckRequest!]!
 }
 
 input NewModulePropagationDriftCheckRequest {
-  modulePropagationId: ID!
+  modulePropagationID: ID!
+}
+
+input ModulePropagationDriftCheckRequestFilters {
+  startedBefore: Time
+  startedAfter: Time
+  completedBefore: Time
+  completedAfter: Time
+  status: RequestStatus
+  syncStatus: TerraformDriftCheckStatus
 }
 
 extend type Query {
   modulePropagationDriftCheckRequest(
-    modulePropagationId: ID!
-    modulePropagationDriftCheckRequestId: ID!
+    modulePropagationDriftCheckRequestID: ID!
   ): ModulePropagationDriftCheckRequest!
   modulePropagationDriftCheckRequests(
+    filters: ModulePropagationDriftCheckRequestFilters
     limit: Int
-    nextCursor: String
-  ): ModulePropagationDriftCheckRequests!
+    offset: Int
+  ): [ModulePropagationDriftCheckRequest!]!
 }
 
 extend type Mutation {

@@ -1,33 +1,38 @@
 type ModulePropagationExecutionRequest {
-  modulePropagationExecutionRequestId: ID!
-  modulePropagationId: ID!
+  id: ID!
+  modulePropagationID: ID!
   modulePropagation: ModulePropagation!
-  requestTime: Time!
+  startedAt: Time
+  completedAt: Time
   status: RequestStatus!
   terraformExecutionRequests(
+    filters: TerraformExecutionRequestFilters
     limit: Int
-    nextCursor: String
-  ): TerraformExecutionRequests!
-}
-
-type ModulePropagationExecutionRequests {
-  items: [ModulePropagationExecutionRequest]!
-  nextCursor: String
+    offset: Int
+  ): [TerraformExecutionRequest!]!
 }
 
 input NewModulePropagationExecutionRequest {
-  modulePropagationId: ID!
+  modulePropagationID: ID!
+}
+
+input ModulePropagationExecutionRequestFilters {
+  startedBefore: Time
+  startedAfter: Time
+  completedBefore: Time
+  completedAfter: Time
+  status: RequestStatus
 }
 
 extend type Query {
   modulePropagationExecutionRequest(
-    modulePropagationId: ID!
-    modulePropagationExecutionRequestId: ID!
+    modulePropagationExecutionRequestID: ID!
   ): ModulePropagationExecutionRequest!
   modulePropagationExecutionRequests(
+    filters: ModulePropagationExecutionRequestFilters
     limit: Int
-    nextCursor: String
-  ): ModulePropagationExecutionRequests!
+    offset: Int
+  ): [ModulePropagationExecutionRequest!]!
 }
 
 extend type Mutation {

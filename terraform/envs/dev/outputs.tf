@@ -10,10 +10,6 @@ output "TFOM_STATE_REGION" {
   value = module.organizations_service.state_region
 }
 
-output "TFOM_RESULTS_BUCKET" {
-  value = module.organizations_service.results_bucket
-}
-
 output "TFOM_ALERTS_TOPIC" {
   value = module.organizations_service.alerts_topic
 }

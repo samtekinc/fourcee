@@ -1,22 +1,18 @@
 type TerraformDriftCheckRequest {
-  terraformDriftCheckRequestId: ID!
-  moduleAssignmentId: ID!
+  id: ID!
+  moduleAssignmentID: ID!
   moduleAssignment: ModuleAssignment!
-  planExecutionRequestId: ID
+  # planExecutionRequestID: ID
   planExecutionRequest: PlanExecutionRequest
-  requestTime: Time!
+  startedAt: Time
+  completedAt: Time
   status: RequestStatus!
   syncStatus: TerraformDriftCheckStatus!
   destroy: Boolean!
-  modulePropagationId: ID
+  modulePropagationID: ID
   modulePropagation: ModulePropagation
-  modulePropagationDriftCheckRequestId: ID
+  modulePropagationDriftCheckRequestID: ID
   modulePropagationDriftCheckRequest: ModulePropagationDriftCheckRequest
-}
-
-type TerraformDriftCheckRequests {
-  items: [TerraformDriftCheckRequest]!
-  nextCursor: String
 }
 
 enum TerraformDriftCheckStatus {
@@ -26,7 +22,17 @@ enum TerraformDriftCheckStatus {
 }
 
 input NewTerraformDriftCheckRequest {
-  moduleAssignmentId: ID!
+  moduleAssignmentID: ID!
+}
+
+input TerraformDriftCheckRequestFilters {
+  startedBefore: Time
+  startedAfter: Time
+  completedBefore: Time
+  completedAfter: Time
+  destroy: Boolean
+  status: RequestStatus
+  syncStatus: TerraformDriftCheckStatus
 }
 
 extend type Mutation {

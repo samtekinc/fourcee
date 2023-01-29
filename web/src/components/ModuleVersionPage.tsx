@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { ModuleVersion, ModuleVersions } from "../__generated__/graphql";
+import { ModuleVersion } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
@@ -7,15 +6,12 @@ import { Breadcrumb, Card, Col, Container, Row } from "react-bootstrap";
 import { renderCloudPlatform, renderRemoteSource } from "../utils/rendering";
 
 const MODULE_VERSION_QUERY = gql`
-  query moduleVersion($moduleGroupId: ID!, $moduleVersionId: ID!) {
-    moduleVersion(
-      moduleGroupId: $moduleGroupId
-      moduleVersionId: $moduleVersionId
-    ) {
-      moduleVersionId
+  query moduleVersion($moduleVersionID: ID!) {
+    moduleVersion(moduleVersionID: $moduleVersionID) {
+      id
       name
       moduleGroup {
-        moduleGroupId
+        id
         cloudPlatform
         name
       }
@@ -28,18 +24,26 @@ const MODULE_VERSION_QUERY = gql`
         default
       }
       modulePropagations {
-        items {
+        name
+        description
+        id
+        orgUnit {
+          id
           name
-          description
-          modulePropagationId
-          orgUnit {
-            orgUnitId
-            name
-          }
-          orgDimension {
-            orgDimensionId
-            name
-          }
+        }
+        orgDimension {
+          id
+          name
+        }
+      }
+      moduleAssignments {
+        id
+        name
+        description
+        orgAccount {
+          id
+          name
+          cloudPlatform
         }
       }
     }
@@ -53,13 +57,13 @@ type Response = {
 export const ModuleVersionPage = () => {
   const params = useParams();
 
-  const moduleGroupId = params.moduleGroupId ? params.moduleGroupId : "";
-  const moduleVersionId = params.moduleVersionId ? params.moduleVersionId : "";
+  const moduleGroupID = params.moduleGroupID ? params.moduleGroupID : "";
+  const moduleVersionID = params.moduleVersionID ? params.moduleVersionID : "";
 
   const { loading, error, data } = useQuery<Response>(MODULE_VERSION_QUERY, {
     variables: {
-      moduleGroupId: moduleGroupId,
-      moduleVersionId: moduleVersionId,
+      moduleGroupID: moduleGroupID,
+      moduleVersionID: moduleVersionID,
     },
   });
 
@@ -81,22 +85,22 @@ export const ModuleVersionPage = () => {
         <Breadcrumb.Item
           linkAs={NavLink}
           linkProps={{
-            to: `/module-groups/${data?.moduleVersion.moduleGroup.moduleGroupId}`,
+            to: `/module-groups/${data?.moduleVersion.moduleGroup.id}`,
           }}
         >
           {data?.moduleVersion.moduleGroup.name} (
-          {data?.moduleVersion.moduleGroup.moduleGroupId})
+          {data?.moduleVersion.moduleGroup.id})
         </Breadcrumb.Item>
         <Breadcrumb.Item
           linkAs={NavLink}
           linkProps={{
-            to: `/module-groups/${data?.moduleVersion.moduleGroup.moduleGroupId}`,
+            to: `/module-groups/${data?.moduleVersion.moduleGroup.id}`,
           }}
         >
           Versions
         </Breadcrumb.Item>
         <Breadcrumb.Item active>
-          {data?.moduleVersion.name} ({data?.moduleVersion.moduleVersionId})
+          {data?.moduleVersion.name} ({data?.moduleVersion.id})
         </Breadcrumb.Item>
       </Breadcrumb>
 
@@ -143,14 +147,12 @@ export const ModuleVersionPage = () => {
       <br />
       <h2>Module Propagations</h2>
       <Row>
-        {data?.moduleVersion.modulePropagations.items.map((propagation) => {
+        {data?.moduleVersion.modulePropagations.map((propagation) => {
           return (
             <Col md={"auto"}>
               <Card>
                 <Card.Body>
-                  <NavLink
-                    to={`/module-propagations/${propagation?.modulePropagationId}`}
-                  >
+                  <NavLink to={`/module-propagations/${propagation?.id}`}>
                     <Card.Title style={{ fontSize: "medium" }}>
                       {propagation?.name}
                     </Card.Title>
@@ -158,13 +160,13 @@ export const ModuleVersionPage = () => {
                   <Card.Text style={{ fontSize: "small" }}>
                     <b>Org Unit: </b>
                     <NavLink
-                      to={`/org-dimensions/${propagation?.orgDimension?.orgDimensionId}`}
+                      to={`/org-dimensions/${propagation?.orgDimension?.id}`}
                     >
                       {propagation?.orgDimension?.name}
                     </NavLink>
                     {" / "}
                     <NavLink
-                      to={`/org-dimensions/${propagation?.orgDimension?.orgDimensionId}/org-units/${propagation?.orgUnit?.orgUnitId}`}
+                      to={`/org-dimensions/${propagation?.orgDimension?.id}/org-units/${propagation?.orgUnit?.id}`}
                     >
                       {propagation?.orgUnit?.name}
                     </NavLink>
