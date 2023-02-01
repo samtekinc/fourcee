@@ -17,7 +17,7 @@ type TerraformExecutionRequest struct {
 	Destroy                             bool
 	CallbackTaskToken                   *string
 	ModulePropagationID                 *uint
-	ModulePropagationExecutionRequestID *uint
+	ModulePropagationExecutionRequestID *uint `gorm:"index"`
 }
 
 type NewTerraformExecutionRequest struct {

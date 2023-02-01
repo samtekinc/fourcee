@@ -14,7 +14,7 @@ type ApplyExecutionRequest struct {
 	TerraformConfiguration      []byte
 	TerraformPlan               []byte
 	AdditionalArguments         *string
-	TerraformExecutionRequestID uint
+	TerraformExecutionRequestID uint `gorm:"index"`
 	Status                      RequestStatus
 	InitOutput                  []byte
 	ApplyOutput                 []byte

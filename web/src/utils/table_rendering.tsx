@@ -1,21 +1,10 @@
-import React from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import Spinner from "react-bootstrap/Spinner";
 import TimeAgo from "react-timeago";
 import { FcOk, FcHighPriority } from "react-icons/fc";
 
-import {
-  BsXOctagonFill,
-  BsCheckCircle,
-  BsQuestionCircle,
-  BsDashCircle,
-  BsXCircle,
-} from "react-icons/bs";
-
-import { FaAws } from "react-icons/fa";
-import { SiMicrosoftazure } from "react-icons/si";
-import { FcGoogle } from "react-icons/fc";
+import { BsXOctagonFill, BsQuestionCircle } from "react-icons/bs";
 
 import { CloudPlatform } from "../__generated__/graphql";
 import { renderCloudPlatform } from "./rendering";

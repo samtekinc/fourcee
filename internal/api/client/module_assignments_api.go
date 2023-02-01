@@ -5,45 +5,48 @@ import (
 	"fmt"
 
 	"github.com/graph-gophers/dataloader"
+	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/pkg/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-func applyModuleAssignmentFilters(tx *gorm.DB, filters *models.ModuleAssignmentFilters) *gorm.DB {
-	if filters != nil {
-		if filters.NameContains != nil {
-			tx = tx.Where("name LIKE ?", "%"+*filters.NameContains+"%")
-		}
-		if filters.DescriptionContains != nil {
-			tx = tx.Where("description LIKE ?", "%"+*filters.DescriptionContains+"%")
-		}
-		if filters.Status != nil {
-			tx = tx.Where("status = ?", *filters.Status)
-		}
-		if filters.IsPropagated != nil {
-			if *filters.IsPropagated {
-				tx = tx.Where("module_propagation_id IS NOT NULL")
-			} else {
-				tx = tx.Where("module_propagation_id IS NULL")
+func moduleAssignmentFilters(filters *models.ModuleAssignmentFilters) func(tx *gorm.DB) *gorm.DB {
+	return func(tx *gorm.DB) *gorm.DB {
+		if filters != nil {
+			if filters.NameContains != nil {
+				tx = tx.Where("name LIKE ?", "%"+*filters.NameContains+"%")
+			}
+			if filters.DescriptionContains != nil {
+				tx = tx.Where("description LIKE ?", "%"+*filters.DescriptionContains+"%")
+			}
+			if filters.Status != nil {
+				tx = tx.Where("status = ?", *filters.Status)
+			}
+			if filters.IsPropagated != nil {
+				if *filters.IsPropagated {
+					tx = tx.Where("module_propagation_id IS NOT NULL")
+				} else {
+					tx = tx.Where("module_propagation_id IS NULL")
+				}
+			}
+			if filters.OrgAccountID != nil {
+				tx = tx.Where("org_account_id = ?", *filters.OrgAccountID)
 			}
 		}
-		if filters.OrgAccountID != nil {
-			tx = tx.Where("org_account_id = ?", *filters.OrgAccountID)
-		}
+		return tx
 	}
-	return tx
 }
 
-func applyModuleAssignmentPreloads(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Arguments").Preload("AwsProviderConfigurations").Preload("GcpProviderConfigurations")
+func moduleAssignmentIDOrdering(tx *gorm.DB) *gorm.DB {
+	return tx.Order("id")
 }
 
 func (c *APIClient) GetModuleAssignmentsByIDs(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	output := make([]*dataloader.Result, len(keys))
 
 	var moduleAssignments []*models.ModuleAssignment
-	tx := applyModuleAssignmentPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.Find(&moduleAssignments, keys.Keys()).Error
 	if err != nil {
 		for i := range keys {
@@ -62,12 +65,19 @@ func (c *APIClient) GetModuleAssignmentsByIDs(ctx context.Context, keys dataload
 		index := keyToIndex[idToString(moduleAssignments[i].ID)]
 		response[index] = &dataloader.Result{Data: moduleAssignments[i], Error: nil}
 	}
+
+	for i, key := range keys {
+		if response[i] == nil {
+			response[i] = &dataloader.Result{Error: helpers.NotFoundError{Message: fmt.Sprintf("Module Assignment %s not found", key.String())}}
+		}
+	}
+
 	return response
 }
 
 func (c *APIClient) GetModuleAssignment(ctx context.Context, id uint) (*models.ModuleAssignment, error) {
 	var moduleAssignment models.ModuleAssignment
-	tx := applyModuleAssignmentPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.First(&moduleAssignment, id).Error
 	if err != nil {
 		return nil, err
@@ -86,9 +96,7 @@ func (c *APIClient) GetModuleAssignmentBatched(ctx context.Context, id uint) (*m
 
 func (c *APIClient) GetModuleAssignments(ctx context.Context, filters *models.ModuleAssignmentFilters, limit *int, offset *int) ([]*models.ModuleAssignment, error) {
 	var moduleAssignments []*models.ModuleAssignment
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModuleAssignmentFilters(tx, filters)
-	tx = applyModuleAssignmentPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), moduleAssignmentFilters(filters), moduleAssignmentIDOrdering)
 	err := tx.Find(&moduleAssignments).Error
 	if err != nil {
 		return nil, err
@@ -98,9 +106,7 @@ func (c *APIClient) GetModuleAssignments(ctx context.Context, filters *models.Mo
 
 func (c *APIClient) GetModuleAssignmentsForModulePropagation(ctx context.Context, modulePropagationId uint, filters *models.ModuleAssignmentFilters, limit *int, offset *int) ([]*models.ModuleAssignment, error) {
 	var moduleAssignments []*models.ModuleAssignment
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModuleAssignmentFilters(tx, filters)
-	tx = applyModuleAssignmentPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), moduleAssignmentFilters(filters), moduleAssignmentIDOrdering)
 	err := tx.Model(&models.ModulePropagation{Model: gorm.Model{ID: modulePropagationId}}).Association("ModuleAssignmentsAssociation").Find(&moduleAssignments)
 	if err != nil {
 		return nil, err
@@ -110,9 +116,7 @@ func (c *APIClient) GetModuleAssignmentsForModulePropagation(ctx context.Context
 
 func (c *APIClient) GetModuleAssignmentsForModuleGroup(ctx context.Context, moduleGroupId uint, filters *models.ModuleAssignmentFilters, limit *int, offset *int) ([]*models.ModuleAssignment, error) {
 	var moduleAssignments []*models.ModuleAssignment
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModuleAssignmentFilters(tx, filters)
-	tx = applyModuleAssignmentPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), moduleAssignmentFilters(filters), moduleAssignmentIDOrdering)
 	err := tx.Model(&models.ModuleGroup{Model: gorm.Model{ID: moduleGroupId}}).Association("ModuleAssignmentsAssociation").Find(&moduleAssignments)
 	if err != nil {
 		return nil, err
@@ -122,9 +126,7 @@ func (c *APIClient) GetModuleAssignmentsForModuleGroup(ctx context.Context, modu
 
 func (c *APIClient) GetModuleAssignmentsForModuleVersion(ctx context.Context, moduleVersionId uint, filters *models.ModuleAssignmentFilters, limit *int, offset *int) ([]*models.ModuleAssignment, error) {
 	var moduleAssignments []*models.ModuleAssignment
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModuleAssignmentFilters(tx, filters)
-	tx = applyModuleAssignmentPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), moduleAssignmentFilters(filters), moduleAssignmentIDOrdering)
 	err := tx.Model(&models.ModuleVersion{Model: gorm.Model{ID: moduleVersionId}}).Association("ModuleAssignmentsAssociation").Find(&moduleAssignments)
 	if err != nil {
 		return nil, err
@@ -134,9 +136,7 @@ func (c *APIClient) GetModuleAssignmentsForModuleVersion(ctx context.Context, mo
 
 func (c *APIClient) GetModuleAssignmentsForOrgAccount(ctx context.Context, orgAccountId uint, filters *models.ModuleAssignmentFilters, limit *int, offset *int) ([]*models.ModuleAssignment, error) {
 	var moduleAssignments []*models.ModuleAssignment
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModuleAssignmentFilters(tx, filters)
-	tx = applyModuleAssignmentPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), moduleAssignmentFilters(filters), moduleAssignmentIDOrdering)
 	err := tx.Model(&models.OrgAccount{Model: gorm.Model{ID: orgAccountId}}).Association("ModuleAssignmentsAssociation").Find(&moduleAssignments)
 	if err != nil {
 		return nil, err
@@ -204,31 +204,19 @@ func (c *APIClient) UpdateModuleAssignment(ctx context.Context, id uint, update 
 		if update.Status != nil {
 			updates.Status = *update.Status
 		}
+		if update.Arguments != nil {
+			updates.Arguments = ArgumentInputsToArguments(update.Arguments)
+		}
+		if update.AwsProviderConfigurations != nil {
+			updates.AwsProviderConfigurations = AwsProviderConfigurationInputsToAwsProviderConfigurations(update.AwsProviderConfigurations)
+		}
+		if update.GcpProviderConfigurations != nil {
+			updates.GcpProviderConfigurations = GcpProviderConfigurationInputsToGcpProviderConfigurations(update.GcpProviderConfigurations)
+		}
 
 		err := tx.Model(&moduleAssignment).Clauses(clause.Returning{}).Updates(updates).Error
 		if err != nil {
 			return err
-		}
-
-		if update.Arguments != nil {
-			err = tx.Model(&moduleAssignment).Clauses(clause.Returning{}).Association("Arguments").Replace(ArgumentInputsToArguments(update.Arguments))
-			if err != nil {
-				return err
-			}
-		}
-
-		if update.AwsProviderConfigurations != nil {
-			err = tx.Model(&moduleAssignment).Clauses(clause.Returning{}).Association("AwsProviderConfigurations").Replace(AwsProviderConfigurationInputsToAwsProviderConfigurations(update.AwsProviderConfigurations))
-			if err != nil {
-				return err
-			}
-		}
-
-		if update.GcpProviderConfigurations != nil {
-			err = tx.Model(&moduleAssignment).Clauses(clause.Returning{}).Association("GcpProviderConfigurations").Replace(GcpProviderConfigurationInputsToGcpProviderConfigurations(update.GcpProviderConfigurations))
-			if err != nil {
-				return err
-			}
 		}
 
 		return nil

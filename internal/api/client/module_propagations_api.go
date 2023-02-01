@@ -2,34 +2,38 @@ package client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/graph-gophers/dataloader"
+	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/pkg/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-func applyModulePropagationFilters(tx *gorm.DB, filters *models.ModulePropagationFilters) *gorm.DB {
-	if filters != nil {
-		if filters.NameContains != nil {
-			tx = tx.Where("name LIKE ?", "%"+*filters.NameContains+"%")
+func modulePropagationFilters(filters *models.ModulePropagationFilters) func(tx *gorm.DB) *gorm.DB {
+	return func(tx *gorm.DB) *gorm.DB {
+		if filters != nil {
+			if filters.NameContains != nil {
+				tx = tx.Where("name LIKE ?", "%"+*filters.NameContains+"%")
+			}
+			if filters.DescriptionContains != nil {
+				tx = tx.Where("description LIKE ?", "%"+*filters.DescriptionContains+"%")
+			}
 		}
-		if filters.DescriptionContains != nil {
-			tx = tx.Where("description LIKE ?", "%"+*filters.DescriptionContains+"%")
-		}
+		return tx
 	}
-	return tx
 }
 
-func applyModulePropagationPreloads(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Arguments").Preload("AwsProviderConfigurations").Preload("GcpProviderConfigurations")
+func modulePropagationIDOrdering(tx *gorm.DB) *gorm.DB {
+	return tx.Order("id")
 }
 
 func (c *APIClient) GetModulePropagationsByIDs(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	output := make([]*dataloader.Result, len(keys))
 
 	var modulePropagations []*models.ModulePropagation
-	tx := applyModulePropagationPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.Find(&modulePropagations, keys.Keys()).Error
 	if err != nil {
 		for i := range keys {
@@ -48,12 +52,19 @@ func (c *APIClient) GetModulePropagationsByIDs(ctx context.Context, keys dataloa
 		index := keyToIndex[idToString(modulePropagations[i].ID)]
 		response[index] = &dataloader.Result{Data: modulePropagations[i], Error: nil}
 	}
+
+	for i, key := range keys {
+		if response[i] == nil {
+			response[i] = &dataloader.Result{Error: helpers.NotFoundError{Message: fmt.Sprintf("Module Propagation %s not found", key.String())}}
+		}
+	}
+
 	return response
 }
 
 func (c *APIClient) GetModulePropagation(ctx context.Context, id uint) (*models.ModulePropagation, error) {
 	var modulePropagation models.ModulePropagation
-	tx := applyModulePropagationPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.First(&modulePropagation, id).Error
 	if err != nil {
 		return nil, err
@@ -72,9 +83,7 @@ func (c *APIClient) GetModulePropagationBatched(ctx context.Context, id uint) (*
 
 func (c *APIClient) GetModulePropagations(ctx context.Context, filters *models.ModulePropagationFilters, limit *int, offset *int) ([]*models.ModulePropagation, error) {
 	var modulePropagations []*models.ModulePropagation
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModulePropagationFilters(tx, filters)
-	tx = applyModulePropagationPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), modulePropagationFilters(filters), modulePropagationIDOrdering)
 	err := tx.Find(&modulePropagations).Error
 	if err != nil {
 		return nil, err
@@ -84,9 +93,7 @@ func (c *APIClient) GetModulePropagations(ctx context.Context, filters *models.M
 
 func (c *APIClient) GetModulePropagationsForModuleGroup(ctx context.Context, moduleGroupId uint, filters *models.ModulePropagationFilters, limit *int, offset *int) ([]*models.ModulePropagation, error) {
 	var modulePropagations []*models.ModulePropagation
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModulePropagationFilters(tx, filters)
-	tx = applyModulePropagationPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), modulePropagationFilters(filters), modulePropagationIDOrdering)
 	err := tx.Model(&models.ModuleGroup{Model: gorm.Model{ID: moduleGroupId}}).Association("ModulePropagationsAssociation").Find(&modulePropagations)
 	if err != nil {
 		return nil, err
@@ -96,9 +103,7 @@ func (c *APIClient) GetModulePropagationsForModuleGroup(ctx context.Context, mod
 
 func (c *APIClient) GetModulePropagationsForModuleVersion(ctx context.Context, moduleVersionId uint, filters *models.ModulePropagationFilters, limit *int, offset *int) ([]*models.ModulePropagation, error) {
 	var modulePropagations []*models.ModulePropagation
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModulePropagationFilters(tx, filters)
-	tx = applyModulePropagationPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), modulePropagationFilters(filters), modulePropagationIDOrdering)
 	err := tx.Model(&models.ModuleVersion{Model: gorm.Model{ID: moduleVersionId}}).Association("ModulePropagationsAssociation").Find(&modulePropagations)
 	if err != nil {
 		return nil, err
@@ -108,9 +113,7 @@ func (c *APIClient) GetModulePropagationsForModuleVersion(ctx context.Context, m
 
 func (c *APIClient) GetModulePropagationsForOrgUnit(ctx context.Context, orgUnitId uint, filters *models.ModulePropagationFilters, limit *int, offset *int) ([]*models.ModulePropagation, error) {
 	var modulePropagations []*models.ModulePropagation
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModulePropagationFilters(tx, filters)
-	tx = applyModulePropagationPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), modulePropagationFilters(filters), modulePropagationIDOrdering)
 	err := tx.Model(&models.OrgUnit{Model: gorm.Model{ID: orgUnitId}}).Association("ModulePropagationsAssociation").Find(&modulePropagations)
 	if err != nil {
 		return nil, err
@@ -120,9 +123,7 @@ func (c *APIClient) GetModulePropagationsForOrgUnit(ctx context.Context, orgUnit
 
 func (c *APIClient) GetModulePropagationsForOrgDimension(ctx context.Context, orgDimensionId uint, filters *models.ModulePropagationFilters, limit *int, offset *int) ([]*models.ModulePropagation, error) {
 	var modulePropagations []*models.ModulePropagation
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModulePropagationFilters(tx, filters)
-	tx = applyModulePropagationPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), modulePropagationFilters(filters), modulePropagationIDOrdering)
 	err := tx.Model(&models.OrgDimension{Model: gorm.Model{ID: orgDimensionId}}).Association("ModulePropagationsAssociation").Find(&modulePropagations)
 	if err != nil {
 		return nil, err
@@ -179,31 +180,19 @@ func (c *APIClient) UpdateModulePropagation(ctx context.Context, id uint, update
 		if update.OrgUnitID != nil {
 			updates.OrgUnitID = *update.OrgUnitID
 		}
+		if update.Arguments != nil {
+			updates.Arguments = ArgumentInputsToArguments(update.Arguments)
+		}
+		if update.AwsProviderConfigurations != nil {
+			updates.AwsProviderConfigurations = AwsProviderConfigurationInputsToAwsProviderConfigurations(update.AwsProviderConfigurations)
+		}
+		if update.GcpProviderConfigurations != nil {
+			updates.GcpProviderConfigurations = GcpProviderConfigurationInputsToGcpProviderConfigurations(update.GcpProviderConfigurations)
+		}
 
 		err := tx.Model(&modulePropagation).Updates(updates).Error
 		if err != nil {
 			return err
-		}
-
-		if update.Arguments != nil {
-			err = tx.Model(&modulePropagation).Association("Arguments").Replace(ArgumentInputsToArguments(update.Arguments))
-			if err != nil {
-				return err
-			}
-		}
-
-		if update.AwsProviderConfigurations != nil {
-			err = tx.Model(&modulePropagation).Association("AwsProviderConfigurations").Replace(AwsProviderConfigurationInputsToAwsProviderConfigurations(update.AwsProviderConfigurations))
-			if err != nil {
-				return err
-			}
-		}
-
-		if update.GcpProviderConfigurations != nil {
-			err = tx.Model(&modulePropagation).Association("GcpProviderConfigurations").Replace(GcpProviderConfigurationInputsToGcpProviderConfigurations(update.GcpProviderConfigurations))
-			if err != nil {
-				return err
-			}
 		}
 
 		return nil

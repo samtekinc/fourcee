@@ -2,8 +2,10 @@ package client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/graph-gophers/dataloader"
+	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/internal/temporal/constants"
 	"github.com/sheacloud/tfom/internal/temporal/workflows"
 	"github.com/sheacloud/tfom/pkg/models"
@@ -12,39 +14,41 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func applyModulePropagationDriftCheckRequestFilters(tx *gorm.DB, filters *models.ModulePropagationDriftCheckRequestFilters) *gorm.DB {
-	if filters != nil {
-		if filters.StartedBefore != nil {
-			tx = tx.Where("started_at < ?", *filters.StartedBefore)
+func modulePropagationDriftCheckRequestFilters(filters *models.ModulePropagationDriftCheckRequestFilters) func(tx *gorm.DB) *gorm.DB {
+	return func(tx *gorm.DB) *gorm.DB {
+		if filters != nil {
+			if filters.StartedBefore != nil {
+				tx = tx.Where("started_at < ?", *filters.StartedBefore)
+			}
+			if filters.StartedAfter != nil {
+				tx = tx.Where("started_at > ?", *filters.StartedAfter)
+			}
+			if filters.CompletedBefore != nil {
+				tx = tx.Where("completed_at < ?", *filters.CompletedBefore)
+			}
+			if filters.CompletedAfter != nil {
+				tx = tx.Where("completed_at > ?", *filters.CompletedAfter)
+			}
+			if filters.Status != nil {
+				tx = tx.Where("status = ?", *filters.Status)
+			}
+			if filters.SyncStatus != nil {
+				tx = tx.Where("sync_status = ?", *filters.SyncStatus)
+			}
 		}
-		if filters.StartedAfter != nil {
-			tx = tx.Where("started_at > ?", *filters.StartedAfter)
-		}
-		if filters.CompletedBefore != nil {
-			tx = tx.Where("completed_at < ?", *filters.CompletedBefore)
-		}
-		if filters.CompletedAfter != nil {
-			tx = tx.Where("completed_at > ?", *filters.CompletedAfter)
-		}
-		if filters.Status != nil {
-			tx = tx.Where("status = ?", *filters.Status)
-		}
-		if filters.SyncStatus != nil {
-			tx = tx.Where("sync_status = ?", *filters.SyncStatus)
-		}
+		return tx
 	}
-	return tx
 }
 
-func applyModulePropagationDriftCheckRequestPreloads(tx *gorm.DB) *gorm.DB {
-	return tx
+func modulePropagationDriftCheckRequestIDOrdering(tx *gorm.DB) *gorm.DB {
+	return tx.Order("id DESC")
 }
 
 func (c *APIClient) GetModulePropagationDriftCheckRequestsByIDs(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	output := make([]*dataloader.Result, len(keys))
 
 	var modulePropagationDriftCheckRequests []*models.ModulePropagationDriftCheckRequest
-	tx := applyModulePropagationDriftCheckRequestPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.Find(&modulePropagationDriftCheckRequests, keys.Keys()).Error
 	if err != nil {
 		for i := range keys {
@@ -63,12 +67,19 @@ func (c *APIClient) GetModulePropagationDriftCheckRequestsByIDs(ctx context.Cont
 		index := keyToIndex[idToString(modulePropagationDriftCheckRequests[i].ID)]
 		response[index] = &dataloader.Result{Data: modulePropagationDriftCheckRequests[i], Error: nil}
 	}
+
+	for i, key := range keys {
+		if response[i] == nil {
+			response[i] = &dataloader.Result{Error: helpers.NotFoundError{Message: fmt.Sprintf("Module Propagation Drift Check Request %s not found", key.String())}}
+		}
+	}
+
 	return response
 }
 
 func (c *APIClient) GetModulePropagationDriftCheckRequest(ctx context.Context, id uint) (*models.ModulePropagationDriftCheckRequest, error) {
 	var modulePropagationDriftCheckRequest models.ModulePropagationDriftCheckRequest
-	tx := applyModulePropagationDriftCheckRequestPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.First(&modulePropagationDriftCheckRequest, id).Error
 	if err != nil {
 		return nil, err
@@ -87,10 +98,7 @@ func (c *APIClient) GetModulePropagationDriftCheckRequestBatched(ctx context.Con
 
 func (c *APIClient) GetModulePropagationDriftCheckRequests(ctx context.Context, filters *models.ModulePropagationDriftCheckRequestFilters, limit *int, offset *int) ([]*models.ModulePropagationDriftCheckRequest, error) {
 	var modulePropagationDriftCheckRequests []*models.ModulePropagationDriftCheckRequest
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModulePropagationDriftCheckRequestFilters(tx, filters)
-	tx = applyModulePropagationDriftCheckRequestPreloads(tx)
-	tx = tx.Order("created_at DESC")
+	tx := c.db.Scopes(applyPagination(limit, offset), modulePropagationDriftCheckRequestFilters(filters), modulePropagationDriftCheckRequestIDOrdering)
 	err := tx.Find(&modulePropagationDriftCheckRequests).Error
 	if err != nil {
 		return nil, err
@@ -100,10 +108,7 @@ func (c *APIClient) GetModulePropagationDriftCheckRequests(ctx context.Context, 
 
 func (c *APIClient) GetModulePropagationDriftCheckRequestsForModulePropagation(ctx context.Context, modulePropagationId uint, filters *models.ModulePropagationDriftCheckRequestFilters, limit *int, offset *int) ([]*models.ModulePropagationDriftCheckRequest, error) {
 	var modulePropagationDriftCheckRequests []*models.ModulePropagationDriftCheckRequest
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModulePropagationDriftCheckRequestFilters(tx, filters)
-	tx = applyModulePropagationDriftCheckRequestPreloads(tx)
-	tx = tx.Order("created_at DESC")
+	tx := c.db.Scopes(applyPagination(limit, offset), modulePropagationDriftCheckRequestFilters(filters), modulePropagationDriftCheckRequestIDOrdering)
 	err := tx.Model(&models.ModulePropagation{Model: gorm.Model{ID: modulePropagationId}}).Association("ModulePropagationDriftCheckRequestsAssociation").Find(&modulePropagationDriftCheckRequests)
 	if err != nil {
 		return nil, err

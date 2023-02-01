@@ -2,37 +2,41 @@ package client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/graph-gophers/dataloader"
+	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/pkg/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-func applyOrgAccountFilters(tx *gorm.DB, filters *models.OrgAccountFilters) *gorm.DB {
-	if filters != nil {
-		if filters.NameContains != nil {
-			tx = tx.Where("name LIKE ?", "%"+*filters.NameContains+"%")
+func orgAccountFilters(filters *models.OrgAccountFilters) func(tx *gorm.DB) *gorm.DB {
+	return func(tx *gorm.DB) *gorm.DB {
+		if filters != nil {
+			if filters.NameContains != nil {
+				tx = tx.Where("name LIKE ?", "%"+*filters.NameContains+"%")
+			}
+			if filters.CloudPlatform != nil {
+				tx = tx.Where("cloud_platform = ?", *filters.CloudPlatform)
+			}
+			if filters.CloudIdentifier != nil {
+				tx = tx.Where("cloud_identifier = ?", *filters.CloudIdentifier)
+			}
 		}
-		if filters.CloudPlatform != nil {
-			tx = tx.Where("cloud_platform = ?", *filters.CloudPlatform)
-		}
-		if filters.CloudIdentifier != nil {
-			tx = tx.Where("cloud_identifier = ?", *filters.CloudIdentifier)
-		}
+		return tx
 	}
-	return tx
 }
 
-func applyOrgAccountPreloads(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Metadata")
+func orgAccountIDOrdering(tx *gorm.DB) *gorm.DB {
+	return tx.Order("id")
 }
 
 func (c *APIClient) GetOrgAccountsByIDs(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	output := make([]*dataloader.Result, len(keys))
 
 	var orgAccounts []*models.OrgAccount
-	tx := applyOrgAccountPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.Find(&orgAccounts, keys.Keys()).Error
 	if err != nil {
 		for i := range keys {
@@ -51,12 +55,19 @@ func (c *APIClient) GetOrgAccountsByIDs(ctx context.Context, keys dataloader.Key
 		index := keyToIndex[idToString(orgAccounts[i].ID)]
 		response[index] = &dataloader.Result{Data: orgAccounts[i], Error: nil}
 	}
+
+	for i, key := range keys {
+		if response[i] == nil {
+			response[i] = &dataloader.Result{Error: helpers.NotFoundError{Message: fmt.Sprintf("Org Account %s not found", key.String())}}
+		}
+	}
+
 	return response
 }
 
 func (c *APIClient) GetOrgAccount(ctx context.Context, id uint) (*models.OrgAccount, error) {
 	var orgAccount models.OrgAccount
-	tx := applyOrgAccountPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.First(&orgAccount, id).Error
 	if err != nil {
 		return nil, err
@@ -75,9 +86,7 @@ func (c *APIClient) GetOrgAccountBatched(ctx context.Context, id uint) (*models.
 
 func (c *APIClient) GetOrgAccounts(ctx context.Context, filters *models.OrgAccountFilters, limit *int, offset *int) ([]*models.OrgAccount, error) {
 	var orgAccounts []*models.OrgAccount
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyOrgAccountFilters(tx, filters)
-	tx = applyOrgAccountPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), orgAccountFilters(filters), orgAccountIDOrdering)
 	err := tx.Find(&orgAccounts).Error
 	if err != nil {
 		return nil, err
@@ -87,8 +96,7 @@ func (c *APIClient) GetOrgAccounts(ctx context.Context, filters *models.OrgAccou
 
 func (c *APIClient) GetOrgAccountsForOrgUnit(ctx context.Context, orgUnitId uint, filters *models.OrgAccountFilters, limit *int, offset *int) ([]*models.OrgAccount, error) {
 	var orgAccounts []*models.OrgAccount
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyOrgAccountFilters(tx, filters)
+	tx := c.db.Scopes(applyPagination(limit, offset), orgAccountFilters(filters), orgAccountIDOrdering)
 	err := tx.Model(&models.OrgUnit{Model: gorm.Model{ID: orgUnitId}}).Association("OrgAccountsAssociation").Find(&orgAccounts)
 	if err != nil {
 		return nil, err
@@ -136,17 +144,13 @@ func (c *APIClient) UpdateOrgAccount(ctx context.Context, id uint, update *model
 		if update.AssumeRoleName != nil {
 			updates.AssumeRoleName = *update.AssumeRoleName
 		}
+		if update.Metadata != nil {
+			updates.Metadata = MetadataInputsToMetadata(update.Metadata)
+		}
 
 		err := tx.Model(&orgAccount).Updates(updates).Error
 		if err != nil {
 			return err
-		}
-
-		if update.Metadata != nil {
-			err = tx.Model(&orgAccount).Association("Metadata").Replace(MetadataInputsToMetadata(update.Metadata))
-			if err != nil {
-				return err
-			}
 		}
 
 		return nil

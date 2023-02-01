@@ -1,19 +1,8 @@
-import React from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import Spinner from "react-bootstrap/Spinner";
-import TimeAgo from "react-timeago";
-import { FcOk, FcHighPriority } from "react-icons/fc";
 
-import {
-  BsXOctagonFill,
-  BsCheckCircle,
-  BsQuestionCircle,
-  BsDashCircle,
-  BsXCircle,
-  BsDashCircleFill,
-  BsFillCircleFill,
-} from "react-icons/bs";
+import { BsQuestionCircle, BsFillCircleFill } from "react-icons/bs";
 
 import {
   MdSyncProblem,
@@ -31,6 +20,26 @@ import {
   ModuleAssignmentStatus,
   TerraformDriftCheckStatus,
 } from "../__generated__/graphql";
+
+export function timeDeltaToString(timeDelta: number): string {
+  if (Number.isNaN(timeDelta)) {
+    return "";
+  }
+
+  if (timeDelta < 60) {
+    return `${timeDelta} seconds`;
+  }
+
+  if (timeDelta < 3600) {
+    return `${Math.floor(timeDelta / 60)} minutes`;
+  }
+
+  if (timeDelta < 86400) {
+    return `${Math.floor(timeDelta / 3600)} hours`;
+  }
+
+  return `${Math.floor(timeDelta / 86400)} days`;
+}
 
 export function renderApplyDestroy(destroy: boolean): JSX.Element {
   return (

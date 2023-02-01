@@ -2,8 +2,10 @@ package client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/graph-gophers/dataloader"
+	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/internal/temporal/constants"
 	"github.com/sheacloud/tfom/internal/temporal/workflows"
 	"github.com/sheacloud/tfom/pkg/models"
@@ -12,36 +14,38 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func applyModulePropagationExecutionRequestFilters(tx *gorm.DB, filters *models.ModulePropagationExecutionRequestFilters) *gorm.DB {
-	if filters != nil {
-		if filters.StartedBefore != nil {
-			tx = tx.Where("started_at < ?", *filters.StartedBefore)
+func modulePropagationExecutionRequestFilters(filters *models.ModulePropagationExecutionRequestFilters) func(tx *gorm.DB) *gorm.DB {
+	return func(tx *gorm.DB) *gorm.DB {
+		if filters != nil {
+			if filters.StartedBefore != nil {
+				tx = tx.Where("started_at < ?", *filters.StartedBefore)
+			}
+			if filters.StartedAfter != nil {
+				tx = tx.Where("started_at > ?", *filters.StartedAfter)
+			}
+			if filters.CompletedBefore != nil {
+				tx = tx.Where("completed_at < ?", *filters.CompletedBefore)
+			}
+			if filters.CompletedAfter != nil {
+				tx = tx.Where("completed_at > ?", *filters.CompletedAfter)
+			}
+			if filters.Status != nil {
+				tx = tx.Where("status = ?", *filters.Status)
+			}
 		}
-		if filters.StartedAfter != nil {
-			tx = tx.Where("started_at > ?", *filters.StartedAfter)
-		}
-		if filters.CompletedBefore != nil {
-			tx = tx.Where("completed_at < ?", *filters.CompletedBefore)
-		}
-		if filters.CompletedAfter != nil {
-			tx = tx.Where("completed_at > ?", *filters.CompletedAfter)
-		}
-		if filters.Status != nil {
-			tx = tx.Where("status = ?", *filters.Status)
-		}
+		return tx
 	}
-	return tx
 }
 
-func applyModulePropagationExecutionRequestPreloads(tx *gorm.DB) *gorm.DB {
-	return tx
+func modulePropagationExecutionRequestIDOrdering(tx *gorm.DB) *gorm.DB {
+	return tx.Order("id DESC")
 }
 
 func (c *APIClient) GetModulePropagationExecutionRequestsByIDs(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	output := make([]*dataloader.Result, len(keys))
 
 	var modulePropagationExecutionRequests []*models.ModulePropagationExecutionRequest
-	tx := applyModulePropagationExecutionRequestPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.Find(&modulePropagationExecutionRequests, keys.Keys()).Error
 	if err != nil {
 		for i := range keys {
@@ -60,12 +64,19 @@ func (c *APIClient) GetModulePropagationExecutionRequestsByIDs(ctx context.Conte
 		index := keyToIndex[idToString(modulePropagationExecutionRequests[i].ID)]
 		response[index] = &dataloader.Result{Data: modulePropagationExecutionRequests[i], Error: nil}
 	}
+
+	for i, key := range keys {
+		if response[i] == nil {
+			response[i] = &dataloader.Result{Error: helpers.NotFoundError{Message: fmt.Sprintf("Module Propagation Execution Request %s not found", key.String())}}
+		}
+	}
+
 	return response
 }
 
 func (c *APIClient) GetModulePropagationExecutionRequest(ctx context.Context, id uint) (*models.ModulePropagationExecutionRequest, error) {
 	var modulePropagationExecutionRequest models.ModulePropagationExecutionRequest
-	tx := applyModulePropagationExecutionRequestPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.First(&modulePropagationExecutionRequest, id).Error
 	if err != nil {
 		return nil, err
@@ -84,10 +95,7 @@ func (c *APIClient) GetModulePropagationExecutionRequestBatched(ctx context.Cont
 
 func (c *APIClient) GetModulePropagationExecutionRequests(ctx context.Context, filters *models.ModulePropagationExecutionRequestFilters, limit *int, offset *int) ([]*models.ModulePropagationExecutionRequest, error) {
 	var modulePropagationExecutionRequests []*models.ModulePropagationExecutionRequest
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModulePropagationExecutionRequestFilters(tx, filters)
-	tx = applyModulePropagationExecutionRequestPreloads(tx)
-	tx = tx.Order("created_at DESC")
+	tx := c.db.Scopes(applyPagination(limit, offset), modulePropagationExecutionRequestFilters(filters), modulePropagationExecutionRequestIDOrdering)
 	err := tx.Find(&modulePropagationExecutionRequests).Error
 	if err != nil {
 		return nil, err
@@ -97,10 +105,7 @@ func (c *APIClient) GetModulePropagationExecutionRequests(ctx context.Context, f
 
 func (c *APIClient) GetModulePropagationExecutionRequestsForModulePropagation(ctx context.Context, modulePropagationId uint, filters *models.ModulePropagationExecutionRequestFilters, limit *int, offset *int) ([]*models.ModulePropagationExecutionRequest, error) {
 	var modulePropagationExecutionRequests []*models.ModulePropagationExecutionRequest
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModulePropagationExecutionRequestFilters(tx, filters)
-	tx = applyModulePropagationExecutionRequestPreloads(tx)
-	tx = tx.Order("created_at DESC")
+	tx := c.db.Scopes(applyPagination(limit, offset), modulePropagationExecutionRequestFilters(filters), modulePropagationExecutionRequestIDOrdering)
 	err := tx.Model(&models.ModulePropagation{Model: gorm.Model{ID: modulePropagationId}}).Association("ModulePropagationExecutionRequestsAssociation").Find(&modulePropagationExecutionRequests)
 	if err != nil {
 		return nil, err

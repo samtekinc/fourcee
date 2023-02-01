@@ -8,42 +8,33 @@ import (
 
 type ModulePropagation struct {
 	gorm.Model
-	ModuleVersionID                                uint
-	ModuleGroupID                                  uint
-	OrgUnitID                                      uint
-	OrgDimensionID                                 uint
+	ModuleVersionID                                uint `gorm:"index"`
+	ModuleGroupID                                  uint `gorm:"index"`
+	OrgUnitID                                      uint `gorm:"index"`
+	OrgDimensionID                                 uint `gorm:"index"`
 	Name                                           string
 	Description                                    string
-	Arguments                                      []Argument
-	AwsProviderConfigurations                      []AwsProviderConfiguration
-	GcpProviderConfigurations                      []GcpProviderConfiguration
+	Arguments                                      []Argument                           `gorm:"serializer:json"`
+	AwsProviderConfigurations                      []AwsProviderConfiguration           `gorm:"serializer:json"`
+	GcpProviderConfigurations                      []GcpProviderConfiguration           `gorm:"serializer:json"`
 	ModuleAssignmentsAssociation                   []ModuleAssignment                   `gorm:"foreignKey:ModulePropagationID"`
 	ModulePropagationExecutionRequestsAssociation  []ModulePropagationExecutionRequest  `gorm:"foreignKey:ModulePropagationID"`
 	ModulePropagationDriftCheckRequestsAssociation []ModulePropagationDriftCheckRequest `gorm:"foreignKey:ModulePropagationID"`
 }
 
 type AwsProviderConfiguration struct {
-	gorm.Model
-	Region              string
-	Alias               *string
-	ModuleAssignmentID  *uint
-	ModulePropagationID *uint
+	Region string
+	Alias  *string
 }
 
 type GcpProviderConfiguration struct {
-	gorm.Model
-	Region              string
-	Alias               *string
-	ModuleAssignmentID  *uint
-	ModulePropagationID *uint
+	Region string
+	Alias  *string
 }
 
 type Argument struct {
-	gorm.Model
-	Name                string
-	Value               string
-	ModuleAssignmentID  *uint
-	ModulePropagationID *uint
+	Name  string
+	Value string
 }
 
 type AwsProviderConfigurationInput struct {

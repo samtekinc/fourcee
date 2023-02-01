@@ -1,6 +1,6 @@
 import { TreeNode } from "react-org-chart";
 import { NavLink } from "react-router-dom";
-import { Maybe, OrgDimension, OrgUnit } from "../__generated__/graphql";
+import { Maybe, OrgUnit } from "../__generated__/graphql";
 
 type OrgUnitTreeNode = {
   orgDimensionId: string;

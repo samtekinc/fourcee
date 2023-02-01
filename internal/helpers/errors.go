@@ -7,11 +7,3 @@ type NotFoundError struct {
 func (e NotFoundError) Error() string {
 	return e.Message
 }
-
-type AlreadyExistsError struct {
-	Message string
-}
-
-func (e AlreadyExistsError) Error() string {
-	return e.Message
-}

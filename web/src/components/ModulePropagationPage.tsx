@@ -19,6 +19,7 @@ import { ExecuteModulePropagationButton } from "./TriggerModulePropagationExecut
 import {
   renderModuleAssignmentStatus,
   renderSyncStatus,
+  timeDeltaToString,
 } from "../utils/rendering";
 
 const MODULE_PROPAGATION_QUERY = gql`
@@ -59,6 +60,7 @@ const MODULE_PROPAGATION_QUERY = gql`
         id
         modulePropagationID
         startedAt
+        completedAt
         status
       }
 
@@ -66,6 +68,7 @@ const MODULE_PROPAGATION_QUERY = gql`
         id
         modulePropagationID
         startedAt
+        completedAt
         status
         syncStatus
       }
@@ -167,12 +170,22 @@ export const ModulePropagationPage = () => {
               <tr>
                 <th>Request ID</th>
                 <th>Status</th>
-                <th>Request Time</th>
+                <th>Started</th>
+                <th>Execution Time</th>
               </tr>
             </thead>
             <tbody>
               {data?.modulePropagation.executionRequests.map(
                 (executionRequest) => {
+                  let startedAtTime = new Date(
+                    Date.parse(executionRequest?.startedAt)
+                  );
+                  let completedAtTime = new Date(
+                    Date.parse(executionRequest?.completedAt)
+                  );
+                  let elapsedTime =
+                    (completedAtTime.getTime() - startedAtTime.getTime()) /
+                    1000;
                   return (
                     <tr>
                       <td>
@@ -193,6 +206,7 @@ export const ModulePropagationPage = () => {
                       </td>
                       <td>{renderStatus(executionRequest?.status)}</td>
                       {renderTimeField(executionRequest?.startedAt)}
+                      <td>{timeDeltaToString(elapsedTime)}</td>
                     </tr>
                   );
                 }
@@ -211,12 +225,22 @@ export const ModulePropagationPage = () => {
                 <th>Request ID</th>
                 <th>Status</th>
                 <th>Sync Status</th>
-                <th>Request Time</th>
+                <th>Started</th>
+                <th>Execution Time</th>
               </tr>
             </thead>
             <tbody>
               {data?.modulePropagation.driftCheckRequests.map(
                 (driftCheckRequest) => {
+                  let startedAtTime = new Date(
+                    Date.parse(driftCheckRequest?.startedAt)
+                  );
+                  let completedAtTime = new Date(
+                    Date.parse(driftCheckRequest?.completedAt)
+                  );
+                  let elapsedTime =
+                    (completedAtTime.getTime() - startedAtTime.getTime()) /
+                    1000;
                   return (
                     <tr>
                       <td>
@@ -238,6 +262,7 @@ export const ModulePropagationPage = () => {
                       <td>{renderStatus(driftCheckRequest?.status)}</td>
                       <td>{renderSyncStatus(driftCheckRequest?.syncStatus)}</td>
                       {renderTimeField(driftCheckRequest?.startedAt)}
+                      <td>{timeDeltaToString(elapsedTime)}</td>
                     </tr>
                   );
                 }
@@ -264,8 +289,8 @@ export const ModulePropagationPage = () => {
               </tr>
             </thead>
             <tbody>
-              {data?.modulePropagation.orgUnit.downstreamOrgUnits
-                .concat([data?.modulePropagation.orgUnit])
+              {[data?.modulePropagation.orgUnit]
+                .concat(data?.modulePropagation.orgUnit.downstreamOrgUnits)
                 .map((orgUnit) => {
                   return (
                     <tr>

@@ -12,7 +12,7 @@ type OrgAccount struct {
 	CloudPlatform                CloudPlatform
 	CloudIdentifier              string
 	AssumeRoleName               string
-	Metadata                     []Metadata
+	Metadata                     []Metadata         `gorm:"serializer:json"`
 	OrgUnitsAssociation          []OrgUnit          `gorm:"many2many:org_accounts_org_units;"`
 	ModuleAssignmentsAssociation []ModuleAssignment `gorm:"foreignKey:OrgAccountID"`
 }

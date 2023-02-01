@@ -10,9 +10,6 @@ const ORG_DIMENSIONS_QUERY = gql`
     orgDimensions(limit: 100) {
       id
       name
-      orgUnits {
-        id
-      }
     }
   }
 `;
@@ -83,9 +80,6 @@ export const OrgDimensionsList = () => {
                   <Card>
                     <Card.Body>
                       <Card.Title>{orgDimension?.name}</Card.Title>
-                      <Card.Text>
-                        {orgDimension?.orgUnits?.length} Org Units
-                      </Card.Text>
                     </Card.Body>
                   </Card>
                 </NavLink>

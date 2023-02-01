@@ -2,39 +2,44 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/google/uuid"
 	"github.com/graph-gophers/dataloader"
+	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/pkg/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-func applyModuleVersionFilters(tx *gorm.DB, filters *models.ModuleVersionFilters) *gorm.DB {
-	if filters != nil {
-		if filters.NameContains != nil {
-			tx = tx.Where("name LIKE ?", "%"+*filters.NameContains+"%")
+func moduleVersionFilters(filters *models.ModuleVersionFilters) func(tx *gorm.DB) *gorm.DB {
+	return func(tx *gorm.DB) *gorm.DB {
+		if filters != nil {
+			if filters.NameContains != nil {
+				tx = tx.Where("name LIKE ?", "%"+*filters.NameContains+"%")
+			}
+			if filters.RemoteSourceContains != nil {
+				tx = tx.Where("remote_source LIKE ?", "%"+*filters.RemoteSourceContains+"%")
+			}
+			if filters.TerraformVersion != nil {
+				tx = tx.Where("terraform_version = ?", *filters.TerraformVersion)
+			}
 		}
-		if filters.RemoteSourceContains != nil {
-			tx = tx.Where("remote_source LIKE ?", "%"+*filters.RemoteSourceContains+"%")
-		}
-		if filters.TerraformVersion != nil {
-			tx = tx.Where("terraform_version = ?", *filters.TerraformVersion)
-		}
+		return tx
 	}
-	return tx
 }
 
-func applyModuleVersionPreloads(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Variables")
+func moduleVersionIDOrdering(tx *gorm.DB) *gorm.DB {
+	return tx.Order("id")
 }
 
 func (c *APIClient) GetModuleVersionsByIDs(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	output := make([]*dataloader.Result, len(keys))
 
 	var moduleVersions []*models.ModuleVersion
-	tx := applyModuleVersionPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.Find(&moduleVersions, keys.Keys()).Error
 	if err != nil {
 		for i := range keys {
@@ -53,12 +58,19 @@ func (c *APIClient) GetModuleVersionsByIDs(ctx context.Context, keys dataloader.
 		index := keyToIndex[idToString(moduleVersions[i].ID)]
 		response[index] = &dataloader.Result{Data: moduleVersions[i], Error: nil}
 	}
+
+	for i, key := range keys {
+		if response[i] == nil {
+			response[i] = &dataloader.Result{Error: helpers.NotFoundError{Message: fmt.Sprintf("Module Version %s not found", key.String())}}
+		}
+	}
+
 	return response
 }
 
 func (c *APIClient) GetModuleVersion(ctx context.Context, id uint) (*models.ModuleVersion, error) {
 	var moduleVersion models.ModuleVersion
-	tx := applyModuleVersionPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.First(&moduleVersion, id).Error
 	if err != nil {
 		return nil, err
@@ -77,9 +89,7 @@ func (c *APIClient) GetModuleVersionBatched(ctx context.Context, id uint) (*mode
 
 func (c *APIClient) GetModuleVersions(ctx context.Context, filters *models.ModuleVersionFilters, limit *int, offset *int) ([]*models.ModuleVersion, error) {
 	var moduleVersions []*models.ModuleVersion
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModuleVersionFilters(tx, filters)
-	tx = applyModuleVersionPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), moduleVersionFilters(filters), moduleVersionIDOrdering)
 	err := tx.Find(&moduleVersions).Error
 	if err != nil {
 		return nil, err
@@ -89,9 +99,7 @@ func (c *APIClient) GetModuleVersions(ctx context.Context, filters *models.Modul
 
 func (c *APIClient) GetModuleVersionsForModuleGroup(ctx context.Context, moduleGroupId uint, filters *models.ModuleVersionFilters, limit *int, offset *int) ([]*models.ModuleVersion, error) {
 	var moduleVersions []*models.ModuleVersion
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyModuleVersionFilters(tx, filters)
-	tx = applyModuleVersionPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), moduleVersionFilters(filters), moduleVersionIDOrdering)
 	err := tx.Model(&models.ModuleGroup{Model: gorm.Model{ID: moduleGroupId}}).Association("ModuleVersionsAssociation").Find(&moduleVersions)
 	if err != nil {
 		return nil, err
@@ -100,7 +108,7 @@ func (c *APIClient) GetModuleVersionsForModuleGroup(ctx context.Context, moduleG
 }
 
 func (c *APIClient) CreateModuleVersion(ctx context.Context, input *models.NewModuleVersion) (*models.ModuleVersion, error) {
-	directory := c.versionInstallationDirectory + uuid.New().String()
+	directory := filepath.Join(c.workingDirectory, "versions", uuid.New().String())
 	variables, err := GetVariablesFromModule(input.RemoteSource, directory)
 	if err != nil {
 		return nil, err

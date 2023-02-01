@@ -17,7 +17,7 @@ type TerraformDriftCheckRequest struct {
 	Destroy                              bool
 	CallbackTaskToken                    *string
 	ModulePropagationID                  *uint
-	ModulePropagationDriftCheckRequestID *uint
+	ModulePropagationDriftCheckRequestID *uint `gorm:"index"`
 }
 
 type NewTerraformDriftCheckRequest struct {

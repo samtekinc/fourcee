@@ -2,8 +2,10 @@ package client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/graph-gophers/dataloader"
+	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/internal/temporal/constants"
 	"github.com/sheacloud/tfom/internal/temporal/workflows"
 	"github.com/sheacloud/tfom/pkg/models"
@@ -12,39 +14,41 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func applyTerraformExecutionRequestFilters(tx *gorm.DB, filters *models.TerraformExecutionRequestFilters) *gorm.DB {
-	if filters != nil {
-		if filters.StartedBefore != nil {
-			tx = tx.Where("started_at < ?", *filters.StartedBefore)
+func terraformExecutionRequestFilters(filters *models.TerraformExecutionRequestFilters) func(tx *gorm.DB) *gorm.DB {
+	return func(tx *gorm.DB) *gorm.DB {
+		if filters != nil {
+			if filters.StartedBefore != nil {
+				tx = tx.Where("started_at < ?", *filters.StartedBefore)
+			}
+			if filters.StartedAfter != nil {
+				tx = tx.Where("started_at > ?", *filters.StartedAfter)
+			}
+			if filters.CompletedBefore != nil {
+				tx = tx.Where("completed_at < ?", *filters.CompletedBefore)
+			}
+			if filters.CompletedAfter != nil {
+				tx = tx.Where("completed_at > ?", *filters.CompletedAfter)
+			}
+			if filters.Status != nil {
+				tx = tx.Where("status = ?", *filters.Status)
+			}
+			if filters.Destroy != nil {
+				tx = tx.Where("destroy = ?", *filters.Destroy)
+			}
 		}
-		if filters.StartedAfter != nil {
-			tx = tx.Where("started_at > ?", *filters.StartedAfter)
-		}
-		if filters.CompletedBefore != nil {
-			tx = tx.Where("completed_at < ?", *filters.CompletedBefore)
-		}
-		if filters.CompletedAfter != nil {
-			tx = tx.Where("completed_at > ?", *filters.CompletedAfter)
-		}
-		if filters.Status != nil {
-			tx = tx.Where("status = ?", *filters.Status)
-		}
-		if filters.Destroy != nil {
-			tx = tx.Where("destroy = ?", *filters.Destroy)
-		}
+		return tx
 	}
-	return tx
 }
 
-func applyTerraformExecutionRequestPreloads(tx *gorm.DB) *gorm.DB {
-	return tx
+func terraformExecutionRequestIDOrdering(tx *gorm.DB) *gorm.DB {
+	return tx.Order("id DESC")
 }
 
 func (c *APIClient) GetTerraformExecutionRequestsByIDs(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	output := make([]*dataloader.Result, len(keys))
 
 	var terraformExecutionRequests []*models.TerraformExecutionRequest
-	tx := applyTerraformExecutionRequestPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.Find(&terraformExecutionRequests, keys.Keys()).Error
 	if err != nil {
 		for i := range keys {
@@ -63,12 +67,19 @@ func (c *APIClient) GetTerraformExecutionRequestsByIDs(ctx context.Context, keys
 		index := keyToIndex[idToString(terraformExecutionRequests[i].ID)]
 		response[index] = &dataloader.Result{Data: terraformExecutionRequests[i], Error: nil}
 	}
+
+	for i, key := range keys {
+		if response[i] == nil {
+			response[i] = &dataloader.Result{Error: helpers.NotFoundError{Message: fmt.Sprintf("Terraform Execution Request %s not found", key.String())}}
+		}
+	}
+
 	return response
 }
 
 func (c *APIClient) GetTerraformExecutionRequest(ctx context.Context, id uint) (*models.TerraformExecutionRequest, error) {
 	var terraformExecutionRequest models.TerraformExecutionRequest
-	tx := applyTerraformExecutionRequestPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.First(&terraformExecutionRequest, id).Error
 	if err != nil {
 		return nil, err
@@ -87,10 +98,7 @@ func (c *APIClient) GetTerraformExecutionRequestBatched(ctx context.Context, id 
 
 func (c *APIClient) GetTerraformExecutionRequests(ctx context.Context, filters *models.TerraformExecutionRequestFilters, limit *int, offset *int) ([]*models.TerraformExecutionRequest, error) {
 	var terraformExecutionRequests []*models.TerraformExecutionRequest
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyTerraformExecutionRequestFilters(tx, filters)
-	tx = applyTerraformExecutionRequestPreloads(tx)
-	tx = tx.Order("created_at DESC")
+	tx := c.db.Scopes(applyPagination(limit, offset), terraformExecutionRequestFilters(filters), terraformExecutionRequestIDOrdering)
 	err := tx.Find(&terraformExecutionRequests).Error
 	if err != nil {
 		return nil, err
@@ -100,10 +108,7 @@ func (c *APIClient) GetTerraformExecutionRequests(ctx context.Context, filters *
 
 func (c *APIClient) GetTerraformExecutionRequestsForModulePropagationExecutionRequest(ctx context.Context, modulePropagationExecutionRequestID uint, filters *models.TerraformExecutionRequestFilters, limit *int, offset *int) ([]*models.TerraformExecutionRequest, error) {
 	var terraformExecutionRequests []*models.TerraformExecutionRequest
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyTerraformExecutionRequestFilters(tx, filters)
-	tx = applyTerraformExecutionRequestPreloads(tx)
-	tx = tx.Order("created_at DESC")
+	tx := c.db.Scopes(applyPagination(limit, offset), terraformExecutionRequestFilters(filters), terraformExecutionRequestIDOrdering)
 	err := tx.Model(&models.ModulePropagationExecutionRequest{Model: gorm.Model{ID: modulePropagationExecutionRequestID}}).Association("TerraformExecutionRequestsAssociation").Find(&terraformExecutionRequests)
 	if err != nil {
 		return nil, err
@@ -113,10 +118,7 @@ func (c *APIClient) GetTerraformExecutionRequestsForModulePropagationExecutionRe
 
 func (c *APIClient) GetTerraformExecutionRequestsForModuleAssignment(ctx context.Context, moduleAssignmentID uint, filters *models.TerraformExecutionRequestFilters, limit *int, offset *int) ([]*models.TerraformExecutionRequest, error) {
 	var terraformExecutionRequests []*models.TerraformExecutionRequest
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyTerraformExecutionRequestFilters(tx, filters)
-	tx = applyTerraformExecutionRequestPreloads(tx)
-	tx = tx.Order("created_at DESC")
+	tx := c.db.Scopes(applyPagination(limit, offset), terraformExecutionRequestFilters(filters), terraformExecutionRequestIDOrdering)
 	err := tx.Model(&models.ModuleAssignment{Model: gorm.Model{ID: moduleAssignmentID}}).Association("TerraformExecutionRequestsAssociation").Find(&terraformExecutionRequests)
 	if err != nil {
 		return nil, err

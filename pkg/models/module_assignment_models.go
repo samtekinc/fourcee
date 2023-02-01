@@ -4,18 +4,18 @@ import "gorm.io/gorm"
 
 type ModuleAssignment struct {
 	gorm.Model
-	ModuleVersionID                        uint
-	ModuleGroupID                          uint
-	OrgAccountID                           uint
+	ModuleVersionID                        uint `gorm:"index"`
+	ModuleGroupID                          uint `gorm:"index"`
+	OrgAccountID                           uint `gorm:"index"`
 	Name                                   string
 	Description                            string
 	RemoteStateRegion                      string
 	RemoteStateBucket                      string
 	RemoteStateKey                         string
-	Arguments                              []Argument
-	AwsProviderConfigurations              []AwsProviderConfiguration
-	GcpProviderConfigurations              []GcpProviderConfiguration
-	ModulePropagationID                    *uint
+	Arguments                              []Argument                 `gorm:"serializer:json"`
+	AwsProviderConfigurations              []AwsProviderConfiguration `gorm:"serializer:json"`
+	GcpProviderConfigurations              []GcpProviderConfiguration `gorm:"serializer:json"`
+	ModulePropagationID                    *uint                      `gorm:"index"`
 	Status                                 ModuleAssignmentStatus
 	TerraformExecutionRequestsAssociation  []*TerraformExecutionRequest  `gorm:"foreignKey:ModuleAssignmentID"`
 	TerraformDriftCheckRequestsAssociation []*TerraformDriftCheckRequest `gorm:"foreignKey:ModuleAssignmentID"`

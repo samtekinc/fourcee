@@ -3,6 +3,21 @@ services:
   # api:
   #   build:
   #     dockerfile: ./docker/api.Dockerfile
+  # terraboard:
+  #   container_name: terraboard
+  #   image: camptocamp/terraboard:latest
+  #   environment:
+  #     - DB_NAME=tfom
+  #     - DB_USER=tfom
+  #     - DB_PASSWORD=tfom
+  #     - DB_SSLMODE=disable
+  #     - AWS_BUCKET=tfom-backend-states
+  #     - AWS_REGION=us-east-1
+  #     - AWS_DYNAMODB_TABLE=tfom-terraform-lock
+  #     - AWS_ACCESS_KEY_ID=${TERRABOARD_AWS_ACCESS_KEY_ID}
+  #     - AWS_SECRET_ACCESS_KEY=${TERRABOARD_AWS_SECRET_ACCESS_KEY}
+  #   ports:
+  #     - 8081:8080
   db:
     container_name: tfom-db
     image: postgres:13.7

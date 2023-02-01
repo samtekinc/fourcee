@@ -5,9 +5,9 @@ import "gorm.io/gorm"
 type OrgUnit struct {
 	gorm.Model
 	Name                          string
-	OrgDimensionID                uint
-	ParentOrgUnitID               *uint
-	Hierarchy                     string
+	OrgDimensionID                uint                `gorm:"index"`
+	ParentOrgUnitID               *uint               `gorm:"index"`
+	Hierarchy                     string              `gorm:"index"`
 	ChildOrgUnitsAssociation      []OrgUnit           `gorm:"foreignKey:ParentOrgUnitID"`
 	OrgAccountsAssociation        []OrgAccount        `gorm:"many2many:org_accounts_org_units;"`
 	ModulePropagationsAssociation []ModulePropagation `gorm:"foreignKey:OrgUnitID"`

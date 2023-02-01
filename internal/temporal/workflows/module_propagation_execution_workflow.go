@@ -5,14 +5,27 @@ import (
 
 	"github.com/sheacloud/tfom/internal/temporal/activities"
 	"github.com/sheacloud/tfom/pkg/models"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
 func ModulePropagationExecutionWorkflow(ctx workflow.Context, modulePropagationExecutionRequest *models.ModulePropagationExecutionRequest) error {
 	options := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 120,
+		StartToCloseTimeout: time.Minute * 1,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 5,
+		},
+	}
+	childOptions := workflow.ChildWorkflowOptions{
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    time.Second,
+			BackoffCoefficient: 2,
+			MaximumInterval:    time.Minute,
+			MaximumAttempts:    5,
+		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
+	ctx = workflow.WithChildOptions(ctx, childOptions)
 	logger := workflow.GetLogger(ctx)
 	var a *activities.Activities
 

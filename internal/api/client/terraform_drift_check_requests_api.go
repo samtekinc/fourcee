@@ -2,8 +2,10 @@ package client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/graph-gophers/dataloader"
+	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/internal/temporal/constants"
 	"github.com/sheacloud/tfom/internal/temporal/workflows"
 	"github.com/sheacloud/tfom/pkg/models"
@@ -12,42 +14,44 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func applyTerraformDriftCheckRequestFilters(tx *gorm.DB, filters *models.TerraformDriftCheckRequestFilters) *gorm.DB {
-	if filters != nil {
-		if filters.StartedBefore != nil {
-			tx = tx.Where("started_at < ?", *filters.StartedBefore)
+func terraformDriftCheckRequestFilters(filters *models.TerraformDriftCheckRequestFilters) func(tx *gorm.DB) *gorm.DB {
+	return func(tx *gorm.DB) *gorm.DB {
+		if filters != nil {
+			if filters.StartedBefore != nil {
+				tx = tx.Where("started_at < ?", *filters.StartedBefore)
+			}
+			if filters.StartedAfter != nil {
+				tx = tx.Where("started_at > ?", *filters.StartedAfter)
+			}
+			if filters.CompletedBefore != nil {
+				tx = tx.Where("completed_at < ?", *filters.CompletedBefore)
+			}
+			if filters.CompletedAfter != nil {
+				tx = tx.Where("completed_at > ?", *filters.CompletedAfter)
+			}
+			if filters.Status != nil {
+				tx = tx.Where("status = ?", *filters.Status)
+			}
+			if filters.Destroy != nil {
+				tx = tx.Where("destroy = ?", *filters.Destroy)
+			}
+			if filters.SyncStatus != nil {
+				tx = tx.Where("sync_status = ?", *filters.SyncStatus)
+			}
 		}
-		if filters.StartedAfter != nil {
-			tx = tx.Where("started_at > ?", *filters.StartedAfter)
-		}
-		if filters.CompletedBefore != nil {
-			tx = tx.Where("completed_at < ?", *filters.CompletedBefore)
-		}
-		if filters.CompletedAfter != nil {
-			tx = tx.Where("completed_at > ?", *filters.CompletedAfter)
-		}
-		if filters.Status != nil {
-			tx = tx.Where("status = ?", *filters.Status)
-		}
-		if filters.Destroy != nil {
-			tx = tx.Where("destroy = ?", *filters.Destroy)
-		}
-		if filters.SyncStatus != nil {
-			tx = tx.Where("sync_status = ?", *filters.SyncStatus)
-		}
+		return tx
 	}
-	return tx
 }
 
-func applyTerraformDriftCheckRequestPreloads(tx *gorm.DB) *gorm.DB {
-	return tx
+func terraformDriftCheckRequestIDOrdering(tx *gorm.DB) *gorm.DB {
+	return tx.Order("id DESC")
 }
 
 func (c *APIClient) GetTerraformDriftCheckRequestsByIDs(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	output := make([]*dataloader.Result, len(keys))
 
 	var terraformDriftCheckRequests []*models.TerraformDriftCheckRequest
-	tx := applyTerraformDriftCheckRequestPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.Find(&terraformDriftCheckRequests, keys.Keys()).Error
 	if err != nil {
 		for i := range keys {
@@ -66,12 +70,19 @@ func (c *APIClient) GetTerraformDriftCheckRequestsByIDs(ctx context.Context, key
 		index := keyToIndex[idToString(terraformDriftCheckRequests[i].ID)]
 		response[index] = &dataloader.Result{Data: terraformDriftCheckRequests[i], Error: nil}
 	}
+
+	for i, key := range keys {
+		if response[i] == nil {
+			response[i] = &dataloader.Result{Error: helpers.NotFoundError{Message: fmt.Sprintf("Terraform Drift Check Request %s not found", key.String())}}
+		}
+	}
+
 	return response
 }
 
 func (c *APIClient) GetTerraformDriftCheckRequest(ctx context.Context, id uint) (*models.TerraformDriftCheckRequest, error) {
 	var terraformDriftCheckRequest models.TerraformDriftCheckRequest
-	tx := applyTerraformDriftCheckRequestPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.First(&terraformDriftCheckRequest, id).Error
 	if err != nil {
 		return nil, err
@@ -90,10 +101,7 @@ func (c *APIClient) GetTerraformDriftCheckRequestBatched(ctx context.Context, id
 
 func (c *APIClient) GetTerraformDriftCheckRequests(ctx context.Context, filters *models.TerraformDriftCheckRequestFilters, limit *int, offset *int) ([]*models.TerraformDriftCheckRequest, error) {
 	var terraformDriftCheckRequests []*models.TerraformDriftCheckRequest
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyTerraformDriftCheckRequestFilters(tx, filters)
-	tx = applyTerraformDriftCheckRequestPreloads(tx)
-	tx = tx.Order("created_at DESC")
+	tx := c.db.Scopes(applyPagination(limit, offset), terraformDriftCheckRequestFilters(filters), terraformDriftCheckRequestIDOrdering)
 	err := tx.Find(&terraformDriftCheckRequests).Error
 	if err != nil {
 		return nil, err
@@ -103,10 +111,7 @@ func (c *APIClient) GetTerraformDriftCheckRequests(ctx context.Context, filters 
 
 func (c *APIClient) GetTerraformDriftCheckRequestsForModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationDriftCheckRequestID uint, filters *models.TerraformDriftCheckRequestFilters, limit *int, offset *int) ([]*models.TerraformDriftCheckRequest, error) {
 	var terraformDriftCheckRequests []*models.TerraformDriftCheckRequest
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyTerraformDriftCheckRequestFilters(tx, filters)
-	tx = applyTerraformDriftCheckRequestPreloads(tx)
-	tx = tx.Order("created_at DESC")
+	tx := c.db.Scopes(applyPagination(limit, offset), terraformDriftCheckRequestFilters(filters), terraformDriftCheckRequestIDOrdering)
 	err := tx.Model(&models.ModulePropagationDriftCheckRequest{Model: gorm.Model{ID: modulePropagationDriftCheckRequestID}}).Association("TerraformDriftCheckRequestsAssociation").Find(&terraformDriftCheckRequests)
 	if err != nil {
 		return nil, err
@@ -116,10 +121,7 @@ func (c *APIClient) GetTerraformDriftCheckRequestsForModulePropagationDriftCheck
 
 func (c *APIClient) GetTerraformDriftCheckRequestsForModuleAssignment(ctx context.Context, moduleAssignmentID uint, filters *models.TerraformDriftCheckRequestFilters, limit *int, offset *int) ([]*models.TerraformDriftCheckRequest, error) {
 	var terraformDriftCheckRequests []*models.TerraformDriftCheckRequest
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyTerraformDriftCheckRequestFilters(tx, filters)
-	tx = applyTerraformDriftCheckRequestPreloads(tx)
-	tx = tx.Order("created_at DESC")
+	tx := c.db.Scopes(applyPagination(limit, offset), terraformDriftCheckRequestFilters(filters), terraformDriftCheckRequestIDOrdering)
 	err := tx.Model(&models.ModuleAssignment{Model: gorm.Model{ID: moduleAssignmentID}}).Association("TerraformDriftCheckRequestsAssociation").Find(&terraformDriftCheckRequests)
 	if err != nil {
 		return nil, err

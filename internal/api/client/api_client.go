@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/graph-gophers/dataloader"
 	"github.com/sheacloud/tfom/internal/awsclients"
@@ -20,10 +19,7 @@ type APIClient struct {
 	db             *gorm.DB
 	temporalClient client.Client
 
-	versionInstallationDirectory   string
-	tfInstallationDirectory        string
-	tfWorkingDirectory             string
-	sfnClient                      awsclients.StepFunctionsInterface
+	workingDirectory               string
 	snsClient                      awsclients.SNSInterface
 	modulePropagationExecutionArn  string
 	modulePropagationDriftCheckArn string
@@ -52,10 +48,7 @@ type APIClient struct {
 type APIClientInput struct {
 	DB                             *gorm.DB
 	TemporalClient                 client.Client
-	VersionInstallationDirectory   string
-	TfInstallationDirectory        string
-	TfWorkingDirectory             string
-	SfnClient                      awsclients.StepFunctionsInterface
+	WorkingDirectory               string
 	SnsClient                      awsclients.SNSInterface
 	ModulePropagationExecutionArn  string
 	ModulePropagationDriftCheckArn string
@@ -72,10 +65,7 @@ func NewAPIClient(input *APIClientInput) *APIClient {
 	apiClient := &APIClient{
 		db:                             input.DB,
 		temporalClient:                 input.TemporalClient,
-		versionInstallationDirectory:   input.VersionInstallationDirectory,
-		tfInstallationDirectory:        input.TfInstallationDirectory,
-		tfWorkingDirectory:             input.TfWorkingDirectory,
-		sfnClient:                      input.SfnClient,
+		workingDirectory:               input.WorkingDirectory,
 		snsClient:                      input.SnsClient,
 		modulePropagationExecutionArn:  input.ModulePropagationExecutionArn,
 		modulePropagationDriftCheckArn: input.ModulePropagationDriftCheckArn,
@@ -121,7 +111,7 @@ func APIClientFromConfig(conf *config.Config, cfg aws.Config) (*APIClient, error
 		return nil, err
 	}
 
-	err = db.AutoMigrate(&models.OrgAccount{}, &models.OrgDimension{}, &models.OrgUnit{}, &models.Metadata{}, &models.ModuleGroup{}, &models.ModuleVersion{}, &models.ModuleVariable{}, &models.ModulePropagation{}, &models.Argument{}, &models.AwsProviderConfiguration{}, &models.GcpProviderConfiguration{}, &models.ModuleAssignment{},
+	err = db.AutoMigrate(&models.OrgAccount{}, &models.OrgDimension{}, &models.OrgUnit{}, &models.ModuleGroup{}, &models.ModuleVersion{}, &models.ModulePropagation{}, &models.ModuleAssignment{},
 		&models.ModulePropagationExecutionRequest{}, &models.ModulePropagationDriftCheckRequest{}, &models.TerraformExecutionRequest{}, &models.TerraformDriftCheckRequest{}, &models.PlanExecutionRequest{}, &models.ApplyExecutionRequest{})
 	if err != nil {
 		panic("unable to migrate database, " + err.Error())
@@ -135,11 +125,8 @@ func APIClientFromConfig(conf *config.Config, cfg aws.Config) (*APIClient, error
 	return NewAPIClient(&APIClientInput{
 		DB:                             db,
 		TemporalClient:                 tc,
-		SfnClient:                      sfn.NewFromConfig(cfg),
 		SnsClient:                      sns.NewFromConfig(cfg),
-		VersionInstallationDirectory:   conf.VersionInstallationDirectory,
-		TfInstallationDirectory:        conf.TfInstallationDirectory,
-		TfWorkingDirectory:             conf.TfWorkingDirectory,
+		WorkingDirectory:               conf.WorkingDirectory,
 		ModulePropagationExecutionArn:  fmt.Sprintf("arn:aws:states:%s:%s:stateMachine:%s-module-propagation-execution", conf.Region, conf.AccountId, conf.Prefix),
 		ModulePropagationDriftCheckArn: fmt.Sprintf("arn:aws:states:%s:%s:stateMachine:%s-module-propagation-drift-check", conf.Region, conf.AccountId, conf.Prefix),
 		TerraformCommandWorkflowArn:    fmt.Sprintf("arn:aws:states:%s:%s:stateMachine:%s-terraform-command", conf.Region, conf.AccountId, conf.Prefix),

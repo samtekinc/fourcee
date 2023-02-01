@@ -13,8 +13,8 @@ type PlanExecutionRequest struct {
 	CallbackTaskToken            string
 	TerraformConfiguration       []byte
 	AdditionalArguments          *string
-	TerraformDriftCheckRequestID *uint
-	TerraformExecutionRequestID  *uint
+	TerraformDriftCheckRequestID *uint `gorm:"index"`
+	TerraformExecutionRequestID  *uint `gorm:"index"`
 	Status                       RequestStatus
 	InitOutput                   []byte
 	PlanOutput                   []byte

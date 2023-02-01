@@ -8,11 +8,11 @@ import (
 
 type ModuleVersion struct {
 	gorm.Model
-	ModuleGroupID                 uint
+	ModuleGroupID                 uint `gorm:"index"`
 	Name                          string
 	RemoteSource                  string
 	TerraformVersion              string
-	Variables                     []*ModuleVariable
+	Variables                     []*ModuleVariable   `gorm:"serializer:json"`
 	ModulePropagationsAssociation []ModulePropagation `gorm:"foreignKey:ModuleVersionID"`
 	ModuleAssignmentsAssociation  []ModuleAssignment  `gorm:"foreignKey:ModuleVersionID"`
 }
@@ -26,12 +26,10 @@ type NewModuleVersion struct {
 }
 
 type ModuleVariable struct {
-	gorm.Model
-	ModuleVersionID uint // Foreign key
-	Name            string
-	Type            string
-	Description     string
-	Default         *string
+	Name        string
+	Type        string
+	Description string
+	Default     *string
 }
 
 type ModuleVersionFilters struct {

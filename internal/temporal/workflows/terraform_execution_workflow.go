@@ -5,14 +5,34 @@ import (
 
 	"github.com/sheacloud/tfom/internal/temporal/activities"
 	"github.com/sheacloud/tfom/pkg/models"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
 func TerraformExecutionWorkflow(ctx workflow.Context, terraformExecutionWorkflowRequest *models.TerraformExecutionRequest) error {
 	options := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 120,
+		StartToCloseTimeout: time.Minute * 1,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 5,
+		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
+	planCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute * 15,
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    time.Second * 1,
+			BackoffCoefficient: 2,
+			MaximumAttempts:    3,
+		},
+	})
+	applyCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute * 60,
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    time.Second * 1,
+			BackoffCoefficient: 2,
+			MaximumAttempts:    3,
+		},
+	})
 
 	var a *activities.Activities
 
@@ -45,7 +65,7 @@ func TerraformExecutionWorkflow(ctx workflow.Context, terraformExecutionWorkflow
 	}
 
 	// execute the plan
-	err = workflow.ExecuteActivity(ctx, a.TerraformPlan, planExecutionRequest).Get(ctx, &planExecutionRequest)
+	err = workflow.ExecuteActivity(planCtx, a.TerraformPlan, planExecutionRequest).Get(ctx, &planExecutionRequest)
 	if err != nil {
 		return err
 	}
@@ -65,7 +85,7 @@ func TerraformExecutionWorkflow(ctx workflow.Context, terraformExecutionWorkflow
 	}
 
 	// execute the apply
-	err = workflow.ExecuteActivity(ctx, a.TerraformApply, applyExecutionRequest).Get(ctx, &applyExecutionRequest)
+	err = workflow.ExecuteActivity(applyCtx, a.TerraformApply, applyExecutionRequest).Get(ctx, &applyExecutionRequest)
 	if err != nil {
 		return err
 	}

@@ -2,32 +2,36 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/graph-gophers/dataloader"
+	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/pkg/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-func applyOrgUnitFilters(tx *gorm.DB, filters *models.OrgUnitFilters) *gorm.DB {
-	if filters != nil {
-		if filters.NameContains != nil {
-			tx = tx.Where("name LIKE ?", "%"+*filters.NameContains+"%")
+func orgUnitFilters(filters *models.OrgUnitFilters) func(tx *gorm.DB) *gorm.DB {
+	return func(tx *gorm.DB) *gorm.DB {
+		if filters != nil {
+			if filters.NameContains != nil {
+				tx = tx.Where("name LIKE ?", "%"+*filters.NameContains+"%")
+			}
 		}
+		return tx
 	}
-	return tx
 }
 
-func applyOrgUnitPreloads(tx *gorm.DB) *gorm.DB {
-	return tx
+func orgUnitIDOrdering(tx *gorm.DB) *gorm.DB {
+	return tx.Order("id")
 }
 
 func (c *APIClient) GetOrgUnitsByIDs(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	output := make([]*dataloader.Result, len(keys))
 
 	var orgUnits []*models.OrgUnit
-	tx := applyOrgUnitPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.Find(&orgUnits, keys.Keys()).Error
 	if err != nil {
 		for i := range keys {
@@ -46,12 +50,19 @@ func (c *APIClient) GetOrgUnitsByIDs(ctx context.Context, keys dataloader.Keys) 
 		index := keyToIndex[idToString(orgUnits[i].ID)]
 		response[index] = &dataloader.Result{Data: orgUnits[i], Error: nil}
 	}
+
+	for i, key := range keys {
+		if response[i] == nil {
+			response[i] = &dataloader.Result{Error: helpers.NotFoundError{Message: fmt.Sprintf("Org Unit %s not found", key.String())}}
+		}
+	}
+
 	return response
 }
 
 func (c *APIClient) GetOrgUnit(ctx context.Context, id uint) (*models.OrgUnit, error) {
 	var orgUnit models.OrgUnit
-	tx := applyOrgUnitPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.First(&orgUnit, id).Error
 	if err != nil {
 		return nil, err
@@ -70,9 +81,7 @@ func (c *APIClient) GetOrgUnitBatched(ctx context.Context, id uint) (*models.Org
 
 func (c *APIClient) GetOrgUnits(ctx context.Context, filters *models.OrgUnitFilters, limit *int, offset *int) ([]*models.OrgUnit, error) {
 	var orgUnits []*models.OrgUnit
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyOrgUnitFilters(tx, filters)
-	tx = applyOrgUnitPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), orgUnitFilters(filters), orgUnitIDOrdering)
 	err := tx.Find(&orgUnits).Error
 	if err != nil {
 		return nil, err
@@ -82,9 +91,7 @@ func (c *APIClient) GetOrgUnits(ctx context.Context, filters *models.OrgUnitFilt
 
 func (c *APIClient) GetOrgUnitsForDimension(ctx context.Context, dimensionId uint, filters *models.OrgUnitFilters, limit *int, offset *int) ([]*models.OrgUnit, error) {
 	var orgUnits []*models.OrgUnit
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyOrgUnitFilters(tx, filters)
-	tx = applyOrgUnitPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), orgUnitFilters(filters), orgUnitIDOrdering)
 	err := tx.Model(&models.OrgDimension{Model: gorm.Model{ID: dimensionId}}).Association("OrgUnitsAssociation").Find(&orgUnits)
 	if err != nil {
 		return nil, err
@@ -94,9 +101,7 @@ func (c *APIClient) GetOrgUnitsForDimension(ctx context.Context, dimensionId uin
 
 func (c *APIClient) GetOrgUnitsForParent(ctx context.Context, parentOrgUnitId uint, filters *models.OrgUnitFilters, limit *int, offset *int) ([]*models.OrgUnit, error) {
 	var orgUnits []*models.OrgUnit
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyOrgUnitFilters(tx, filters)
-	tx = applyOrgUnitPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), orgUnitFilters(filters), orgUnitIDOrdering)
 	err := tx.Model(&models.OrgUnit{Model: gorm.Model{ID: parentOrgUnitId}}).Association("ChildOrgUnitsAssociation").Find(&orgUnits)
 	if err != nil {
 		return nil, err
@@ -106,10 +111,7 @@ func (c *APIClient) GetOrgUnitsForParent(ctx context.Context, parentOrgUnitId ui
 
 func (c *APIClient) GetDownstreamOrgUnits(ctx context.Context, orgUnitId uint, filters *models.OrgUnitFilters, limit *int, offset *int) ([]*models.OrgUnit, error) {
 	var orgUnits []*models.OrgUnit
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyOrgUnitFilters(tx, filters)
-	tx = applyOrgUnitPreloads(tx)
-	err := tx.Where("hierarchy LIKE ?", gorm.Expr("(?) || ':' || (?) || '%'", tx.Model(&models.OrgUnit{Model: gorm.Model{ID: orgUnitId}}).Select("hierarchy"), orgUnitId)).Find(&orgUnits).Error
+	err := c.db.Where("hierarchy LIKE ?", gorm.Expr("(?) || ':' || (?) || '%'", c.db.Model(&models.OrgUnit{Model: gorm.Model{ID: orgUnitId}}).Select("hierarchy"), orgUnitId)).Scopes(applyPagination(limit, offset), orgUnitFilters(filters), orgUnitIDOrdering).Find(&orgUnits).Error
 	if err != nil {
 		return nil, err
 	}
@@ -130,9 +132,7 @@ func (c *APIClient) GetUpstreamOrgUnits(ctx context.Context, orgUnitId uint, fil
 	parentOrgUnitIds := strings.Split(hierarchy, ":")[1:] // remove the first element, which is always an empty string
 
 	var orgUnits []*models.OrgUnit
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyOrgUnitFilters(tx, filters)
-	tx = applyOrgUnitPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), orgUnitFilters(filters), orgUnitIDOrdering)
 	err = tx.Find(&orgUnits, parentOrgUnitIds).Error
 	if err != nil {
 		return nil, err
@@ -142,9 +142,7 @@ func (c *APIClient) GetUpstreamOrgUnits(ctx context.Context, orgUnitId uint, fil
 
 func (c *APIClient) GetOrgUnitsForOrgAccount(ctx context.Context, orgAccountId uint, filters *models.OrgUnitFilters, limit *int, offset *int) ([]*models.OrgUnit, error) {
 	var orgUnits []*models.OrgUnit
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyOrgUnitFilters(tx, filters)
-	tx = applyOrgUnitPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), orgUnitFilters(filters), orgUnitIDOrdering)
 	err := tx.Model(&models.OrgAccount{Model: gorm.Model{ID: orgAccountId}}).Association("OrgUnitsAssociation").Find(&orgUnits)
 	if err != nil {
 		return nil, err

@@ -5,31 +5,21 @@ import (
 )
 
 type Config struct {
-	VersionInstallationDirectory string
-	TfInstallationDirectory      string
-	TfWorkingDirectory           string
-	Prefix                       string
-	StateBucket                  string
-	StateRegion                  string
-	ResultsBucket                string
-	AccountId                    string
-	Region                       string
-	AlertsTopic                  string
-	DBConnectionString           string
+	WorkingDirectory   string
+	Prefix             string
+	StateBucket        string
+	StateRegion        string
+	ResultsBucket      string
+	AccountId          string
+	Region             string
+	AlertsTopic        string
+	DBConnectionString string
 }
 
 func ConfigFromEnv() Config {
-	versionInstallationDirectory := os.Getenv("TFOM_VERSION_INSTALLATION_DIRECTORY")
-	if versionInstallationDirectory == "" {
-		panic("TFOM_VERSION_INSTALLATION_DIRECTORY must be set")
-	}
-	tfInstallationDirectory := os.Getenv("TFOM_TF_INSTALLATION_DIRECTORY")
-	if tfInstallationDirectory == "" {
-		panic("TFOM_TF_INSTALLATION_DIRECTORY must be set")
-	}
-	tfWorkingDirectory := os.Getenv("TFOM_TF_WORKING_DIRECTORY")
-	if tfWorkingDirectory == "" {
-		panic("TFOM_TF_WORKING_DIRECTORY must be set")
+	workingDirectory := os.Getenv("TFOM_WORKING_DIRECTORY")
+	if workingDirectory == "" {
+		panic("TFOM_WORKING_DIRECTORY must be set")
 	}
 	prefix := os.Getenv("TFOM_PREFIX")
 	if prefix == "" {
@@ -65,16 +55,14 @@ func ConfigFromEnv() Config {
 	}
 
 	return Config{
-		VersionInstallationDirectory: versionInstallationDirectory,
-		TfInstallationDirectory:      tfInstallationDirectory,
-		TfWorkingDirectory:           tfWorkingDirectory,
-		Prefix:                       prefix,
-		StateBucket:                  stateBucket,
-		StateRegion:                  stateRegion,
-		ResultsBucket:                resultsBucket,
-		AccountId:                    accountId,
-		Region:                       region,
-		AlertsTopic:                  alertsTopic,
-		DBConnectionString:           dbConnectionString,
+		WorkingDirectory:   workingDirectory,
+		Prefix:             prefix,
+		StateBucket:        stateBucket,
+		StateRegion:        stateRegion,
+		ResultsBucket:      resultsBucket,
+		AccountId:          accountId,
+		Region:             region,
+		AlertsTopic:        alertsTopic,
+		DBConnectionString: dbConnectionString,
 	}
 }

@@ -2,46 +2,50 @@ package client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/graph-gophers/dataloader"
+	"github.com/sheacloud/tfom/internal/helpers"
 	"github.com/sheacloud/tfom/pkg/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-func applyPlanExecutionRequestFilters(tx *gorm.DB, filters *models.PlanExecutionRequestFilters) *gorm.DB {
-	if filters != nil {
-		if filters.StartedBefore != nil {
-			tx = tx.Where("started_at < ?", *filters.StartedBefore)
+func planExecutionRequestFilters(filters *models.PlanExecutionRequestFilters) func(tx *gorm.DB) *gorm.DB {
+	return func(tx *gorm.DB) *gorm.DB {
+		if filters != nil {
+			if filters.StartedBefore != nil {
+				tx = tx.Where("started_at < ?", *filters.StartedBefore)
+			}
+			if filters.StartedAfter != nil {
+				tx = tx.Where("started_at > ?", *filters.StartedAfter)
+			}
+			if filters.CompletedBefore != nil {
+				tx = tx.Where("completed_at < ?", *filters.CompletedBefore)
+			}
+			if filters.CompletedAfter != nil {
+				tx = tx.Where("completed_at > ?", *filters.CompletedAfter)
+			}
+			if filters.Status != nil {
+				tx = tx.Where("status = ?", *filters.Status)
+			}
+			if filters.Destroy != nil {
+				tx = tx.Where("destroy = ?", *filters.Destroy)
+			}
 		}
-		if filters.StartedAfter != nil {
-			tx = tx.Where("started_at > ?", *filters.StartedAfter)
-		}
-		if filters.CompletedBefore != nil {
-			tx = tx.Where("completed_at < ?", *filters.CompletedBefore)
-		}
-		if filters.CompletedAfter != nil {
-			tx = tx.Where("completed_at > ?", *filters.CompletedAfter)
-		}
-		if filters.Status != nil {
-			tx = tx.Where("status = ?", *filters.Status)
-		}
-		if filters.Destroy != nil {
-			tx = tx.Where("destroy = ?", *filters.Destroy)
-		}
+		return tx
 	}
-	return tx
 }
 
-func applyPlanExecutionRequestPreloads(tx *gorm.DB) *gorm.DB {
-	return tx
+func planExecutionRequestIDOrdering(tx *gorm.DB) *gorm.DB {
+	return tx.Order("id")
 }
 
 func (c *APIClient) GetPlanExecutionRequestsByIDs(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 	output := make([]*dataloader.Result, len(keys))
 
 	var planExecutionRequests []*models.PlanExecutionRequest
-	tx := applyPlanExecutionRequestPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.Find(&planExecutionRequests, keys.Keys()).Error
 	if err != nil {
 		for i := range keys {
@@ -60,12 +64,19 @@ func (c *APIClient) GetPlanExecutionRequestsByIDs(ctx context.Context, keys data
 		index := keyToIndex[idToString(planExecutionRequests[i].ID)]
 		response[index] = &dataloader.Result{Data: planExecutionRequests[i], Error: nil}
 	}
+
+	for i, key := range keys {
+		if response[i] == nil {
+			response[i] = &dataloader.Result{Error: helpers.NotFoundError{Message: fmt.Sprintf("Plan Execution Request %s not found", key.String())}}
+		}
+	}
+
 	return response
 }
 
 func (c *APIClient) GetPlanExecutionRequest(ctx context.Context, id uint) (*models.PlanExecutionRequest, error) {
 	var planExecutionRequest models.PlanExecutionRequest
-	tx := applyPlanExecutionRequestPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.First(&planExecutionRequest, id).Error
 	if err != nil {
 		return nil, err
@@ -84,7 +95,7 @@ func (c *APIClient) GetPlanExecutionRequestBatched(ctx context.Context, id uint)
 
 func (c *APIClient) GetPlanExecutionRequestForTerraformExecutionRequest(ctx context.Context, terraformExecutionRequestId uint) (*models.PlanExecutionRequest, error) {
 	var planExecutionRequest *models.PlanExecutionRequest
-	tx := applyPlanExecutionRequestPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.Model(&models.TerraformExecutionRequest{Model: gorm.Model{ID: terraformExecutionRequestId}}).Association("PlanExecutionRequestAssociation").Find(&planExecutionRequest)
 	if err != nil {
 		return nil, err
@@ -94,7 +105,7 @@ func (c *APIClient) GetPlanExecutionRequestForTerraformExecutionRequest(ctx cont
 
 func (c *APIClient) GetPlanExecutionRequestForTerraformDriftCheckRequest(ctx context.Context, terraformDriftCheckRequestId uint) (*models.PlanExecutionRequest, error) {
 	var planExecutionRequest *models.PlanExecutionRequest
-	tx := applyPlanExecutionRequestPreloads(c.db)
+	tx := c.db.Scopes()
 	err := tx.Model(&models.TerraformDriftCheckRequest{Model: gorm.Model{ID: terraformDriftCheckRequestId}}).Association("PlanExecutionRequestAssociation").Find(&planExecutionRequest)
 	if err != nil {
 		return nil, err
@@ -104,9 +115,7 @@ func (c *APIClient) GetPlanExecutionRequestForTerraformDriftCheckRequest(ctx con
 
 func (c *APIClient) GetPlanExecutionRequests(ctx context.Context, filters *models.PlanExecutionRequestFilters, limit *int, offset *int) ([]*models.PlanExecutionRequest, error) {
 	var planExecutionRequests []*models.PlanExecutionRequest
-	tx := applyPagination(c.db, limit, offset)
-	tx = applyPlanExecutionRequestFilters(tx, filters)
-	tx = applyPlanExecutionRequestPreloads(tx)
+	tx := c.db.Scopes(applyPagination(limit, offset), planExecutionRequestFilters(filters), planExecutionRequestIDOrdering)
 	err := tx.Find(&planExecutionRequests).Error
 	if err != nil {
 		return nil, err

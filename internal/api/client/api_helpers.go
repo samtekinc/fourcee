@@ -7,23 +7,22 @@ import (
 	"gorm.io/gorm"
 )
 
-func applyPagination(tx *gorm.DB, limit *int, offset *int) *gorm.DB {
-	if limit != nil {
-		tx = tx.Limit(*limit)
+func applyPagination(limit *int, offset *int) func(tx *gorm.DB) *gorm.DB {
+	return func(tx *gorm.DB) *gorm.DB {
+		if limit != nil {
+			tx = tx.Limit(*limit)
+		}
+		if offset != nil {
+			tx = tx.Offset(*offset)
+		}
+		return tx
 	}
-	if offset != nil {
-		tx = tx.Offset(*offset)
-	}
-	return tx
 }
 
 func ArgumentInputsToArguments(inputs []models.ArgumentInput) []models.Argument {
 	arguments := make([]models.Argument, len(inputs))
 	for i, input := range inputs {
-		arguments[i] = models.Argument{
-			Name:  input.Name,
-			Value: input.Value,
-		}
+		arguments[i] = models.Argument(input)
 	}
 	return arguments
 }
@@ -31,10 +30,7 @@ func ArgumentInputsToArguments(inputs []models.ArgumentInput) []models.Argument 
 func AwsProviderConfigurationInputsToAwsProviderConfigurations(inputs []models.AwsProviderConfigurationInput) []models.AwsProviderConfiguration {
 	providers := make([]models.AwsProviderConfiguration, len(inputs))
 	for i, input := range inputs {
-		providers[i] = models.AwsProviderConfiguration{
-			Region: input.Region,
-			Alias:  input.Alias,
-		}
+		providers[i] = models.AwsProviderConfiguration(input)
 	}
 	return providers
 }
@@ -42,10 +38,7 @@ func AwsProviderConfigurationInputsToAwsProviderConfigurations(inputs []models.A
 func GcpProviderConfigurationInputsToGcpProviderConfigurations(inputs []models.GcpProviderConfigurationInput) []models.GcpProviderConfiguration {
 	providers := make([]models.GcpProviderConfiguration, len(inputs))
 	for i, input := range inputs {
-		providers[i] = models.GcpProviderConfiguration{
-			Region: input.Region,
-			Alias:  input.Alias,
-		}
+		providers[i] = models.GcpProviderConfiguration(input)
 	}
 	return providers
 }
@@ -53,10 +46,7 @@ func GcpProviderConfigurationInputsToGcpProviderConfigurations(inputs []models.G
 func MetadataInputsToMetadata(inputs []models.MetadataInput) []models.Metadata {
 	metadata := make([]models.Metadata, len(inputs))
 	for i, input := range inputs {
-		metadata[i] = models.Metadata{
-			Name:  input.Name,
-			Value: input.Value,
-		}
+		metadata[i] = models.Metadata(input)
 	}
 	return metadata
 }

@@ -8,7 +8,7 @@ import (
 
 type ModulePropagationExecutionRequest struct {
 	gorm.Model
-	ModulePropagationID                   uint
+	ModulePropagationID                   uint `gorm:"index"`
 	StartedAt                             *time.Time
 	CompletedAt                           *time.Time
 	Status                                RequestStatus
