@@ -1,4 +1,4 @@
-module github.com/sheacloud/tfom
+module github.com/samtekinc/fourcee
 
 go 1.19
 

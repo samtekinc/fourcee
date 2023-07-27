@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/graph-gophers/dataloader"
-	"github.com/sheacloud/tfom/internal/helpers"
-	"github.com/sheacloud/tfom/internal/temporal/constants"
-	"github.com/sheacloud/tfom/internal/temporal/workflows"
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/internal/helpers"
+	"github.com/samtekinc/fourcee/internal/temporal/constants"
+	"github.com/samtekinc/fourcee/internal/temporal/workflows"
+	"github.com/samtekinc/fourcee/pkg/models"
 	"go.temporal.io/sdk/client"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -54,7 +54,7 @@ func (c *APIClient) GetModulePropagationExecutionRequestsByIDs(ctx context.Conte
 		return output
 	}
 
-	var keyToIndex = map[string]int{}
+	keyToIndex := map[string]int{}
 	for i := range keys {
 		keyToIndex[keys[i].String()] = i
 	}

@@ -3,7 +3,7 @@ package activities
 import (
 	"context"
 
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 type ModulePropagationAssignments struct {

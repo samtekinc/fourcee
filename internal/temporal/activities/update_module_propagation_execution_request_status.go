@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 func (r *Activities) UpdateModulePropagationExecutionRequestStatus(ctx context.Context, modulePropagationExecutionRequestID uint, newStatus models.RequestStatus) (*models.ModulePropagationExecutionRequest, error) {

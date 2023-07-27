@@ -3,7 +3,7 @@ package activities
 import (
 	"context"
 
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 func (r *Activities) CreateTerraformExecutionRequest(ctx context.Context, moduleAssignmentID uint, destroy bool, modulePropagationID uint, modulePropagationExecutionRequestID uint) (*models.TerraformExecutionRequest, error) {

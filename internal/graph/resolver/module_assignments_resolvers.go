@@ -7,9 +7,9 @@ package resolver
 import (
 	"context"
 
-	"github.com/sheacloud/tfom/internal/graph/generated"
-	"github.com/sheacloud/tfom/internal/terraform"
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/internal/graph/generated"
+	"github.com/samtekinc/fourcee/internal/terraform"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 // ModuleVersion is the resolver for the moduleVersion field.

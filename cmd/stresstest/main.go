@@ -7,10 +7,10 @@ import (
 	"math/rand"
 
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/sheacloud/tfom/internal/api"
-	"github.com/sheacloud/tfom/internal/api/client"
-	tfomConfig "github.com/sheacloud/tfom/internal/config"
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/internal/api"
+	"github.com/samtekinc/fourcee/internal/api/client"
+	tfomConfig "github.com/samtekinc/fourcee/internal/config"
+	"github.com/samtekinc/fourcee/pkg/models"
 	"go.uber.org/zap"
 )
 

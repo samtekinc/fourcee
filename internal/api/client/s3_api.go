@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 type StateFileJSON struct {

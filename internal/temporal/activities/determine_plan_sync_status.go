@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sheacloud/tfom/internal/terraform"
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/internal/terraform"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 func (r *Activities) DeterminePlanSyncStatus(ctx context.Context, planExecutionRequestID uint) (*models.TerraformDriftCheckStatus, error) {

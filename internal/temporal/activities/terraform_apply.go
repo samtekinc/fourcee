@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sheacloud/tfom/internal/terraform"
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/internal/terraform"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 func (r *Activities) TerraformApply(ctx context.Context, applyExecutionRequest *models.ApplyExecutionRequest) (*models.ApplyExecutionRequest, error) {
@@ -21,7 +21,6 @@ func (r *Activities) TerraformApply(ctx context.Context, applyExecutionRequest *
 		Status:    &newStatus,
 		StartedAt: &startedTime,
 	})
-
 	if err != nil {
 		return nil, err
 	}

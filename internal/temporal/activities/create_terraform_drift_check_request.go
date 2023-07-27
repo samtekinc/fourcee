@@ -3,7 +3,7 @@ package activities
 import (
 	"context"
 
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 func (r *Activities) CreateTerraformDriftCheckRequest(ctx context.Context, moduleAssignmentID uint, destroy bool, modulePropagationID uint, modulePropagationDriftCheckRequestID uint) (*models.TerraformDriftCheckRequest, error) {

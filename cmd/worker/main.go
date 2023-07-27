@@ -5,11 +5,11 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/sheacloud/tfom/internal/api/client"
-	tfomConfig "github.com/sheacloud/tfom/internal/config"
-	"github.com/sheacloud/tfom/internal/temporal/activities"
-	"github.com/sheacloud/tfom/internal/temporal/constants"
-	"github.com/sheacloud/tfom/internal/temporal/workflows"
+	"github.com/samtekinc/fourcee/internal/api/client"
+	tfomConfig "github.com/samtekinc/fourcee/internal/config"
+	"github.com/samtekinc/fourcee/internal/temporal/activities"
+	"github.com/samtekinc/fourcee/internal/temporal/constants"
+	"github.com/samtekinc/fourcee/internal/temporal/workflows"
 	temporalClient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 )

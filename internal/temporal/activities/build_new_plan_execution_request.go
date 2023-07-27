@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/sheacloud/tfom/internal/terraform"
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/internal/terraform"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 func (r *Activities) BuildNewPlanExecutionRequest(ctx context.Context, moduleAssignmentID uint, terraformDriftCheckRequestID *uint, terraformExecutionRequestID *uint, destroy bool) (*models.NewPlanExecutionRequest, error) {

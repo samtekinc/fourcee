@@ -3,7 +3,7 @@ package terraform
 import (
 	"fmt"
 
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 type ProviderTemplate interface {

@@ -6,7 +6,7 @@ import (
 	"text/template"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 type TerraformConfigurationInput struct {

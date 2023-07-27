@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 func (r *Activities) UpdateTerraformExecutionRequestStatus(ctx context.Context, terraformExecutionRequestID uint, newStatus models.RequestStatus) (*models.TerraformExecutionRequest, error) {

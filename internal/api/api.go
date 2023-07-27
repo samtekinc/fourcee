@@ -3,7 +3,7 @@ package api
 import (
 	"context"
 
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 type APIClientInterface interface {

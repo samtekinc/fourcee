@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 func (r *Activities) UpdateTerraformDriftCheckRequestStatus(ctx context.Context, terraformDriftCheckRequestID uint, newStatus models.RequestStatus, syncStatus *models.TerraformDriftCheckStatus) (*models.TerraformDriftCheckRequest, error) {

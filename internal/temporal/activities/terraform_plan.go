@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sheacloud/tfom/internal/terraform"
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/internal/terraform"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 func (r *Activities) TerraformPlan(ctx context.Context, planExecutionRequest *models.PlanExecutionRequest) (*models.PlanExecutionRequest, error) {
@@ -23,7 +23,6 @@ func (r *Activities) TerraformPlan(ctx context.Context, planExecutionRequest *mo
 		InitOutput: []byte{}, // clear the init output (in case this is a retry)
 		PlanOutput: []byte{}, // clear the plan output (in case this is a retry)
 	})
-
 	if err != nil {
 		return nil, err
 	}

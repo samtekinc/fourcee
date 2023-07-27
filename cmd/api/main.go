@@ -9,11 +9,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/sheacloud/tfom/internal/api"
-	"github.com/sheacloud/tfom/internal/api/client"
-	tfomConfig "github.com/sheacloud/tfom/internal/config"
-	"github.com/sheacloud/tfom/internal/graph/generated"
-	"github.com/sheacloud/tfom/internal/graph/resolver"
+	"github.com/samtekinc/fourcee/internal/api"
+	"github.com/samtekinc/fourcee/internal/api/client"
+	tfomConfig "github.com/samtekinc/fourcee/internal/config"
+	"github.com/samtekinc/fourcee/internal/graph/generated"
+	"github.com/samtekinc/fourcee/internal/graph/resolver"
 	"go.uber.org/zap"
 )
 

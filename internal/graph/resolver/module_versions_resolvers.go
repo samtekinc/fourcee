@@ -7,8 +7,8 @@ package resolver
 import (
 	"context"
 
-	"github.com/sheacloud/tfom/internal/graph/generated"
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/internal/graph/generated"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 // ModuleGroup is the resolver for the moduleGroup field.

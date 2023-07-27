@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/go-getter"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 func attributeToValue(attr *hclwrite.Attribute) string {
@@ -17,6 +17,7 @@ func attributeToValue(attr *hclwrite.Attribute) string {
 	valueSide = strings.TrimSpace(valueSide)
 	return valueSide
 }
+
 func trimQuotes(s string) string {
 	return strings.Trim(s, "\"")
 }

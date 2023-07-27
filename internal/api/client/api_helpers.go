@@ -3,7 +3,7 @@ package client
 import (
 	"strconv"
 
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/pkg/models"
 	"gorm.io/gorm"
 )
 

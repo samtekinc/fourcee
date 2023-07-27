@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/graph-gophers/dataloader"
-	"github.com/sheacloud/tfom/internal/helpers"
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/internal/helpers"
+	"github.com/samtekinc/fourcee/pkg/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -42,7 +42,7 @@ func (c *APIClient) GetModuleGroupsByIDs(ctx context.Context, keys dataloader.Ke
 		return output
 	}
 
-	var keyToIndex = map[string]int{}
+	keyToIndex := map[string]int{}
 	for i := range keys {
 		keyToIndex[keys[i].String()] = i
 	}

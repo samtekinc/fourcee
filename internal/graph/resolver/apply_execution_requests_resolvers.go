@@ -7,8 +7,8 @@ package resolver
 import (
 	"context"
 
-	"github.com/sheacloud/tfom/internal/graph/generated"
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/internal/graph/generated"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 // ModuleAssignment is the resolver for the moduleAssignment field.
@@ -51,5 +51,7 @@ func (r *Resolver) ApplyExecutionRequest() generated.ApplyExecutionRequestResolv
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
-type applyExecutionRequestResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }
+type (
+	applyExecutionRequestResolver struct{ *Resolver }
+	queryResolver                 struct{ *Resolver }
+)

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 func (r *Activities) TallyTerraformDriftCheckSyncStatus(ctx context.Context, modulePropagationDriftCheckRequestID uint) (*models.TerraformDriftCheckStatus, error) {

@@ -8,8 +8,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/sheacloud/tfom/internal/graph/generated"
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/internal/graph/generated"
+	"github.com/samtekinc/fourcee/pkg/models"
 )
 
 // StateFile is the resolver for the stateFile field.
@@ -37,5 +37,7 @@ func (r *Resolver) StateResource() generated.StateResourceResolver { return &sta
 // StateVersion returns generated.StateVersionResolver implementation.
 func (r *Resolver) StateVersion() generated.StateVersionResolver { return &stateVersionResolver{r} }
 
-type stateResourceResolver struct{ *Resolver }
-type stateVersionResolver struct{ *Resolver }
+type (
+	stateResourceResolver struct{ *Resolver }
+	stateVersionResolver  struct{ *Resolver }
+)

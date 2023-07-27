@@ -5,8 +5,8 @@ import (
 	"unicode"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/sheacloud/tfom/internal/api"
-	"github.com/sheacloud/tfom/internal/config"
+	"github.com/samtekinc/fourcee/internal/api"
+	"github.com/samtekinc/fourcee/internal/config"
 )
 
 //go:generate go run github.com/99designs/gqlgen generate

@@ -3,8 +3,8 @@ package workflows
 import (
 	"time"
 
-	"github.com/sheacloud/tfom/internal/temporal/activities"
-	"github.com/sheacloud/tfom/pkg/models"
+	"github.com/samtekinc/fourcee/internal/temporal/activities"
+	"github.com/samtekinc/fourcee/pkg/models"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
