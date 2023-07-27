@@ -1,3 +1,3 @@
-# Terraform Organization Manager (TFOM)
+# Cloud Command and Control Center (Fourcee)
 
-A system for deploying Terraform templates to Org Hierarchies, propagating down to underlying Cloud Accounts
+A system for deploying terraform modules across custom-defined organizational structures
