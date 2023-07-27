@@ -8,13 +8,13 @@ import (
 
 type S3Interface interface {
 	GetObjectInterface
-	PutObjectInterface
+	ListObjectVersionsInterface
 }
 
 type GetObjectInterface interface {
 	GetObject(ctx context.Context, params *s3.GetObjectInput, options ...func(*s3.Options)) (*s3.GetObjectOutput, error)
 }
 
-type PutObjectInterface interface {
-	PutObject(ctx context.Context, params *s3.PutObjectInput, options ...func(*s3.Options)) (*s3.PutObjectOutput, error)
+type ListObjectVersionsInterface interface {
+	ListObjectVersions(ctx context.Context, params *s3.ListObjectVersionsInput, options ...func(*s3.Options)) (*s3.ListObjectVersionsOutput, error)
 }

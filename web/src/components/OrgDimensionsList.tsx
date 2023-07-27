@@ -47,7 +47,7 @@ export const OrgDimensionsList = () => {
             paddingTop: "1rem",
           }}
         >
-          <h3>Org Dimensions</h3>
+          <h3>Org Structures</h3>
           <Nav
             as={ListGroup}
             style={{
@@ -62,7 +62,7 @@ export const OrgDimensionsList = () => {
             {data?.orgDimensions.map((orgDimension) => {
               return (
                 <NavLink
-                  to={`/org-dimensions/${orgDimension?.id}`}
+                  to={`/org-structures/${orgDimension?.id}`}
                   style={({ isActive }) =>
                     isActive
                       ? {

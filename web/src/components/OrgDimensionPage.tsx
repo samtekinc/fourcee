@@ -65,27 +65,31 @@ export const OrgDimensionPage = () => {
         <Breadcrumb.Item linkAs={NavLink} linkProps={{ to: "/" }}>
           Home
         </Breadcrumb.Item>
-        <Breadcrumb.Item linkAs={NavLink} linkProps={{ to: "/org-dimensions" }}>
+        <Breadcrumb.Item linkAs={NavLink} linkProps={{ to: "/org-structures" }}>
           Organizations
         </Breadcrumb.Item>
-        <Breadcrumb.Item active>
-          {data?.orgDimension.name} ({data?.orgDimension.id})
-        </Breadcrumb.Item>
+        <Breadcrumb.Item active>{data?.orgDimension.name}</Breadcrumb.Item>
       </Breadcrumb>
-      <Container style={{ minWidth: "50vw" }}>
+      <Container style={{ minWidth: "80vw" }}>
+        <Tree
+          label={
+            <h1>
+              <i>{data?.orgDimension.name}</i>
+            </h1>
+          }
+          lineWidth={"2px"}
+          nodePadding={"30px"}
+        >
+          <OrgUnitTreeNode orgUnit={orgUnitsMap.get(rootOrgUnit?.id ?? "")} />
+        </Tree>
+        <br />
         <NewOrgUnitButton
           key={data?.orgDimension.id ?? ""}
           orgDimensionID={data?.orgDimension.id ?? ""}
           existingOrgUnits={data?.orgDimension.orgUnits ?? []}
           onCompleted={refetch}
         />
-        <Tree
-          label={<h1>{data?.orgDimension.name} Org Dimension</h1>}
-          lineWidth={"2px"}
-          nodePadding={"30px"}
-        >
-          <OrgUnitTreeNode orgUnit={orgUnitsMap.get(rootOrgUnit?.id ?? "")} />
-        </Tree>
+        <br />
         <br />
       </Container>
       <Outlet />

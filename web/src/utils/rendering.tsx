@@ -119,7 +119,7 @@ export function renderCloudPlatform(
   return (
     <>
       {cloudPlatform === CloudPlatform.Aws ? (
-        <FaAws color="FF9900" />
+        <FaAws color="FF9900" size={"25px"} />
       ) : cloudPlatform === CloudPlatform.Azure ? (
         <SiMicrosoftazure color="007FFF" />
       ) : cloudPlatform === CloudPlatform.Gcp ? (

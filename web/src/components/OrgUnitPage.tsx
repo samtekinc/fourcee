@@ -2,7 +2,7 @@ import { OrgUnit } from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import Container from "react-bootstrap/Container";
-import { Card, Col, ListGroup, Row } from "react-bootstrap";
+import { Card, Col, ListGroup, Row, Table } from "react-bootstrap";
 import { renderCloudPlatform } from "../utils/rendering";
 import { NewOrgUnitMembershipButton } from "./NewOrgUnitMembershipButton";
 import { DeleteOrgUnitMembershipButton } from "./DeleteOrgUnitMembershipButton";
@@ -28,6 +28,7 @@ const ORG_UNIT_QUERY = gql`
           moduleGroup {
             id
             name
+            cloudPlatform
           }
           moduleVersion {
             id
@@ -50,6 +51,7 @@ const ORG_UNIT_QUERY = gql`
         moduleGroup {
           id
           name
+          cloudPlatform
         }
         moduleVersion {
           id
@@ -82,110 +84,138 @@ export const OrgUnitPage = () => {
   if (error) return <div>Error</div>;
 
   return (
-    <Container style={{ paddingTop: "2rem", borderTop: "1px solid black" }}>
-      <h1>
-        <b>
-          <u>{data?.orgUnit.name}</u>
-        </b>{" "}
-        ({data?.orgUnit.id})
-      </h1>
-
+    <Container
+      fluid
+      style={{ paddingTop: "2rem", borderTop: "1px solid black" }}
+    >
       <h2>Module Propagations</h2>
-      <Row>
-        {data?.orgUnit.modulePropagations.map((modulePropagation) => {
-          return (
-            <Col md={4}>
-              <NavLink
-                to={`/module-propagations/${modulePropagation?.id}`}
-                style={{ textDecoration: "none", color: "black" }}
-              >
-                <Card>
-                  <Card.Body>
-                    <Card.Title style={{ fontSize: "large", color: "blue" }}>
-                      {modulePropagation?.name}
-                    </Card.Title>
-                    <Card.Text style={{ fontSize: "small" }}>
-                      <b>Module:</b> {modulePropagation?.moduleGroup.name}{" "}
-                      {modulePropagation?.moduleVersion.name}
-                    </Card.Text>
-                    <Card.Text style={{ fontSize: "small" }}>
-                      {modulePropagation?.description}
-                    </Card.Text>
-                  </Card.Body>
-                </Card>
-              </NavLink>
-              <br />
-            </Col>
-          );
-        })}
-      </Row>
-
-      <br />
-      <h2>Upstream Module Propagations</h2>
-      <Row>
-        {data?.orgUnit.upstreamOrgUnits.map((upstreamOrgUnit) => {
-          return (
-            <>
-              {upstreamOrgUnit?.modulePropagations.map((modulePropagation) => {
-                return (
-                  <Col md={4}>
-                    <NavLink
-                      to={`/module-propagations/${modulePropagation?.id}`}
-                      style={{ textDecoration: "none", color: "black" }}
-                    >
-                      <Card>
-                        <Card.Body>
-                          <Card.Title
-                            style={{ fontSize: "large", color: "blue" }}
-                          >
-                            {modulePropagation?.name}
-                          </Card.Title>
-                          <Card.Text style={{ fontSize: "small" }}>
-                            <b>Module:</b> {modulePropagation?.moduleGroup.name}{" "}
-                            {modulePropagation?.moduleVersion.name}
-                            <br />
-                            <b>Propagated By:</b> {upstreamOrgUnit?.name}
-                          </Card.Text>
-                          <Card.Text style={{ fontSize: "small" }}>
-                            {modulePropagation?.description}
-                          </Card.Text>
-                        </Card.Body>
-                      </Card>
-                    </NavLink>
-                    <br />
-                  </Col>
-                );
-              })}
-            </>
-          );
-        })}
-      </Row>
-
-      <br />
-      <h2>Org Unit Memberships</h2>
-      <ListGroup style={{ maxWidth: "36rem" }}>
-        {data?.orgUnit.orgAccounts.map((orgAccount) => {
-          return (
-            <ListGroup.Item>
-              <Row>
-                <Col md={10}>
-                  {renderCloudPlatform(orgAccount.cloudPlatform)}{" "}
-                  <NavLink to={`/org-accounts/${orgAccount.id}`}>
-                    {orgAccount.name} ({orgAccount.cloudIdentifier})
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Module Group</th>
+            <th>Module Version</th>
+            <th>Source</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data?.orgUnit.modulePropagations.map((modulePropagation) => {
+            return (
+              <tr>
+                <td>
+                  <NavLink to={`/module-propagations/${modulePropagation?.id}`}>
+                    {modulePropagation.name}
+                  </NavLink>{" "}
+                  <sup>
+                    {renderCloudPlatform(
+                      modulePropagation?.moduleGroup.cloudPlatform
+                    )}
+                  </sup>
+                </td>
+                <td>
+                  <NavLink
+                    to={`/module-groups/${modulePropagation?.moduleGroup.id}`}
+                  >
+                    {modulePropagation.moduleGroup.name}{" "}
                   </NavLink>
-                </Col>
-                <Col md={2}>
+                </td>
+                <td>
+                  <NavLink
+                    to={`/module-groups/${modulePropagation?.moduleGroup.id}/versions/${modulePropagation?.moduleVersion.id}`}
+                  >
+                    {modulePropagation.moduleVersion.name}
+                  </NavLink>
+                </td>
+                <td>Local</td>
+                <td>{modulePropagation.description}</td>
+              </tr>
+            );
+          })}
+          {data?.orgUnit.upstreamOrgUnits.map((upstreamOrgUnit) => {
+            return (
+              <>
+                {upstreamOrgUnit?.modulePropagations.map(
+                  (modulePropagation) => {
+                    return (
+                      <>
+                        <tr>
+                          <td>
+                            <NavLink
+                              to={`/module-propagations/${modulePropagation?.id}`}
+                            >
+                              {modulePropagation.name}
+                            </NavLink>
+                            <sup>
+                              {renderCloudPlatform(
+                                modulePropagation?.moduleGroup.cloudPlatform
+                              )}
+                            </sup>
+                          </td>
+                          <td>
+                            <NavLink
+                              to={`/module-groups/${modulePropagation?.moduleGroup.id}`}
+                            >
+                              {modulePropagation.moduleGroup.name}{" "}
+                            </NavLink>
+                          </td>
+                          <td>
+                            <NavLink
+                              to={`/module-groups/${modulePropagation?.moduleGroup.id}/versions/${modulePropagation?.moduleVersion.id}`}
+                            >
+                              {modulePropagation.moduleVersion.name}
+                            </NavLink>
+                          </td>
+                          <td>
+                            <NavLink
+                              to={`/org-structures/${orgDimensionID}/org-units/${upstreamOrgUnit.id}`}
+                            >
+                              {upstreamOrgUnit?.name} OU
+                            </NavLink>
+                          </td>
+                          <td>{modulePropagation.description}</td>
+                        </tr>
+                      </>
+                    );
+                  }
+                )}
+              </>
+            );
+          })}
+        </tbody>
+      </Table>
+
+      <br />
+      <h2>Org Account Membership</h2>
+      <Table striped bordered hover>
+        <thead>
+          <th>Name</th>
+          <th>Cloud Identifier</th>
+          <th>Remove</th>
+        </thead>
+        <tbody>
+          {data?.orgUnit.orgAccounts.map((orgAccount) => {
+            return (
+              <tr>
+                <td>
+                  <NavLink to={`/org-accounts/${orgAccount.id}`}>
+                    {orgAccount.name}
+                  </NavLink>{" "}
+                  <sup>{renderCloudPlatform(orgAccount.cloudPlatform)}</sup>
+                </td>
+                <td>{orgAccount.cloudIdentifier}</td>
+                <td>
                   <DeleteOrgUnitMembershipButton
                     orgUnitID={data?.orgUnit.id}
                     orgAccountID={orgAccount.id}
                     onCompleted={refetch}
                   />
-                </Col>
-              </Row>
-            </ListGroup.Item>
-          );
-        })}
-      </ListGroup>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </Table>
       <br />
       <NewOrgUnitMembershipButton
         orgDimension={data?.orgUnit.orgDimension}

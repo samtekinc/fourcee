@@ -66,7 +66,7 @@ export const NewOrgUnitMembershipButton: React.VFC<
   return (
     <>
       <Button variant="primary" onClick={handleShow}>
-        <BsPlusCircle /> Create New Org Unit Membership
+        <BsPlusCircle /> Add Account
       </Button>
       <Modal show={show} onHide={handleClose}>
         {props.orgDimension !== undefined && props.orgUnit !== undefined && (
@@ -122,7 +122,7 @@ export const NewOrgUnitMembershipFromOrgUnitForm: React.VFC<
   );
 
   useEffect(() => {
-    // I'm probably using this wrong, but intent is to refetch the org accounts when the org dimension or unit changes
+    // I'm probably using this wrong, but intent is to refetch the org accounts when the org structure or unit changes
     refetch();
   });
 
@@ -149,7 +149,7 @@ export const NewOrgUnitMembershipFromOrgUnitForm: React.VFC<
     }
   };
 
-  // filter out org accounts that already have a membership for this org dimension
+  // filter out org accounts that already have a membership for this org structure
   let filteredOrgAccounts = data?.orgAccounts.filter((orgAccount) => {
     return !orgAccount?.orgUnits?.some((orgUnit) => {
       return orgUnit?.orgDimensionID === props.orgDimension?.id;

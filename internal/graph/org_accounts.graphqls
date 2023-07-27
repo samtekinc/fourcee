@@ -11,6 +11,7 @@ type OrgAccount {
     limit: Int
     offset: Int
   ): [ModuleAssignment!]!
+  cloudAccessRoles: [CloudAccessRole!]!
 }
 
 input NewOrgAccount {

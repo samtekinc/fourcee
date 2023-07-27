@@ -7,11 +7,11 @@ export function Header() {
   return (
     <Navbar bg="dark" expand="lg" sticky="top" variant="dark">
       <Container fluid>
-        <Navbar.Brand>Terraform Org Manager</Navbar.Brand>
+        <Navbar.Brand>Fourcee</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link href="#organizations" as={NavLink} to="/org-dimensions">
+            <Nav.Link href="#organizations" as={NavLink} to="/org-structures">
               Organizations
             </Nav.Link>
             <Nav.Link href="#accounts" as={NavLink} to="/org-accounts">

@@ -34,7 +34,9 @@ func main() {
 		log.Fatalln("unable to create API Client", err)
 	}
 
-	w := worker.New(c, constants.TFOMTaskQueue, worker.Options{})
+	w := worker.New(c, constants.TFOMTaskQueue, worker.Options{
+		MaxConcurrentActivityExecutionSize: 1,
+	})
 	workflows.RegisterWorkflows(w)
 	a := activities.NewActivities(apiClient, &conf)
 	w.RegisterActivity(a)

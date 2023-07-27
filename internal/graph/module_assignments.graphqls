@@ -28,6 +28,9 @@ type ModuleAssignment {
     offset: Int
   ): [TerraformExecutionRequest!]!
   terraformConfiguration: String!
+
+  # expiremental
+  stateVersions(limit: Int, offset: Int): [StateVersion!]!
 }
 
 input NewModuleAssignment {

@@ -1,0 +1,22 @@
+type StateVersion {
+  versionID: String!
+  lastModified: Time!
+  isCurrent: Boolean!
+
+  stateFile: StateFile!
+}
+
+type StateFile {
+  resources: [StateResource!]!
+}
+
+type StateResource {
+  type: String!
+  name: String!
+  id: String!
+  attributesJSON: String!
+}
+
+extend type Query {
+  stateFile(bucket: String!, key: String!, versionID: String!): StateFile!
+}

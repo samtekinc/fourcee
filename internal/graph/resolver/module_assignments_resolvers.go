@@ -77,6 +77,11 @@ func (r *moduleAssignmentResolver) TerraformConfiguration(ctx context.Context, o
 	return string(terraformConfig), err
 }
 
+// StateVersions is the resolver for the stateVersions field.
+func (r *moduleAssignmentResolver) StateVersions(ctx context.Context, obj *models.ModuleAssignment, limit *int, offset *int) ([]*models.StateVersion, error) {
+	return r.apiClient.GetStateFileVersions(ctx, obj.RemoteStateBucket, obj.RemoteStateKey, limit)
+}
+
 // CreateModuleAssignment is the resolver for the createModuleAssignment field.
 func (r *mutationResolver) CreateModuleAssignment(ctx context.Context, moduleAssignment models.NewModuleAssignment) (*models.ModuleAssignment, error) {
 	return r.apiClient.CreateModuleAssignment(ctx, &moduleAssignment)
@@ -108,8 +113,4 @@ func (r *Resolver) ModuleAssignment() generated.ModuleAssignmentResolver {
 	return &moduleAssignmentResolver{r}
 }
 
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
-
 type moduleAssignmentResolver struct{ *Resolver }
-type mutationResolver struct{ *Resolver }

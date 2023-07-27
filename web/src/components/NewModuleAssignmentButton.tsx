@@ -152,7 +152,7 @@ export const NewModuleAssignmentForm: React.VFC<
     );
 
   useEffect(() => {
-    // I'm probably using this wrong, but intent is to refetch the org accounts when the org dimension or unit changes
+    // I'm probably using this wrong, but intent is to refetch the org accounts when the org structure or unit changes
     refetch();
   });
 

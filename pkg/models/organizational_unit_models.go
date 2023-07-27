@@ -11,6 +11,7 @@ type OrgUnit struct {
 	ChildOrgUnitsAssociation      []OrgUnit           `gorm:"foreignKey:ParentOrgUnitID"`
 	OrgAccountsAssociation        []OrgAccount        `gorm:"many2many:org_accounts_org_units;"`
 	ModulePropagationsAssociation []ModulePropagation `gorm:"foreignKey:OrgUnitID"`
+	CloudAccessRolesAssociation   []CloudAccessRole   `gorm:"foreignKey:OrgUnitID"`
 }
 
 type NewOrgUnit struct {

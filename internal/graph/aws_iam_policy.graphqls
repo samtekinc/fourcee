@@ -1,0 +1,37 @@
+type AwsIamPolicy {
+  id: ID!
+  name: String!
+  policyDocument: String!
+}
+
+input NewAwsIamPolicy {
+  name: String!
+  policyDocument: String!
+}
+
+input AwsIamPolicyUpdate {
+  name: String
+  policyDocument: String
+}
+
+input AwsIamPolicyFilters {
+  nameContains: String
+}
+
+extend type Query {
+  awsIamPolicy(awsIamPolicyID: ID!): AwsIamPolicy!
+  awsIamPolicies(
+    filters: AwsIamPolicyFilters
+    limit: Int
+    offset: Int
+  ): [AwsIamPolicy!]!
+}
+
+extend type Mutation {
+  createAwsIamPolicy(awsIamPolicy: NewAwsIamPolicy!): AwsIamPolicy!
+  deleteAwsIamPolicy(awsIamPolicyID: ID!): Boolean!
+  updateAwsIamPolicy(
+    awsIamPolicyID: ID!
+    update: AwsIamPolicyUpdate!
+  ): AwsIamPolicy!
+}

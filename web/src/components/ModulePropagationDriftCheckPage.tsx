@@ -88,7 +88,9 @@ export const ModulePropagationDriftCheckRequestPage = () => {
 
   return (
     <Container fluid>
-      <h1>{data?.modulePropagationDriftCheckRequest.id}</h1>
+      <h1>
+        Terraform Drift Check #{data?.modulePropagationDriftCheckRequest.id}
+      </h1>
       Status: {renderStatus(data?.modulePropagationDriftCheckRequest.status)}
       <br />
       <Row>

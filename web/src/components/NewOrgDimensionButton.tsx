@@ -46,7 +46,7 @@ export const NewOrgDimensionButton: React.VFC<NewOrgDimensionButtonProps> = (
         console.log(error);
         NotificationManager.error(
           error.message,
-          `Error creating org dimension`,
+          `Error creating org structure`,
           5000
         );
       },
@@ -100,7 +100,7 @@ export const NewOrgDimensionButton: React.VFC<NewOrgDimensionButtonProps> = (
               <Form.Label>Org Dimension Name</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter org dimension name"
+                placeholder="Enter org structure name"
                 name="name"
                 onChange={handleInputChange}
               />

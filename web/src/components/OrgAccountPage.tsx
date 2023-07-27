@@ -115,14 +115,14 @@ export const OrgAccountPage = () => {
                   <tr>
                     <td>
                       <NavLink
-                        to={`/org-dimensions/${orgUnit?.orgDimension.id}`}
+                        to={`/org-structures/${orgUnit?.orgDimension.id}`}
                       >
                         {orgUnit?.orgDimension.name}
                       </NavLink>
                     </td>
                     <td>
                       <NavLink
-                        to={`/org-dimensions/${orgUnit?.orgDimension.id}/org-units/${orgUnit?.id}`}
+                        to={`/org-structures/${orgUnit?.orgDimension.id}/org-units/${orgUnit?.id}`}
                       >
                         {orgUnit?.name}
                       </NavLink>
@@ -172,7 +172,7 @@ export const OrgAccountPage = () => {
                         </NavLink>
                         {" ("}
                         <NavLink
-                          to={`/org-dimensions/${moduleAssignment?.modulePropagation?.orgDimension.id}`}
+                          to={`/org-structures/${moduleAssignment?.modulePropagation?.orgDimension.id}`}
                         >
                           {
                             moduleAssignment?.modulePropagation?.orgDimension
@@ -181,7 +181,7 @@ export const OrgAccountPage = () => {
                         </NavLink>
                         {" / "}
                         <NavLink
-                          to={`/org-dimensions/${moduleAssignment?.modulePropagation?.orgDimension.id}/org-units/${moduleAssignment?.modulePropagation?.orgUnit.id}`}
+                          to={`/org-structures/${moduleAssignment?.modulePropagation?.orgDimension.id}/org-units/${moduleAssignment?.modulePropagation?.orgUnit.id}`}
                         >
                           {moduleAssignment?.modulePropagation?.orgUnit.name}
                         </NavLink>

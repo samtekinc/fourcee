@@ -43,13 +43,13 @@ function App() {
           path="/apply-execution-requests/:applyExecutionRequestID"
           element={<ApplyExecutionRequestPage />}
         />
-        <Route path="/org-dimensions" element={<OrgDimensionsList />}>
+        <Route path="/org-structures" element={<OrgDimensionsList />}>
           <Route
-            path="/org-dimensions/:orgDimensionID"
+            path="/org-structures/:orgDimensionID"
             element={<OrgDimensionPage />}
           >
             <Route
-              path="/org-dimensions/:orgDimensionID/org-units/:orgUnitID"
+              path="/org-structures/:orgDimensionID/org-units/:orgUnitID"
               element={<OrgUnitPage />}
             />
           </Route>

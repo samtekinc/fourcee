@@ -84,6 +84,24 @@ type APIClientInterface interface {
 	CreateModulePropagationDriftCheckRequest(ctx context.Context, input *models.NewModulePropagationDriftCheckRequest) (*models.ModulePropagationDriftCheckRequest, error)
 	UpdateModulePropagationDriftCheckRequest(ctx context.Context, modulePropagationDriftCheckRequestID uint, update *models.ModulePropagationDriftCheckRequestUpdate) (*models.ModulePropagationDriftCheckRequest, error)
 
+	GetAwsIamPolicy(ctx context.Context, id uint) (*models.AwsIamPolicy, error)
+	GetAwsIamPolicyBatched(ctx context.Context, id uint) (*models.AwsIamPolicy, error)
+	GetAwsIamPolicies(ctx context.Context, filters *models.AwsIamPolicyFilters, limit *int, offset *int) ([]*models.AwsIamPolicy, error)
+	CreateAwsIamPolicy(ctx context.Context, input *models.NewAwsIamPolicy) (*models.AwsIamPolicy, error)
+	UpdateAwsIamPolicy(ctx context.Context, id uint, update *models.AwsIamPolicyUpdate) (*models.AwsIamPolicy, error)
+	DeleteAwsIamPolicy(ctx context.Context, id uint) error
+	GetAwsIamPoliciesForCloudAccessRole(ctx context.Context, cloudAccessRoleId uint, filters *models.AwsIamPolicyFilters, limit *int, offset *int) ([]*models.AwsIamPolicy, error)
+
+	GetCloudAccessRole(ctx context.Context, id uint) (*models.CloudAccessRole, error)
+	GetCloudAccessRoleBatched(ctx context.Context, id uint) (*models.CloudAccessRole, error)
+	GetCloudAccessRoles(ctx context.Context, filters *models.CloudAccessRoleFilters, limit *int, offset *int) ([]*models.CloudAccessRole, error)
+	CreateCloudAccessRole(ctx context.Context, input *models.NewCloudAccessRole) (*models.CloudAccessRole, error)
+	UpdateCloudAccessRole(ctx context.Context, id uint, update *models.CloudAccessRoleUpdate) (*models.CloudAccessRole, error)
+	DeleteCloudAccessRole(ctx context.Context, id uint) error
+	GetCloudAccessRolesForOrgUnit(ctx context.Context, orgUnitId uint, filters *models.CloudAccessRoleFilters, limit *int, offset *int) ([]*models.CloudAccessRole, error)
+	GetInheritedCloudAccessRolesForOrgUnit(ctx context.Context, orgUnitId uint, filters *models.CloudAccessRoleFilters, limit *int, offset *int) ([]*models.CloudAccessRole, error)
+	GetCloudAccessRolesForOrgAccount(ctx context.Context, orgAccountId uint, filters *models.CloudAccessRoleFilters, limit *int, offset *int) ([]*models.CloudAccessRole, error)
+
 	// // Execution Methods
 
 	GetTerraformExecutionRequest(ctx context.Context, id uint) (*models.TerraformExecutionRequest, error)
@@ -123,4 +141,7 @@ type APIClientInterface interface {
 
 	// // Misc methods
 	SendAlert(ctx context.Context, subject string, message string) error
+
+	GetStateFileVersions(ctx context.Context, stateBucket string, stateKey string, limit *int) ([]*models.StateVersion, error)
+	GetStateFileVersion(ctx context.Context, stateBucket string, stateKey string, versionID string) (*models.StateFile, error)
 }

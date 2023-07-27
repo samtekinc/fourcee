@@ -37,6 +37,11 @@ func (r *orgAccountResolver) ModuleAssignments(ctx context.Context, obj *models.
 	return r.apiClient.GetModuleAssignmentsForOrgAccount(ctx, obj.ID, filters, limit, offset)
 }
 
+// CloudAccessRoles is the resolver for the cloudAccessRoles field.
+func (r *orgAccountResolver) CloudAccessRoles(ctx context.Context, obj *models.OrgAccount) ([]*models.CloudAccessRole, error) {
+	return r.apiClient.GetCloudAccessRolesForOrgAccount(ctx, obj.ID, nil, nil, nil)
+}
+
 // OrgAccount is the resolver for the orgAccount field.
 func (r *queryResolver) OrgAccount(ctx context.Context, orgAccountID uint) (*models.OrgAccount, error) {
 	return r.apiClient.GetOrgAccount(ctx, orgAccountID)

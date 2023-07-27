@@ -11,7 +11,16 @@ import { NavLink, Outlet, useParams } from "react-router-dom";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
 import { renderStatus, renderTimeField } from "../utils/table_rendering";
-import { Breadcrumb, Col, Container, Form, Modal, Row } from "react-bootstrap";
+import {
+  Breadcrumb,
+  Col,
+  Container,
+  Form,
+  Modal,
+  Row,
+  Tab,
+  Tabs,
+} from "react-bootstrap";
 import { NotificationManager } from "react-notifications";
 import { Button } from "react-bootstrap";
 import { DriftCheckModulePropagationButton } from "./TriggerModulePropagationDriftCheckButton";
@@ -28,6 +37,11 @@ const MODULE_PROPAGATION_QUERY = gql`
       id
       name
       description
+
+      arguments {
+        name
+        value
+      }
 
       moduleGroup {
         id
@@ -157,8 +171,8 @@ export const ModulePropagationPage = () => {
       </h5>
       <br />
 
-      <Row>
-        <Col md={"auto"}>
+      <Tabs defaultActiveKey="executions" id="module-propagation-tabs">
+        <Tab eventKey="executions" title="Executions">
           <h2>
             Recent Executions{" "}
             <ExecuteModulePropagationButton
@@ -213,6 +227,8 @@ export const ModulePropagationPage = () => {
               )}
             </tbody>
           </Table>
+        </Tab>
+        <Tab eventKey="drift-checks" title="Drift Checks">
           <h2>
             Recent Drift Checks{" "}
             <DriftCheckModulePropagationButton
@@ -269,97 +285,122 @@ export const ModulePropagationPage = () => {
               )}
             </tbody>
           </Table>
-        </Col>
-        <Col md={"auto"} style={{ borderRight: "3px solid gray" }} />
-        <Col md={"auto"}>
-          <h2>Selected Request</h2>
-          <Outlet />
-        </Col>
-      </Row>
+        </Tab>
+        <Tab eventKey="associations" title="Associations">
+          <Row>
+            <Col md={"auto"}>
+              <h2>Associated Org Units</h2>
+              <Table hover>
+                <thead>
+                  <tr>
+                    <th>Org Dimension</th>
+                    <th>Org Unit</th>
+                    <th>Association Type</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[data?.modulePropagation.orgUnit]
+                    .concat(data?.modulePropagation.orgUnit.downstreamOrgUnits)
+                    .map((orgUnit) => {
+                      return (
+                        <tr>
+                          <td>
+                            <NavLink
+                              to={`/org-structures/${orgUnit?.orgDimension.id}`}
+                            >
+                              {orgUnit?.orgDimension.name}
+                            </NavLink>
+                          </td>
+                          <td>
+                            <NavLink
+                              to={`/org-structures/${orgUnit?.orgDimension.id}/org-units/${orgUnit?.id}`}
+                            >
+                              {orgUnit?.name}
+                            </NavLink>
+                          </td>
+                          <td>
+                            {data?.modulePropagation.orgUnit.id == orgUnit?.id
+                              ? "Direct"
+                              : "Propagated"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </Table>
+            </Col>
+            <Col md={"auto"}></Col>
+            <Col md={"auto"}>
+              <h2>Account Assignments</h2>
+              <Table hover>
+                <thead>
+                  <tr>
+                    <th>Status</th>
+                    <th>Account</th>
+                    <th>Assignment ID</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data?.modulePropagation.moduleAssignments.map(
+                    (moduleAssignment) => {
+                      return (
+                        <tr>
+                          <td>
+                            {renderModuleAssignmentStatus(
+                              moduleAssignment?.status
+                            )}
+                          </td>
+                          <td>
+                            <NavLink
+                              to={`/org-accounts/${moduleAssignment?.orgAccount.id}`}
+                            >
+                              {moduleAssignment?.orgAccount.name}
+                            </NavLink>
+                          </td>
+                          <td>
+                            <NavLink
+                              to={`/module-assignments/${moduleAssignment?.id}`}
+                            >
+                              {moduleAssignment?.id}
+                            </NavLink>
+                          </td>
+                        </tr>
+                      );
+                    }
+                  )}
+                </tbody>
+              </Table>
+            </Col>
+          </Row>
+        </Tab>
+        <Tab eventKey="arguments" title="Arguments">
+          <h2>Arguments</h2>
+          <Table hover>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data?.modulePropagation.arguments.map((argument) => {
+                return (
+                  <tr>
+                    <td>{argument?.name}</td>
+                    <td style={{ wordBreak: "break-all" }}>
+                      {argument?.value}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </Tab>
+      </Tabs>
+      <hr />
+
+      <Outlet />
       <br />
-      <Row>
-        <Col md={"auto"}>
-          <h2>Associated Org Units</h2>
-          <Table hover>
-            <thead>
-              <tr>
-                <th>Org Dimension</th>
-                <th>Org Unit</th>
-                <th>Association Type</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[data?.modulePropagation.orgUnit]
-                .concat(data?.modulePropagation.orgUnit.downstreamOrgUnits)
-                .map((orgUnit) => {
-                  return (
-                    <tr>
-                      <td>
-                        <NavLink
-                          to={`/org-dimensions/${orgUnit?.orgDimension.id}`}
-                        >
-                          {orgUnit?.orgDimension.name}
-                        </NavLink>
-                      </td>
-                      <td>
-                        <NavLink
-                          to={`/org-dimensions/${orgUnit?.orgDimension.id}/org-units/${orgUnit?.id}`}
-                        >
-                          {orgUnit?.name}
-                        </NavLink>
-                      </td>
-                      <td>
-                        {data?.modulePropagation.orgUnit.id == orgUnit?.id
-                          ? "Direct"
-                          : "Propagated"}
-                      </td>
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </Table>
-        </Col>
-        <Col md={"auto"}></Col>
-        <Col md={"auto"}>
-          <h2>Account Assignments</h2>
-          <Table hover>
-            <thead>
-              <tr>
-                <th>Status</th>
-                <th>Account</th>
-                <th>Assignment ID</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data?.modulePropagation.moduleAssignments.map(
-                (moduleAssignment) => {
-                  return (
-                    <tr>
-                      <td>
-                        {renderModuleAssignmentStatus(moduleAssignment?.status)}
-                      </td>
-                      <td>
-                        <NavLink
-                          to={`/org-accounts/${moduleAssignment?.orgAccount.id}`}
-                        >
-                          {moduleAssignment?.orgAccount.name}
-                        </NavLink>
-                      </td>
-                      <td>
-                        <NavLink
-                          to={`/module-assignments/${moduleAssignment?.id}`}
-                        >
-                          {moduleAssignment?.id}
-                        </NavLink>
-                      </td>
-                    </tr>
-                  );
-                }
-              )}
-            </tbody>
-          </Table>
-        </Col>
-      </Row>
     </Container>
   );
 };

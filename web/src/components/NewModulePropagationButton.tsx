@@ -158,7 +158,7 @@ export const NewModulePropagationForm: React.VFC<
     );
 
   useEffect(() => {
-    // I'm probably using this wrong, but intent is to refetch the org accounts when the org dimension or unit changes
+    // I'm probably using this wrong, but intent is to refetch the org accounts when the org structure or unit changes
     refetch();
   });
 
@@ -236,7 +236,7 @@ export const NewModulePropagationForm: React.VFC<
     if (name === "orgDimensionID") {
       setOrgDimension(
         data?.orgDimensions?.find(
-          (dimension) => dimension?.id.toString() === value
+          (structure) => structure?.id.toString() === value
         ) ?? null
       );
     } else if (name === "moduleGroupID") {

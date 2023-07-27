@@ -1,0 +1,44 @@
+type CloudAccessRole {
+  id: ID!
+  name: String!
+  cloudPlatform: CloudPlatform!
+  awsIamPolicies: [AwsIamPolicy!]
+  orgUnitID: ID!
+  orgUnit: OrgUnit!
+}
+
+input NewCloudAccessRole {
+  name: String!
+  cloudPlatform: CloudPlatform!
+  awsIamPolicies: [ID!]!
+  orgUnitID: ID!
+}
+
+input CloudAccessRoleUpdate {
+  name: String
+  awsIamPolicies: [ID!]
+  orgUnitID: ID
+}
+
+input CloudAccessRoleFilters {
+  nameContains: String
+  cloudPlatform: CloudPlatform
+}
+
+extend type Query {
+  cloudAccessRole(cloudAccessRoleID: ID!): CloudAccessRole!
+  cloudAccessRoles(
+    filters: CloudAccessRoleFilters
+    limit: Int
+    offset: Int
+  ): [CloudAccessRole!]!
+}
+
+extend type Mutation {
+  createCloudAccessRole(cloudAccessRole: NewCloudAccessRole!): CloudAccessRole!
+  deleteCloudAccessRole(cloudAccessRoleID: ID!): Boolean!
+  updateCloudAccessRole(
+    cloudAccessRoleID: ID!
+    update: CloudAccessRoleUpdate!
+  ): CloudAccessRole!
+}

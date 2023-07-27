@@ -1,9 +1,13 @@
-import { ModuleAssignment } from "../__generated__/graphql";
+import {
+  ModuleAssignment,
+  StateFile,
+  StateVersion,
+} from "../__generated__/graphql";
 import { NavLink, useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import Table from "react-bootstrap/Table";
 import { renderStatus, renderTimeField } from "../utils/table_rendering";
-import { Breadcrumb, Col, Container, Row } from "react-bootstrap";
+import { Breadcrumb, Col, Container, Form, Row } from "react-bootstrap";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { TriggerTerraformExecutionButton } from "./TriggerTerraformExecutionButton";
@@ -14,6 +18,7 @@ import {
   renderModuleAssignmentStatus,
   renderSyncStatus,
 } from "../utils/rendering";
+import React, { useState } from "react";
 
 const MODULE_ACCOUNT_ASSOCIATION_QUERY = gql`
   query moduleAssignment($moduleAssignmentID: ID!) {
@@ -22,6 +27,8 @@ const MODULE_ACCOUNT_ASSOCIATION_QUERY = gql`
       name
       status
       terraformConfiguration
+      remoteStateBucket
+      remoteStateKey
 
       modulePropagation {
         id
@@ -86,6 +93,12 @@ const MODULE_ACCOUNT_ASSOCIATION_QUERY = gql`
         }
         syncStatus
       }
+
+      stateVersions {
+        versionID
+        lastModified
+        isCurrent
+      }
     }
   }
 `;
@@ -111,6 +124,10 @@ export const ModuleAssignmentPage = () => {
     }
   );
 
+  const [selectedStateVersionID, setSelectedStateVersionID] = useState<
+    string | undefined
+  >();
+
   if (loading) return null;
   if (error) return <div>Error</div>;
 
@@ -119,6 +136,12 @@ export const ModuleAssignmentPage = () => {
     : "...";
 
   let isPropagated = data?.moduleAssignment.modulePropagation ? true : false;
+
+  if (selectedStateVersionID === undefined) {
+    setSelectedStateVersionID(
+      data?.moduleAssignment.stateVersions[0].versionID
+    );
+  }
 
   return (
     <Container style={{ paddingTop: "2rem", paddingBottom: "5rem" }} fluid>
@@ -344,6 +367,106 @@ export const ModuleAssignmentPage = () => {
           {terraformConfiguration}
         </SyntaxHighlighter>
       </Container>
+
+      <h2>State File</h2>
+      <Form.Group>
+        <Form.Label>Version</Form.Label>
+        <Form.Select
+          name="stateVersion"
+          onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
+            setSelectedStateVersionID(event.target.value);
+          }}
+        >
+          {data?.moduleAssignment.stateVersions.map((stateVersion) => {
+            return (
+              <option
+                value={stateVersion.versionID}
+                key={stateVersion.versionID}
+              >
+                {stateVersion.lastModified}
+                {stateVersion.isCurrent ? " (current)" : ""}
+              </option>
+            );
+          })}
+        </Form.Select>
+      </Form.Group>
+      {selectedStateVersionID && (
+        <StateVersionDisplay
+          bucket={data?.moduleAssignment.remoteStateBucket ?? ""}
+          keyname={data?.moduleAssignment.remoteStateKey ?? ""}
+          versionID={selectedStateVersionID}
+        />
+      )}
+    </Container>
+  );
+};
+
+const STATE_FILE_QUERY = gql`
+  query stateFile($bucket: String!, $key: String!, $versionID: String!) {
+    stateFile(bucket: $bucket, key: $key, versionID: $versionID) {
+      resources {
+        type
+        name
+        id
+        attributesJSON
+      }
+    }
+  }
+`;
+
+type StateFileResponse = {
+  stateFile: StateFile;
+};
+
+interface StateVersionDisplayProps {
+  bucket: string;
+  keyname: string;
+  versionID: string;
+}
+
+const StateVersionDisplay: React.VFC<StateVersionDisplayProps> = (
+  props: StateVersionDisplayProps
+) => {
+  const { loading, error, data } = useQuery<StateFileResponse>(
+    STATE_FILE_QUERY,
+    {
+      variables: {
+        bucket: props.bucket,
+        key: props.keyname,
+        versionID: props.versionID,
+      },
+    }
+  );
+
+  if (loading) return null;
+  if (error) return <div>Error</div>;
+
+  return (
+    <Container>
+      <Table hover>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Name</th>
+            <th>ID</th>
+            <th>Attributes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data?.stateFile.resources.map((resource) => {
+            return (
+              <tr key={resource.id}>
+                <td>{resource.type}</td>
+                <td>{resource.name}</td>
+                <td>{resource.id}</td>
+                <td>
+                  <pre>{JSON.stringify(resource.attributesJSON, null, 2)}</pre>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </Table>
     </Container>
   );
 };

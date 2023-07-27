@@ -164,13 +164,13 @@ export const ModuleGroupPage = () => {
                     </td>
                     <td>
                       <NavLink
-                        to={`/org-dimensions/${propagation?.orgDimension?.id}`}
+                        to={`/org-structures/${propagation?.orgDimension?.id}`}
                       >
                         {propagation?.orgDimension?.name}
                       </NavLink>
                       {" / "}
                       <NavLink
-                        to={`/org-dimensions/${propagation?.orgDimension?.id}/org-units/${propagation?.orgUnit?.id}`}
+                        to={`/org-structures/${propagation?.orgDimension?.id}/org-units/${propagation?.orgUnit?.id}`}
                       >
                         {propagation?.orgUnit?.name}
                       </NavLink>

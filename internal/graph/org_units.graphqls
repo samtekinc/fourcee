@@ -27,6 +27,16 @@ type OrgUnit {
     limit: Int
     offset: Int
   ): [ModulePropagation!]!
+  cloudAccessRoles(
+    filters: CloudAccessRoleFilters
+    limit: Int
+    offset: Int
+  ): [CloudAccessRole!]!
+  inheritedCloudAccessRoles(
+    filters: CloudAccessRoleFilters
+    limit: Int
+    offset: Int
+  ): [CloudAccessRole!]!
 }
 
 input OrgUnitUpdate {

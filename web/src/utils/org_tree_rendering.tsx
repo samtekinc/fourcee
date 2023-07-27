@@ -17,31 +17,30 @@ export const OrgUnitTreeNode = (props: OrgUnitTreeNodeProps) => {
   return (
     <TreeNode
       label={
-        <div
-          style={{
-            padding: "8px",
-            borderRadius: "12px",
-            display: "inline-block",
-            border: "2px solid black",
-          }}
+        <NavLink
+          to={`/org-structures/${props.orgUnit?.orgDimensionId}/org-units/${props.orgUnit?.orgUnitId}`}
+          style={({ isActive }) =>
+            isActive
+              ? {
+                  color: "blue",
+                  fontWeight: "bold",
+                  padding: "8px",
+                  borderRadius: "12px",
+                  display: "inline-block",
+                  border: "3px solid blue",
+                }
+              : {
+                  color: "inherit",
+                  textDecoration: "none",
+                  padding: "8px",
+                  borderRadius: "12px",
+                  display: "inline-block",
+                  border: "2px solid black",
+                }
+          }
         >
-          <NavLink
-            to={`/org-dimensions/${props.orgUnit?.orgDimensionId}/org-units/${props.orgUnit?.orgUnitId}`}
-            style={({ isActive }) =>
-              isActive
-                ? {
-                    color: "blue",
-                    textDecoration: "none",
-                  }
-                : {
-                    color: "inherit",
-                    textDecoration: "none",
-                  }
-            }
-          >
-            {props.orgUnit?.name}
-          </NavLink>
-        </div>
+          {props.orgUnit?.name}
+        </NavLink>
       }
     >
       {props.orgUnit?.children.map((child) => {

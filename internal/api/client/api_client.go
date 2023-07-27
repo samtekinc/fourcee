@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/graph-gophers/dataloader"
 	"github.com/sheacloud/tfom/internal/awsclients"
@@ -21,6 +22,7 @@ type APIClient struct {
 
 	workingDirectory               string
 	snsClient                      awsclients.SNSInterface
+	s3Client                       awsclients.S3Interface
 	modulePropagationExecutionArn  string
 	modulePropagationDriftCheckArn string
 	terraformCommandWorkflowArn    string
@@ -43,6 +45,8 @@ type APIClient struct {
 	planExecutionRequestsLoader               *dataloader.Loader
 	terraformDriftCheckRequestsLoader         *dataloader.Loader
 	terraformExecutionRequestsLoader          *dataloader.Loader
+	awsIamPolicyLoader                        *dataloader.Loader
+	cloudAccessRoleLoader                     *dataloader.Loader
 }
 
 type APIClientInput struct {
@@ -50,6 +54,7 @@ type APIClientInput struct {
 	TemporalClient                 client.Client
 	WorkingDirectory               string
 	SnsClient                      awsclients.SNSInterface
+	S3Client                       awsclients.S3Interface
 	ModulePropagationExecutionArn  string
 	ModulePropagationDriftCheckArn string
 	TerraformCommandWorkflowArn    string
@@ -67,6 +72,7 @@ func NewAPIClient(input *APIClientInput) *APIClient {
 		temporalClient:                 input.TemporalClient,
 		workingDirectory:               input.WorkingDirectory,
 		snsClient:                      input.SnsClient,
+		s3Client:                       input.S3Client,
 		modulePropagationExecutionArn:  input.ModulePropagationExecutionArn,
 		modulePropagationDriftCheckArn: input.ModulePropagationDriftCheckArn,
 		terraformCommandWorkflowArn:    input.TerraformCommandWorkflowArn,
@@ -96,6 +102,8 @@ func NewAPIClient(input *APIClientInput) *APIClient {
 	apiClient.planExecutionRequestsLoader = dataloader.NewBatchedLoader(apiClient.GetPlanExecutionRequestsByIDs, dataLoaderOptions...)
 	apiClient.terraformDriftCheckRequestsLoader = dataloader.NewBatchedLoader(apiClient.GetTerraformDriftCheckRequestsByIDs, dataLoaderOptions...)
 	apiClient.terraformExecutionRequestsLoader = dataloader.NewBatchedLoader(apiClient.GetTerraformExecutionRequestsByIDs, dataLoaderOptions...)
+	apiClient.awsIamPolicyLoader = dataloader.NewBatchedLoader(apiClient.GetAwsIamPoliciesByIDs, dataLoaderOptions...)
+	apiClient.cloudAccessRoleLoader = dataloader.NewBatchedLoader(apiClient.GetCloudAccessRolesByIDs, dataLoaderOptions...)
 
 	return apiClient
 }
@@ -112,7 +120,7 @@ func APIClientFromConfig(conf *config.Config, cfg aws.Config) (*APIClient, error
 	}
 
 	err = db.AutoMigrate(&models.OrgAccount{}, &models.OrgDimension{}, &models.OrgUnit{}, &models.ModuleGroup{}, &models.ModuleVersion{}, &models.ModulePropagation{}, &models.ModuleAssignment{},
-		&models.ModulePropagationExecutionRequest{}, &models.ModulePropagationDriftCheckRequest{}, &models.TerraformExecutionRequest{}, &models.TerraformDriftCheckRequest{}, &models.PlanExecutionRequest{}, &models.ApplyExecutionRequest{})
+		&models.ModulePropagationExecutionRequest{}, &models.ModulePropagationDriftCheckRequest{}, &models.TerraformExecutionRequest{}, &models.TerraformDriftCheckRequest{}, &models.PlanExecutionRequest{}, &models.ApplyExecutionRequest{}, &models.AwsIamPolicy{}, &models.CloudAccessRole{})
 	if err != nil {
 		panic("unable to migrate database, " + err.Error())
 	}
@@ -126,6 +134,7 @@ func APIClientFromConfig(conf *config.Config, cfg aws.Config) (*APIClient, error
 		DB:                             db,
 		TemporalClient:                 tc,
 		SnsClient:                      sns.NewFromConfig(cfg),
+		S3Client:                       s3.NewFromConfig(cfg),
 		WorkingDirectory:               conf.WorkingDirectory,
 		ModulePropagationExecutionArn:  fmt.Sprintf("arn:aws:states:%s:%s:stateMachine:%s-module-propagation-execution", conf.Region, conf.AccountId, conf.Prefix),
 		ModulePropagationDriftCheckArn: fmt.Sprintf("arn:aws:states:%s:%s:stateMachine:%s-module-propagation-drift-check", conf.Region, conf.AccountId, conf.Prefix),

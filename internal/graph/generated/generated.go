@@ -38,6 +38,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	ApplyExecutionRequest() ApplyExecutionRequestResolver
+	CloudAccessRole() CloudAccessRoleResolver
 	ModuleAssignment() ModuleAssignmentResolver
 	ModuleGroup() ModuleGroupResolver
 	ModulePropagation() ModulePropagationResolver
@@ -50,6 +51,8 @@ type ResolverRoot interface {
 	OrgUnit() OrgUnitResolver
 	PlanExecutionRequest() PlanExecutionRequestResolver
 	Query() QueryResolver
+	StateResource() StateResourceResolver
+	StateVersion() StateVersionResolver
 	TerraformDriftCheckRequest() TerraformDriftCheckRequestResolver
 	TerraformExecutionRequest() TerraformExecutionRequestResolver
 }
@@ -79,9 +82,24 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	AwsIamPolicy struct {
+		ID             func(childComplexity int) int
+		Name           func(childComplexity int) int
+		PolicyDocument func(childComplexity int) int
+	}
+
 	AwsProviderConfiguration struct {
 		Alias  func(childComplexity int) int
 		Region func(childComplexity int) int
+	}
+
+	CloudAccessRole struct {
+		AwsIamPolicies func(childComplexity int) int
+		CloudPlatform  func(childComplexity int) int
+		ID             func(childComplexity int) int
+		Name           func(childComplexity int) int
+		OrgUnit        func(childComplexity int) int
+		OrgUnitID      func(childComplexity int) int
 	}
 
 	GcpProviderConfiguration struct {
@@ -112,6 +130,7 @@ type ComplexityRoot struct {
 		RemoteStateBucket           func(childComplexity int) int
 		RemoteStateKey              func(childComplexity int) int
 		RemoteStateRegion           func(childComplexity int) int
+		StateVersions               func(childComplexity int, limit *int, offset *int) int
 		Status                      func(childComplexity int) int
 		TerraformConfiguration      func(childComplexity int) int
 		TerraformDriftCheckRequests func(childComplexity int, filters *models.TerraformDriftCheckRequestFilters, limit *int, offset *int) int
@@ -189,6 +208,8 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddAccountToOrgUnit                      func(childComplexity int, orgUnitID uint, orgAccountID uint) int
+		CreateAwsIamPolicy                       func(childComplexity int, awsIamPolicy models.NewAwsIamPolicy) int
+		CreateCloudAccessRole                    func(childComplexity int, cloudAccessRole models.NewCloudAccessRole) int
 		CreateModuleAssignment                   func(childComplexity int, moduleAssignment models.NewModuleAssignment) int
 		CreateModuleGroup                        func(childComplexity int, moduleGroup models.NewModuleGroup) int
 		CreateModulePropagation                  func(childComplexity int, modulePropagation models.NewModulePropagation) int
@@ -200,6 +221,8 @@ type ComplexityRoot struct {
 		CreateOrgUnit                            func(childComplexity int, orgUnit models.NewOrgUnit) int
 		CreateTerraformDriftCheckRequest         func(childComplexity int, terraformDriftCheckRequest models.NewTerraformDriftCheckRequest) int
 		CreateTerraformExecutionRequest          func(childComplexity int, terraformExecutionRequest models.NewTerraformExecutionRequest) int
+		DeleteAwsIamPolicy                       func(childComplexity int, awsIamPolicyID uint) int
+		DeleteCloudAccessRole                    func(childComplexity int, cloudAccessRoleID uint) int
 		DeleteModuleAssignment                   func(childComplexity int, moduleAssignmentID uint) int
 		DeleteModuleGroup                        func(childComplexity int, moduleGroupID uint) int
 		DeleteModulePropagation                  func(childComplexity int, modulePropagationID uint) int
@@ -208,6 +231,8 @@ type ComplexityRoot struct {
 		DeleteOrgDimension                       func(childComplexity int, orgDimensionID uint) int
 		DeleteOrgUnit                            func(childComplexity int, orgUnitID uint) int
 		RemoveAccountFromOrgUnit                 func(childComplexity int, orgUnitID uint, orgAccountID uint) int
+		UpdateAwsIamPolicy                       func(childComplexity int, awsIamPolicyID uint, update models.AwsIamPolicyUpdate) int
+		UpdateCloudAccessRole                    func(childComplexity int, cloudAccessRoleID uint, update models.CloudAccessRoleUpdate) int
 		UpdateModuleAssignment                   func(childComplexity int, moduleAssignmentID uint, moduleAssignmentUpdate models.ModuleAssignmentUpdate) int
 		UpdateModulePropagation                  func(childComplexity int, modulePropagationID uint, update models.ModulePropagationUpdate) int
 		UpdateOrgAccount                         func(childComplexity int, orgAccountID uint, orgAccount models.OrgAccountUpdate) int
@@ -216,6 +241,7 @@ type ComplexityRoot struct {
 
 	OrgAccount struct {
 		AssumeRoleName    func(childComplexity int) int
+		CloudAccessRoles  func(childComplexity int) int
 		CloudIdentifier   func(childComplexity int) int
 		CloudPlatform     func(childComplexity int) int
 		ID                func(childComplexity int) int
@@ -233,18 +259,20 @@ type ComplexityRoot struct {
 	}
 
 	OrgUnit struct {
-		Children           func(childComplexity int, filters *models.OrgUnitFilters, limit *int, offset *int) int
-		DownstreamOrgUnits func(childComplexity int, filters *models.OrgUnitFilters, limit *int, offset *int) int
-		Hierarchy          func(childComplexity int) int
-		ID                 func(childComplexity int) int
-		ModulePropagations func(childComplexity int, filters *models.ModulePropagationFilters, limit *int, offset *int) int
-		Name               func(childComplexity int) int
-		OrgAccounts        func(childComplexity int, filters *models.OrgAccountFilters, limit *int, offset *int) int
-		OrgDimension       func(childComplexity int) int
-		OrgDimensionID     func(childComplexity int) int
-		ParentOrgUnit      func(childComplexity int) int
-		ParentOrgUnitID    func(childComplexity int) int
-		UpstreamOrgUnits   func(childComplexity int, filters *models.OrgUnitFilters, limit *int, offset *int) int
+		Children                  func(childComplexity int, filters *models.OrgUnitFilters, limit *int, offset *int) int
+		CloudAccessRoles          func(childComplexity int, filters *models.CloudAccessRoleFilters, limit *int, offset *int) int
+		DownstreamOrgUnits        func(childComplexity int, filters *models.OrgUnitFilters, limit *int, offset *int) int
+		Hierarchy                 func(childComplexity int) int
+		ID                        func(childComplexity int) int
+		InheritedCloudAccessRoles func(childComplexity int, filters *models.CloudAccessRoleFilters, limit *int, offset *int) int
+		ModulePropagations        func(childComplexity int, filters *models.ModulePropagationFilters, limit *int, offset *int) int
+		Name                      func(childComplexity int) int
+		OrgAccounts               func(childComplexity int, filters *models.OrgAccountFilters, limit *int, offset *int) int
+		OrgDimension              func(childComplexity int) int
+		OrgDimensionID            func(childComplexity int) int
+		ParentOrgUnit             func(childComplexity int) int
+		ParentOrgUnitID           func(childComplexity int) int
+		UpstreamOrgUnits          func(childComplexity int, filters *models.OrgUnitFilters, limit *int, offset *int) int
 	}
 
 	PlanExecutionRequest struct {
@@ -267,6 +295,10 @@ type ComplexityRoot struct {
 
 	Query struct {
 		ApplyExecutionRequest               func(childComplexity int, applyExecutionRequestID uint) int
+		AwsIamPolicies                      func(childComplexity int, filters *models.AwsIamPolicyFilters, limit *int, offset *int) int
+		AwsIamPolicy                        func(childComplexity int, awsIamPolicyID uint) int
+		CloudAccessRole                     func(childComplexity int, cloudAccessRoleID uint) int
+		CloudAccessRoles                    func(childComplexity int, filters *models.CloudAccessRoleFilters, limit *int, offset *int) int
 		ModuleAssignment                    func(childComplexity int, moduleAssignmentID uint) int
 		ModuleAssignments                   func(childComplexity int, filters *models.ModuleAssignmentFilters, limit *int, offset *int) int
 		ModuleGroup                         func(childComplexity int, moduleGroupID uint) int
@@ -285,6 +317,25 @@ type ComplexityRoot struct {
 		OrgDimensions                       func(childComplexity int, filters *models.OrgDimensionFilters, limit *int, offset *int) int
 		OrgUnit                             func(childComplexity int, orgUnitID uint) int
 		PlanExecutionRequest                func(childComplexity int, planExecutionRequestID uint) int
+		StateFile                           func(childComplexity int, bucket string, key string, versionID string) int
+	}
+
+	StateFile struct {
+		Resources func(childComplexity int) int
+	}
+
+	StateResource struct {
+		AttributesJSON func(childComplexity int) int
+		ID             func(childComplexity int) int
+		Name           func(childComplexity int) int
+		Type           func(childComplexity int) int
+	}
+
+	StateVersion struct {
+		IsCurrent    func(childComplexity int) int
+		LastModified func(childComplexity int) int
+		StateFile    func(childComplexity int) int
+		VersionID    func(childComplexity int) int
 	}
 
 	TerraformDriftCheckRequest struct {
@@ -329,6 +380,11 @@ type ApplyExecutionRequestResolver interface {
 	InitOutput(ctx context.Context, obj *models.ApplyExecutionRequest) (*string, error)
 	ApplyOutput(ctx context.Context, obj *models.ApplyExecutionRequest) (*string, error)
 }
+type CloudAccessRoleResolver interface {
+	AwsIamPolicies(ctx context.Context, obj *models.CloudAccessRole) ([]*models.AwsIamPolicy, error)
+
+	OrgUnit(ctx context.Context, obj *models.CloudAccessRole) (*models.OrgUnit, error)
+}
 type ModuleAssignmentResolver interface {
 	ModuleVersion(ctx context.Context, obj *models.ModuleAssignment) (*models.ModuleVersion, error)
 
@@ -340,6 +396,7 @@ type ModuleAssignmentResolver interface {
 	TerraformDriftCheckRequests(ctx context.Context, obj *models.ModuleAssignment, filters *models.TerraformDriftCheckRequestFilters, limit *int, offset *int) ([]*models.TerraformDriftCheckRequest, error)
 	TerraformExecutionRequests(ctx context.Context, obj *models.ModuleAssignment, filters *models.TerraformExecutionRequestFilters, limit *int, offset *int) ([]*models.TerraformExecutionRequest, error)
 	TerraformConfiguration(ctx context.Context, obj *models.ModuleAssignment) (string, error)
+	StateVersions(ctx context.Context, obj *models.ModuleAssignment, limit *int, offset *int) ([]*models.StateVersion, error)
 }
 type ModuleGroupResolver interface {
 	Versions(ctx context.Context, obj *models.ModuleGroup, filters *models.ModuleVersionFilters, limit *int, offset *int) ([]*models.ModuleVersion, error)
@@ -376,6 +433,12 @@ type ModuleVersionResolver interface {
 	ModuleAssignments(ctx context.Context, obj *models.ModuleVersion, filters *models.ModuleAssignmentFilters, limit *int, offset *int) ([]*models.ModuleAssignment, error)
 }
 type MutationResolver interface {
+	CreateAwsIamPolicy(ctx context.Context, awsIamPolicy models.NewAwsIamPolicy) (*models.AwsIamPolicy, error)
+	DeleteAwsIamPolicy(ctx context.Context, awsIamPolicyID uint) (bool, error)
+	UpdateAwsIamPolicy(ctx context.Context, awsIamPolicyID uint, update models.AwsIamPolicyUpdate) (*models.AwsIamPolicy, error)
+	CreateCloudAccessRole(ctx context.Context, cloudAccessRole models.NewCloudAccessRole) (*models.CloudAccessRole, error)
+	DeleteCloudAccessRole(ctx context.Context, cloudAccessRoleID uint) (bool, error)
+	UpdateCloudAccessRole(ctx context.Context, cloudAccessRoleID uint, update models.CloudAccessRoleUpdate) (*models.CloudAccessRole, error)
 	CreateModuleAssignment(ctx context.Context, moduleAssignment models.NewModuleAssignment) (*models.ModuleAssignment, error)
 	UpdateModuleAssignment(ctx context.Context, moduleAssignmentID uint, moduleAssignmentUpdate models.ModuleAssignmentUpdate) (*models.ModuleAssignment, error)
 	DeleteModuleAssignment(ctx context.Context, moduleAssignmentID uint) (bool, error)
@@ -405,6 +468,7 @@ type OrgAccountResolver interface {
 	OrgUnits(ctx context.Context, obj *models.OrgAccount, filters *models.OrgUnitFilters, limit *int, offset *int) ([]*models.OrgUnit, error)
 
 	ModuleAssignments(ctx context.Context, obj *models.OrgAccount, filters *models.ModuleAssignmentFilters, limit *int, offset *int) ([]*models.ModuleAssignment, error)
+	CloudAccessRoles(ctx context.Context, obj *models.OrgAccount) ([]*models.CloudAccessRole, error)
 }
 type OrgDimensionResolver interface {
 	OrgUnits(ctx context.Context, obj *models.OrgDimension, filters *models.OrgUnitFilters, limit *int, offset *int) ([]*models.OrgUnit, error)
@@ -419,6 +483,8 @@ type OrgUnitResolver interface {
 	UpstreamOrgUnits(ctx context.Context, obj *models.OrgUnit, filters *models.OrgUnitFilters, limit *int, offset *int) ([]*models.OrgUnit, error)
 	OrgAccounts(ctx context.Context, obj *models.OrgUnit, filters *models.OrgAccountFilters, limit *int, offset *int) ([]*models.OrgAccount, error)
 	ModulePropagations(ctx context.Context, obj *models.OrgUnit, filters *models.ModulePropagationFilters, limit *int, offset *int) ([]*models.ModulePropagation, error)
+	CloudAccessRoles(ctx context.Context, obj *models.OrgUnit, filters *models.CloudAccessRoleFilters, limit *int, offset *int) ([]*models.CloudAccessRole, error)
+	InheritedCloudAccessRoles(ctx context.Context, obj *models.OrgUnit, filters *models.CloudAccessRoleFilters, limit *int, offset *int) ([]*models.CloudAccessRole, error)
 }
 type PlanExecutionRequestResolver interface {
 	ModuleAssignment(ctx context.Context, obj *models.PlanExecutionRequest) (*models.ModuleAssignment, error)
@@ -432,6 +498,10 @@ type PlanExecutionRequestResolver interface {
 }
 type QueryResolver interface {
 	ApplyExecutionRequest(ctx context.Context, applyExecutionRequestID uint) (*models.ApplyExecutionRequest, error)
+	AwsIamPolicy(ctx context.Context, awsIamPolicyID uint) (*models.AwsIamPolicy, error)
+	AwsIamPolicies(ctx context.Context, filters *models.AwsIamPolicyFilters, limit *int, offset *int) ([]*models.AwsIamPolicy, error)
+	CloudAccessRole(ctx context.Context, cloudAccessRoleID uint) (*models.CloudAccessRole, error)
+	CloudAccessRoles(ctx context.Context, filters *models.CloudAccessRoleFilters, limit *int, offset *int) ([]*models.CloudAccessRole, error)
 	ModuleAssignment(ctx context.Context, moduleAssignmentID uint) (*models.ModuleAssignment, error)
 	ModuleAssignments(ctx context.Context, filters *models.ModuleAssignmentFilters, limit *int, offset *int) ([]*models.ModuleAssignment, error)
 	ModuleGroup(ctx context.Context, moduleGroupID uint) (*models.ModuleGroup, error)
@@ -450,6 +520,13 @@ type QueryResolver interface {
 	OrgDimensions(ctx context.Context, filters *models.OrgDimensionFilters, limit *int, offset *int) ([]*models.OrgDimension, error)
 	OrgUnit(ctx context.Context, orgUnitID uint) (*models.OrgUnit, error)
 	PlanExecutionRequest(ctx context.Context, planExecutionRequestID uint) (*models.PlanExecutionRequest, error)
+	StateFile(ctx context.Context, bucket string, key string, versionID string) (*models.StateFile, error)
+}
+type StateResourceResolver interface {
+	AttributesJSON(ctx context.Context, obj *models.StateResource) (string, error)
+}
+type StateVersionResolver interface {
+	StateFile(ctx context.Context, obj *models.StateVersion) (*models.StateFile, error)
 }
 type TerraformDriftCheckRequestResolver interface {
 	ModuleAssignment(ctx context.Context, obj *models.TerraformDriftCheckRequest) (*models.ModuleAssignment, error)
@@ -589,6 +666,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Argument.Value(childComplexity), true
 
+	case "AwsIamPolicy.id":
+		if e.complexity.AwsIamPolicy.ID == nil {
+			break
+		}
+
+		return e.complexity.AwsIamPolicy.ID(childComplexity), true
+
+	case "AwsIamPolicy.name":
+		if e.complexity.AwsIamPolicy.Name == nil {
+			break
+		}
+
+		return e.complexity.AwsIamPolicy.Name(childComplexity), true
+
+	case "AwsIamPolicy.policyDocument":
+		if e.complexity.AwsIamPolicy.PolicyDocument == nil {
+			break
+		}
+
+		return e.complexity.AwsIamPolicy.PolicyDocument(childComplexity), true
+
 	case "AwsProviderConfiguration.alias":
 		if e.complexity.AwsProviderConfiguration.Alias == nil {
 			break
@@ -602,6 +700,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AwsProviderConfiguration.Region(childComplexity), true
+
+	case "CloudAccessRole.awsIamPolicies":
+		if e.complexity.CloudAccessRole.AwsIamPolicies == nil {
+			break
+		}
+
+		return e.complexity.CloudAccessRole.AwsIamPolicies(childComplexity), true
+
+	case "CloudAccessRole.cloudPlatform":
+		if e.complexity.CloudAccessRole.CloudPlatform == nil {
+			break
+		}
+
+		return e.complexity.CloudAccessRole.CloudPlatform(childComplexity), true
+
+	case "CloudAccessRole.id":
+		if e.complexity.CloudAccessRole.ID == nil {
+			break
+		}
+
+		return e.complexity.CloudAccessRole.ID(childComplexity), true
+
+	case "CloudAccessRole.name":
+		if e.complexity.CloudAccessRole.Name == nil {
+			break
+		}
+
+		return e.complexity.CloudAccessRole.Name(childComplexity), true
+
+	case "CloudAccessRole.orgUnit":
+		if e.complexity.CloudAccessRole.OrgUnit == nil {
+			break
+		}
+
+		return e.complexity.CloudAccessRole.OrgUnit(childComplexity), true
+
+	case "CloudAccessRole.orgUnitID":
+		if e.complexity.CloudAccessRole.OrgUnitID == nil {
+			break
+		}
+
+		return e.complexity.CloudAccessRole.OrgUnitID(childComplexity), true
 
 	case "GcpProviderConfiguration.alias":
 		if e.complexity.GcpProviderConfiguration.Alias == nil {
@@ -749,6 +889,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ModuleAssignment.RemoteStateRegion(childComplexity), true
+
+	case "ModuleAssignment.stateVersions":
+		if e.complexity.ModuleAssignment.StateVersions == nil {
+			break
+		}
+
+		args, err := ec.field_ModuleAssignment_stateVersions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ModuleAssignment.StateVersions(childComplexity, args["limit"].(*int), args["offset"].(*int)), true
 
 	case "ModuleAssignment.status":
 		if e.complexity.ModuleAssignment.Status == nil {
@@ -1207,6 +1359,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddAccountToOrgUnit(childComplexity, args["orgUnitID"].(uint), args["orgAccountID"].(uint)), true
 
+	case "Mutation.createAwsIamPolicy":
+		if e.complexity.Mutation.CreateAwsIamPolicy == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createAwsIamPolicy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateAwsIamPolicy(childComplexity, args["awsIamPolicy"].(models.NewAwsIamPolicy)), true
+
+	case "Mutation.createCloudAccessRole":
+		if e.complexity.Mutation.CreateCloudAccessRole == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createCloudAccessRole_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateCloudAccessRole(childComplexity, args["cloudAccessRole"].(models.NewCloudAccessRole)), true
+
 	case "Mutation.createModuleAssignment":
 		if e.complexity.Mutation.CreateModuleAssignment == nil {
 			break
@@ -1339,6 +1515,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateTerraformExecutionRequest(childComplexity, args["terraformExecutionRequest"].(models.NewTerraformExecutionRequest)), true
 
+	case "Mutation.deleteAwsIamPolicy":
+		if e.complexity.Mutation.DeleteAwsIamPolicy == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteAwsIamPolicy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteAwsIamPolicy(childComplexity, args["awsIamPolicyID"].(uint)), true
+
+	case "Mutation.deleteCloudAccessRole":
+		if e.complexity.Mutation.DeleteCloudAccessRole == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteCloudAccessRole_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteCloudAccessRole(childComplexity, args["cloudAccessRoleID"].(uint)), true
+
 	case "Mutation.deleteModuleAssignment":
 		if e.complexity.Mutation.DeleteModuleAssignment == nil {
 			break
@@ -1435,6 +1635,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RemoveAccountFromOrgUnit(childComplexity, args["orgUnitID"].(uint), args["orgAccountID"].(uint)), true
 
+	case "Mutation.updateAwsIamPolicy":
+		if e.complexity.Mutation.UpdateAwsIamPolicy == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateAwsIamPolicy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateAwsIamPolicy(childComplexity, args["awsIamPolicyID"].(uint), args["update"].(models.AwsIamPolicyUpdate)), true
+
+	case "Mutation.updateCloudAccessRole":
+		if e.complexity.Mutation.UpdateCloudAccessRole == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateCloudAccessRole_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateCloudAccessRole(childComplexity, args["cloudAccessRoleID"].(uint), args["update"].(models.CloudAccessRoleUpdate)), true
+
 	case "Mutation.updateModuleAssignment":
 		if e.complexity.Mutation.UpdateModuleAssignment == nil {
 			break
@@ -1489,6 +1713,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.OrgAccount.AssumeRoleName(childComplexity), true
+
+	case "OrgAccount.cloudAccessRoles":
+		if e.complexity.OrgAccount.CloudAccessRoles == nil {
+			break
+		}
+
+		return e.complexity.OrgAccount.CloudAccessRoles(childComplexity), true
 
 	case "OrgAccount.cloudIdentifier":
 		if e.complexity.OrgAccount.CloudIdentifier == nil {
@@ -1599,6 +1830,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.OrgUnit.Children(childComplexity, args["filters"].(*models.OrgUnitFilters), args["limit"].(*int), args["offset"].(*int)), true
 
+	case "OrgUnit.cloudAccessRoles":
+		if e.complexity.OrgUnit.CloudAccessRoles == nil {
+			break
+		}
+
+		args, err := ec.field_OrgUnit_cloudAccessRoles_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.OrgUnit.CloudAccessRoles(childComplexity, args["filters"].(*models.CloudAccessRoleFilters), args["limit"].(*int), args["offset"].(*int)), true
+
 	case "OrgUnit.downstreamOrgUnits":
 		if e.complexity.OrgUnit.DownstreamOrgUnits == nil {
 			break
@@ -1624,6 +1867,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.OrgUnit.ID(childComplexity), true
+
+	case "OrgUnit.inheritedCloudAccessRoles":
+		if e.complexity.OrgUnit.InheritedCloudAccessRoles == nil {
+			break
+		}
+
+		args, err := ec.field_OrgUnit_inheritedCloudAccessRoles_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.OrgUnit.InheritedCloudAccessRoles(childComplexity, args["filters"].(*models.CloudAccessRoleFilters), args["limit"].(*int), args["offset"].(*int)), true
 
 	case "OrgUnit.modulePropagations":
 		if e.complexity.OrgUnit.ModulePropagations == nil {
@@ -1812,6 +2067,54 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ApplyExecutionRequest(childComplexity, args["applyExecutionRequestID"].(uint)), true
+
+	case "Query.awsIamPolicies":
+		if e.complexity.Query.AwsIamPolicies == nil {
+			break
+		}
+
+		args, err := ec.field_Query_awsIamPolicies_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.AwsIamPolicies(childComplexity, args["filters"].(*models.AwsIamPolicyFilters), args["limit"].(*int), args["offset"].(*int)), true
+
+	case "Query.awsIamPolicy":
+		if e.complexity.Query.AwsIamPolicy == nil {
+			break
+		}
+
+		args, err := ec.field_Query_awsIamPolicy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.AwsIamPolicy(childComplexity, args["awsIamPolicyID"].(uint)), true
+
+	case "Query.cloudAccessRole":
+		if e.complexity.Query.CloudAccessRole == nil {
+			break
+		}
+
+		args, err := ec.field_Query_cloudAccessRole_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CloudAccessRole(childComplexity, args["cloudAccessRoleID"].(uint)), true
+
+	case "Query.cloudAccessRoles":
+		if e.complexity.Query.CloudAccessRoles == nil {
+			break
+		}
+
+		args, err := ec.field_Query_cloudAccessRoles_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CloudAccessRoles(childComplexity, args["filters"].(*models.CloudAccessRoleFilters), args["limit"].(*int), args["offset"].(*int)), true
 
 	case "Query.moduleAssignment":
 		if e.complexity.Query.ModuleAssignment == nil {
@@ -2029,6 +2332,81 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.PlanExecutionRequest(childComplexity, args["planExecutionRequestID"].(uint)), true
 
+	case "Query.stateFile":
+		if e.complexity.Query.StateFile == nil {
+			break
+		}
+
+		args, err := ec.field_Query_stateFile_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.StateFile(childComplexity, args["bucket"].(string), args["key"].(string), args["versionID"].(string)), true
+
+	case "StateFile.resources":
+		if e.complexity.StateFile.Resources == nil {
+			break
+		}
+
+		return e.complexity.StateFile.Resources(childComplexity), true
+
+	case "StateResource.attributesJSON":
+		if e.complexity.StateResource.AttributesJSON == nil {
+			break
+		}
+
+		return e.complexity.StateResource.AttributesJSON(childComplexity), true
+
+	case "StateResource.id":
+		if e.complexity.StateResource.ID == nil {
+			break
+		}
+
+		return e.complexity.StateResource.ID(childComplexity), true
+
+	case "StateResource.name":
+		if e.complexity.StateResource.Name == nil {
+			break
+		}
+
+		return e.complexity.StateResource.Name(childComplexity), true
+
+	case "StateResource.type":
+		if e.complexity.StateResource.Type == nil {
+			break
+		}
+
+		return e.complexity.StateResource.Type(childComplexity), true
+
+	case "StateVersion.isCurrent":
+		if e.complexity.StateVersion.IsCurrent == nil {
+			break
+		}
+
+		return e.complexity.StateVersion.IsCurrent(childComplexity), true
+
+	case "StateVersion.lastModified":
+		if e.complexity.StateVersion.LastModified == nil {
+			break
+		}
+
+		return e.complexity.StateVersion.LastModified(childComplexity), true
+
+	case "StateVersion.stateFile":
+		if e.complexity.StateVersion.StateFile == nil {
+			break
+		}
+
+		return e.complexity.StateVersion.StateFile(childComplexity), true
+
+	case "StateVersion.versionID":
+		if e.complexity.StateVersion.VersionID == nil {
+			break
+		}
+
+		return e.complexity.StateVersion.VersionID(childComplexity), true
+
 	case "TerraformDriftCheckRequest.completedAt":
 		if e.complexity.TerraformDriftCheckRequest.CompletedAt == nil {
 			break
@@ -2221,7 +2599,11 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputApplyExecutionRequestFilters,
 		ec.unmarshalInputArgumentInput,
+		ec.unmarshalInputAwsIamPolicyFilters,
+		ec.unmarshalInputAwsIamPolicyUpdate,
 		ec.unmarshalInputAwsProviderConfigurationInput,
+		ec.unmarshalInputCloudAccessRoleFilters,
+		ec.unmarshalInputCloudAccessRoleUpdate,
 		ec.unmarshalInputGcpProviderConfigurationInput,
 		ec.unmarshalInputMetadataInput,
 		ec.unmarshalInputModuleAssignmentFilters,
@@ -2232,6 +2614,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputModulePropagationFilters,
 		ec.unmarshalInputModulePropagationUpdate,
 		ec.unmarshalInputModuleVersionFilters,
+		ec.unmarshalInputNewAwsIamPolicy,
+		ec.unmarshalInputNewCloudAccessRole,
 		ec.unmarshalInputNewModuleAssignment,
 		ec.unmarshalInputNewModuleGroup,
 		ec.unmarshalInputNewModulePropagation,
@@ -2340,6 +2724,89 @@ extend type Query {
   applyExecutionRequest(applyExecutionRequestID: ID!): ApplyExecutionRequest!
 }
 `, BuiltIn: false},
+	{Name: "../aws_iam_policy.graphqls", Input: `type AwsIamPolicy {
+  id: ID!
+  name: String!
+  policyDocument: String!
+}
+
+input NewAwsIamPolicy {
+  name: String!
+  policyDocument: String!
+}
+
+input AwsIamPolicyUpdate {
+  name: String
+  policyDocument: String
+}
+
+input AwsIamPolicyFilters {
+  nameContains: String
+}
+
+extend type Query {
+  awsIamPolicy(awsIamPolicyID: ID!): AwsIamPolicy!
+  awsIamPolicies(
+    filters: AwsIamPolicyFilters
+    limit: Int
+    offset: Int
+  ): [AwsIamPolicy!]!
+}
+
+extend type Mutation {
+  createAwsIamPolicy(awsIamPolicy: NewAwsIamPolicy!): AwsIamPolicy!
+  deleteAwsIamPolicy(awsIamPolicyID: ID!): Boolean!
+  updateAwsIamPolicy(
+    awsIamPolicyID: ID!
+    update: AwsIamPolicyUpdate!
+  ): AwsIamPolicy!
+}
+`, BuiltIn: false},
+	{Name: "../cloud_access_role.graphqls", Input: `type CloudAccessRole {
+  id: ID!
+  name: String!
+  cloudPlatform: CloudPlatform!
+  awsIamPolicies: [AwsIamPolicy!]
+  orgUnitID: ID!
+  orgUnit: OrgUnit!
+}
+
+input NewCloudAccessRole {
+  name: String!
+  cloudPlatform: CloudPlatform!
+  awsIamPolicies: [ID!]!
+  orgUnitID: ID!
+}
+
+input CloudAccessRoleUpdate {
+  name: String
+  awsIamPolicies: [ID!]
+  orgUnitID: ID
+}
+
+input CloudAccessRoleFilters {
+  nameContains: String
+  cloudPlatform: CloudPlatform
+}
+
+extend type Query {
+  cloudAccessRole(cloudAccessRoleID: ID!): CloudAccessRole!
+  cloudAccessRoles(
+    filters: CloudAccessRoleFilters
+    limit: Int
+    offset: Int
+  ): [CloudAccessRole!]!
+}
+
+extend type Mutation {
+  createCloudAccessRole(cloudAccessRole: NewCloudAccessRole!): CloudAccessRole!
+  deleteCloudAccessRole(cloudAccessRoleID: ID!): Boolean!
+  updateCloudAccessRole(
+    cloudAccessRoleID: ID!
+    update: CloudAccessRoleUpdate!
+  ): CloudAccessRole!
+}
+`, BuiltIn: false},
 	{Name: "../cloud_platform.graphqls", Input: `enum CloudPlatform {
   aws
   azure
@@ -2386,6 +2853,9 @@ input MetadataInput {
     offset: Int
   ): [TerraformExecutionRequest!]!
   terraformConfiguration: String!
+
+  # expiremental
+  stateVersions(limit: Int, offset: Int): [StateVersion!]!
 }
 
 input NewModuleAssignment {
@@ -2750,6 +3220,7 @@ extend type Mutation {
     limit: Int
     offset: Int
   ): [ModuleAssignment!]!
+  cloudAccessRoles: [CloudAccessRole!]!
 }
 
 input NewOrgAccount {
@@ -2854,6 +3325,16 @@ extend type Mutation {
     limit: Int
     offset: Int
   ): [ModulePropagation!]!
+  cloudAccessRoles(
+    filters: CloudAccessRoleFilters
+    limit: Int
+    offset: Int
+  ): [CloudAccessRole!]!
+  inheritedCloudAccessRoles(
+    filters: CloudAccessRoleFilters
+    limit: Int
+    offset: Int
+  ): [CloudAccessRole!]!
 }
 
 input OrgUnitUpdate {
@@ -2922,6 +3403,29 @@ extend type Query {
 }
 `, BuiltIn: false},
 	{Name: "../scalar.graphqls", Input: `scalar Time
+`, BuiltIn: false},
+	{Name: "../state_version.graphqls", Input: `type StateVersion {
+  versionID: String!
+  lastModified: Time!
+  isCurrent: Boolean!
+
+  stateFile: StateFile!
+}
+
+type StateFile {
+  resources: [StateResource!]!
+}
+
+type StateResource {
+  type: String!
+  name: String!
+  id: String!
+  attributesJSON: String!
+}
+
+extend type Query {
+  stateFile(bucket: String!, key: String!, versionID: String!): StateFile!
+}
 `, BuiltIn: false},
 	{Name: "../terraform_drift_check_requests.graphqls", Input: `type TerraformDriftCheckRequest {
   id: ID!
@@ -3010,6 +3514,30 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_ModuleAssignment_stateVersions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg1
+	return args, nil
+}
 
 func (ec *executionContext) field_ModuleAssignment_terraformDriftCheckRequests_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -3431,6 +3959,36 @@ func (ec *executionContext) field_Mutation_addAccountToOrgUnit_args(ctx context.
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createAwsIamPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.NewAwsIamPolicy
+	if tmp, ok := rawArgs["awsIamPolicy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("awsIamPolicy"))
+		arg0, err = ec.unmarshalNNewAwsIamPolicy2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewAwsIamPolicy(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["awsIamPolicy"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createCloudAccessRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.NewCloudAccessRole
+	if tmp, ok := rawArgs["cloudAccessRole"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cloudAccessRole"))
+		arg0, err = ec.unmarshalNNewCloudAccessRole2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewCloudAccessRole(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cloudAccessRole"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createModuleAssignment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3596,6 +4154,36 @@ func (ec *executionContext) field_Mutation_createTerraformExecutionRequest_args(
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteAwsIamPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["awsIamPolicyID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("awsIamPolicyID"))
+		arg0, err = ec.unmarshalNID2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["awsIamPolicyID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteCloudAccessRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["cloudAccessRoleID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cloudAccessRoleID"))
+		arg0, err = ec.unmarshalNID2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cloudAccessRoleID"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteModuleAssignment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3722,6 +4310,54 @@ func (ec *executionContext) field_Mutation_removeAccountFromOrgUnit_args(ctx con
 		}
 	}
 	args["orgAccountID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateAwsIamPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["awsIamPolicyID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("awsIamPolicyID"))
+		arg0, err = ec.unmarshalNID2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["awsIamPolicyID"] = arg0
+	var arg1 models.AwsIamPolicyUpdate
+	if tmp, ok := rawArgs["update"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("update"))
+		arg1, err = ec.unmarshalNAwsIamPolicyUpdate2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsIamPolicyUpdate(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["update"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateCloudAccessRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["cloudAccessRoleID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cloudAccessRoleID"))
+		arg0, err = ec.unmarshalNID2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cloudAccessRoleID"] = arg0
+	var arg1 models.CloudAccessRoleUpdate
+	if tmp, ok := rawArgs["update"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("update"))
+		arg1, err = ec.unmarshalNCloudAccessRoleUpdate2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRoleUpdate(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["update"] = arg1
 	return args, nil
 }
 
@@ -3986,6 +4622,39 @@ func (ec *executionContext) field_OrgUnit_children_args(ctx context.Context, raw
 	return args, nil
 }
 
+func (ec *executionContext) field_OrgUnit_cloudAccessRoles_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *models.CloudAccessRoleFilters
+	if tmp, ok := rawArgs["filters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+		arg0, err = ec.unmarshalOCloudAccessRoleFilters2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRoleFilters(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filters"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_OrgUnit_downstreamOrgUnits_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3993,6 +4662,39 @@ func (ec *executionContext) field_OrgUnit_downstreamOrgUnits_args(ctx context.Co
 	if tmp, ok := rawArgs["filters"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
 		arg0, err = ec.unmarshalOOrgUnitFilters2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐOrgUnitFilters(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filters"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_OrgUnit_inheritedCloudAccessRoles_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *models.CloudAccessRoleFilters
+	if tmp, ok := rawArgs["filters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+		arg0, err = ec.unmarshalOCloudAccessRoleFilters2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRoleFilters(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4145,6 +4847,102 @@ func (ec *executionContext) field_Query_applyExecutionRequest_args(ctx context.C
 		}
 	}
 	args["applyExecutionRequestID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_awsIamPolicies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *models.AwsIamPolicyFilters
+	if tmp, ok := rawArgs["filters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+		arg0, err = ec.unmarshalOAwsIamPolicyFilters2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsIamPolicyFilters(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filters"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_awsIamPolicy_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["awsIamPolicyID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("awsIamPolicyID"))
+		arg0, err = ec.unmarshalNID2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["awsIamPolicyID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_cloudAccessRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uint
+	if tmp, ok := rawArgs["cloudAccessRoleID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cloudAccessRoleID"))
+		arg0, err = ec.unmarshalNID2uint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cloudAccessRoleID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_cloudAccessRoles_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *models.CloudAccessRoleFilters
+	if tmp, ok := rawArgs["filters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+		arg0, err = ec.unmarshalOCloudAccessRoleFilters2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRoleFilters(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filters"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg2
 	return args, nil
 }
 
@@ -4562,6 +5360,39 @@ func (ec *executionContext) field_Query_planExecutionRequest_args(ctx context.Co
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_stateFile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["bucket"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["bucket"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["key"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["key"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["versionID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("versionID"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["versionID"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4769,6 +5600,8 @@ func (ec *executionContext) fieldContext_ApplyExecutionRequest_moduleAssignment(
 				return ec.fieldContext_ModuleAssignment_terraformExecutionRequests(ctx, field)
 			case "terraformConfiguration":
 				return ec.fieldContext_ModuleAssignment_terraformConfiguration(ctx, field)
+			case "stateVersions":
+				return ec.fieldContext_ModuleAssignment_stateVersions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignment", field.Name)
 		},
@@ -5289,6 +6122,138 @@ func (ec *executionContext) fieldContext_Argument_value(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _AwsIamPolicy_id(ctx context.Context, field graphql.CollectedField, obj *models.AwsIamPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsIamPolicy_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNID2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AwsIamPolicy_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AwsIamPolicy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AwsIamPolicy_name(ctx context.Context, field graphql.CollectedField, obj *models.AwsIamPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsIamPolicy_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AwsIamPolicy_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AwsIamPolicy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AwsIamPolicy_policyDocument(ctx context.Context, field graphql.CollectedField, obj *models.AwsIamPolicy) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsIamPolicy_policyDocument(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PolicyDocument, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AwsIamPolicy_policyDocument(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AwsIamPolicy",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _AwsProviderConfiguration_region(ctx context.Context, field graphql.CollectedField, obj *models.AwsProviderConfiguration) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_AwsProviderConfiguration_region(ctx, field)
 	if err != nil {
@@ -5369,6 +6334,305 @@ func (ec *executionContext) fieldContext_AwsProviderConfiguration_alias(ctx cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CloudAccessRole_id(ctx context.Context, field graphql.CollectedField, obj *models.CloudAccessRole) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CloudAccessRole_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNID2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CloudAccessRole_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CloudAccessRole",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CloudAccessRole_name(ctx context.Context, field graphql.CollectedField, obj *models.CloudAccessRole) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CloudAccessRole_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CloudAccessRole_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CloudAccessRole",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CloudAccessRole_cloudPlatform(ctx context.Context, field graphql.CollectedField, obj *models.CloudAccessRole) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CloudAccessRole_cloudPlatform(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CloudPlatform, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.CloudPlatform)
+	fc.Result = res
+	return ec.marshalNCloudPlatform2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudPlatform(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CloudAccessRole_cloudPlatform(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CloudAccessRole",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CloudPlatform does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CloudAccessRole_awsIamPolicies(ctx context.Context, field graphql.CollectedField, obj *models.CloudAccessRole) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CloudAccessRole_awsIamPolicies(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CloudAccessRole().AwsIamPolicies(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*models.AwsIamPolicy)
+	fc.Result = res
+	return ec.marshalOAwsIamPolicy2ᚕᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsIamPolicyᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CloudAccessRole_awsIamPolicies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CloudAccessRole",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AwsIamPolicy_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AwsIamPolicy_name(ctx, field)
+			case "policyDocument":
+				return ec.fieldContext_AwsIamPolicy_policyDocument(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AwsIamPolicy", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CloudAccessRole_orgUnitID(ctx context.Context, field graphql.CollectedField, obj *models.CloudAccessRole) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CloudAccessRole_orgUnitID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrgUnitID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint)
+	fc.Result = res
+	return ec.marshalNID2uint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CloudAccessRole_orgUnitID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CloudAccessRole",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CloudAccessRole_orgUnit(ctx context.Context, field graphql.CollectedField, obj *models.CloudAccessRole) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CloudAccessRole_orgUnit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CloudAccessRole().OrgUnit(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.OrgUnit)
+	fc.Result = res
+	return ec.marshalNOrgUnit2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐOrgUnit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CloudAccessRole_orgUnit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CloudAccessRole",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_OrgUnit_id(ctx, field)
+			case "name":
+				return ec.fieldContext_OrgUnit_name(ctx, field)
+			case "orgDimensionID":
+				return ec.fieldContext_OrgUnit_orgDimensionID(ctx, field)
+			case "orgDimension":
+				return ec.fieldContext_OrgUnit_orgDimension(ctx, field)
+			case "hierarchy":
+				return ec.fieldContext_OrgUnit_hierarchy(ctx, field)
+			case "parentOrgUnitID":
+				return ec.fieldContext_OrgUnit_parentOrgUnitID(ctx, field)
+			case "parentOrgUnit":
+				return ec.fieldContext_OrgUnit_parentOrgUnit(ctx, field)
+			case "children":
+				return ec.fieldContext_OrgUnit_children(ctx, field)
+			case "downstreamOrgUnits":
+				return ec.fieldContext_OrgUnit_downstreamOrgUnits(ctx, field)
+			case "upstreamOrgUnits":
+				return ec.fieldContext_OrgUnit_upstreamOrgUnits(ctx, field)
+			case "orgAccounts":
+				return ec.fieldContext_OrgUnit_orgAccounts(ctx, field)
+			case "modulePropagations":
+				return ec.fieldContext_OrgUnit_modulePropagations(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgUnit_cloudAccessRoles(ctx, field)
+			case "inheritedCloudAccessRoles":
+				return ec.fieldContext_OrgUnit_inheritedCloudAccessRoles(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OrgUnit", field.Name)
 		},
 	}
 	return fc, nil
@@ -5900,6 +7164,8 @@ func (ec *executionContext) fieldContext_ModuleAssignment_orgAccount(ctx context
 				return ec.fieldContext_OrgAccount_metadata(ctx, field)
 			case "moduleAssignments":
 				return ec.fieldContext_OrgAccount_moduleAssignments(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgAccount_cloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgAccount", field.Name)
 		},
@@ -6643,6 +7909,71 @@ func (ec *executionContext) fieldContext_ModuleAssignment_terraformConfiguration
 	return fc, nil
 }
 
+func (ec *executionContext) _ModuleAssignment_stateVersions(ctx context.Context, field graphql.CollectedField, obj *models.ModuleAssignment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ModuleAssignment_stateVersions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ModuleAssignment().StateVersions(rctx, obj, fc.Args["limit"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.StateVersion)
+	fc.Result = res
+	return ec.marshalNStateVersion2ᚕᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐStateVersionᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ModuleAssignment_stateVersions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModuleAssignment",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "versionID":
+				return ec.fieldContext_StateVersion_versionID(ctx, field)
+			case "lastModified":
+				return ec.fieldContext_StateVersion_lastModified(ctx, field)
+			case "isCurrent":
+				return ec.fieldContext_StateVersion_isCurrent(ctx, field)
+			case "stateFile":
+				return ec.fieldContext_StateVersion_stateFile(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StateVersion", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_ModuleAssignment_stateVersions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ModuleGroup_id(ctx context.Context, field graphql.CollectedField, obj *models.ModuleGroup) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ModuleGroup_id(ctx, field)
 	if err != nil {
@@ -7022,6 +8353,8 @@ func (ec *executionContext) fieldContext_ModuleGroup_moduleAssignments(ctx conte
 				return ec.fieldContext_ModuleAssignment_terraformExecutionRequests(ctx, field)
 			case "terraformConfiguration":
 				return ec.fieldContext_ModuleAssignment_terraformConfiguration(ctx, field)
+			case "stateVersions":
+				return ec.fieldContext_ModuleAssignment_stateVersions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignment", field.Name)
 		},
@@ -7401,6 +8734,10 @@ func (ec *executionContext) fieldContext_ModulePropagation_orgUnit(ctx context.C
 				return ec.fieldContext_OrgUnit_orgAccounts(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_OrgUnit_modulePropagations(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgUnit_cloudAccessRoles(ctx, field)
+			case "inheritedCloudAccessRoles":
+				return ec.fieldContext_OrgUnit_inheritedCloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgUnit", field.Name)
 		},
@@ -7819,6 +9156,8 @@ func (ec *executionContext) fieldContext_ModulePropagation_moduleAssignments(ctx
 				return ec.fieldContext_ModuleAssignment_terraformExecutionRequests(ctx, field)
 			case "terraformConfiguration":
 				return ec.fieldContext_ModuleAssignment_terraformConfiguration(ctx, field)
+			case "stateVersions":
+				return ec.fieldContext_ModuleAssignment_stateVersions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignment", field.Name)
 		},
@@ -9456,6 +10795,8 @@ func (ec *executionContext) fieldContext_ModuleVersion_moduleAssignments(ctx con
 				return ec.fieldContext_ModuleAssignment_terraformExecutionRequests(ctx, field)
 			case "terraformConfiguration":
 				return ec.fieldContext_ModuleAssignment_terraformConfiguration(ctx, field)
+			case "stateVersions":
+				return ec.fieldContext_ModuleAssignment_stateVersions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignment", field.Name)
 		},
@@ -9468,6 +10809,380 @@ func (ec *executionContext) fieldContext_ModuleVersion_moduleAssignments(ctx con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_ModuleVersion_moduleAssignments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createAwsIamPolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createAwsIamPolicy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateAwsIamPolicy(rctx, fc.Args["awsIamPolicy"].(models.NewAwsIamPolicy))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.AwsIamPolicy)
+	fc.Result = res
+	return ec.marshalNAwsIamPolicy2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsIamPolicy(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createAwsIamPolicy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AwsIamPolicy_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AwsIamPolicy_name(ctx, field)
+			case "policyDocument":
+				return ec.fieldContext_AwsIamPolicy_policyDocument(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AwsIamPolicy", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createAwsIamPolicy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteAwsIamPolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteAwsIamPolicy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteAwsIamPolicy(rctx, fc.Args["awsIamPolicyID"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteAwsIamPolicy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteAwsIamPolicy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateAwsIamPolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateAwsIamPolicy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateAwsIamPolicy(rctx, fc.Args["awsIamPolicyID"].(uint), fc.Args["update"].(models.AwsIamPolicyUpdate))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.AwsIamPolicy)
+	fc.Result = res
+	return ec.marshalNAwsIamPolicy2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsIamPolicy(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateAwsIamPolicy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AwsIamPolicy_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AwsIamPolicy_name(ctx, field)
+			case "policyDocument":
+				return ec.fieldContext_AwsIamPolicy_policyDocument(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AwsIamPolicy", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateAwsIamPolicy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createCloudAccessRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createCloudAccessRole(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateCloudAccessRole(rctx, fc.Args["cloudAccessRole"].(models.NewCloudAccessRole))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.CloudAccessRole)
+	fc.Result = res
+	return ec.marshalNCloudAccessRole2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRole(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createCloudAccessRole(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CloudAccessRole_id(ctx, field)
+			case "name":
+				return ec.fieldContext_CloudAccessRole_name(ctx, field)
+			case "cloudPlatform":
+				return ec.fieldContext_CloudAccessRole_cloudPlatform(ctx, field)
+			case "awsIamPolicies":
+				return ec.fieldContext_CloudAccessRole_awsIamPolicies(ctx, field)
+			case "orgUnitID":
+				return ec.fieldContext_CloudAccessRole_orgUnitID(ctx, field)
+			case "orgUnit":
+				return ec.fieldContext_CloudAccessRole_orgUnit(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CloudAccessRole", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createCloudAccessRole_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteCloudAccessRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteCloudAccessRole(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteCloudAccessRole(rctx, fc.Args["cloudAccessRoleID"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteCloudAccessRole(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteCloudAccessRole_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateCloudAccessRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateCloudAccessRole(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateCloudAccessRole(rctx, fc.Args["cloudAccessRoleID"].(uint), fc.Args["update"].(models.CloudAccessRoleUpdate))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.CloudAccessRole)
+	fc.Result = res
+	return ec.marshalNCloudAccessRole2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRole(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateCloudAccessRole(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CloudAccessRole_id(ctx, field)
+			case "name":
+				return ec.fieldContext_CloudAccessRole_name(ctx, field)
+			case "cloudPlatform":
+				return ec.fieldContext_CloudAccessRole_cloudPlatform(ctx, field)
+			case "awsIamPolicies":
+				return ec.fieldContext_CloudAccessRole_awsIamPolicies(ctx, field)
+			case "orgUnitID":
+				return ec.fieldContext_CloudAccessRole_orgUnitID(ctx, field)
+			case "orgUnit":
+				return ec.fieldContext_CloudAccessRole_orgUnit(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CloudAccessRole", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateCloudAccessRole_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -9555,6 +11270,8 @@ func (ec *executionContext) fieldContext_Mutation_createModuleAssignment(ctx con
 				return ec.fieldContext_ModuleAssignment_terraformExecutionRequests(ctx, field)
 			case "terraformConfiguration":
 				return ec.fieldContext_ModuleAssignment_terraformConfiguration(ctx, field)
+			case "stateVersions":
+				return ec.fieldContext_ModuleAssignment_stateVersions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignment", field.Name)
 		},
@@ -9654,6 +11371,8 @@ func (ec *executionContext) fieldContext_Mutation_updateModuleAssignment(ctx con
 				return ec.fieldContext_ModuleAssignment_terraformExecutionRequests(ctx, field)
 			case "terraformConfiguration":
 				return ec.fieldContext_ModuleAssignment_terraformConfiguration(ctx, field)
+			case "stateVersions":
+				return ec.fieldContext_ModuleAssignment_stateVersions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignment", field.Name)
 		},
@@ -10417,6 +12136,8 @@ func (ec *executionContext) fieldContext_Mutation_createOrgAccount(ctx context.C
 				return ec.fieldContext_OrgAccount_metadata(ctx, field)
 			case "moduleAssignments":
 				return ec.fieldContext_OrgAccount_moduleAssignments(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgAccount_cloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgAccount", field.Name)
 		},
@@ -10545,6 +12266,8 @@ func (ec *executionContext) fieldContext_Mutation_updateOrgAccount(ctx context.C
 				return ec.fieldContext_OrgAccount_metadata(ctx, field)
 			case "moduleAssignments":
 				return ec.fieldContext_OrgAccount_moduleAssignments(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgAccount_cloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgAccount", field.Name)
 		},
@@ -10746,6 +12469,10 @@ func (ec *executionContext) fieldContext_Mutation_createOrgUnit(ctx context.Cont
 				return ec.fieldContext_OrgUnit_orgAccounts(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_OrgUnit_modulePropagations(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgUnit_cloudAccessRoles(ctx, field)
+			case "inheritedCloudAccessRoles":
+				return ec.fieldContext_OrgUnit_inheritedCloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgUnit", field.Name)
 		},
@@ -10882,6 +12609,10 @@ func (ec *executionContext) fieldContext_Mutation_updateOrgUnit(ctx context.Cont
 				return ec.fieldContext_OrgUnit_orgAccounts(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_OrgUnit_modulePropagations(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgUnit_cloudAccessRoles(ctx, field)
+			case "inheritedCloudAccessRoles":
+				return ec.fieldContext_OrgUnit_inheritedCloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgUnit", field.Name)
 		},
@@ -11459,6 +13190,10 @@ func (ec *executionContext) fieldContext_OrgAccount_orgUnits(ctx context.Context
 				return ec.fieldContext_OrgUnit_orgAccounts(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_OrgUnit_modulePropagations(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgUnit_cloudAccessRoles(ctx, field)
+			case "inheritedCloudAccessRoles":
+				return ec.fieldContext_OrgUnit_inheritedCloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgUnit", field.Name)
 		},
@@ -11608,6 +13343,8 @@ func (ec *executionContext) fieldContext_OrgAccount_moduleAssignments(ctx contex
 				return ec.fieldContext_ModuleAssignment_terraformExecutionRequests(ctx, field)
 			case "terraformConfiguration":
 				return ec.fieldContext_ModuleAssignment_terraformConfiguration(ctx, field)
+			case "stateVersions":
+				return ec.fieldContext_ModuleAssignment_stateVersions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignment", field.Name)
 		},
@@ -11622,6 +13359,64 @@ func (ec *executionContext) fieldContext_OrgAccount_moduleAssignments(ctx contex
 	if fc.Args, err = ec.field_OrgAccount_moduleAssignments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OrgAccount_cloudAccessRoles(ctx context.Context, field graphql.CollectedField, obj *models.OrgAccount) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OrgAccount_cloudAccessRoles(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.OrgAccount().CloudAccessRoles(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.CloudAccessRole)
+	fc.Result = res
+	return ec.marshalNCloudAccessRole2ᚕᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRoleᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OrgAccount_cloudAccessRoles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OrgAccount",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CloudAccessRole_id(ctx, field)
+			case "name":
+				return ec.fieldContext_CloudAccessRole_name(ctx, field)
+			case "cloudPlatform":
+				return ec.fieldContext_CloudAccessRole_cloudPlatform(ctx, field)
+			case "awsIamPolicies":
+				return ec.fieldContext_CloudAccessRole_awsIamPolicies(ctx, field)
+			case "orgUnitID":
+				return ec.fieldContext_CloudAccessRole_orgUnitID(ctx, field)
+			case "orgUnit":
+				return ec.fieldContext_CloudAccessRole_orgUnit(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CloudAccessRole", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -11777,6 +13572,10 @@ func (ec *executionContext) fieldContext_OrgDimension_orgUnits(ctx context.Conte
 				return ec.fieldContext_OrgUnit_orgAccounts(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_OrgUnit_modulePropagations(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgUnit_cloudAccessRoles(ctx, field)
+			case "inheritedCloudAccessRoles":
+				return ec.fieldContext_OrgUnit_inheritedCloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgUnit", field.Name)
 		},
@@ -12217,6 +14016,10 @@ func (ec *executionContext) fieldContext_OrgUnit_parentOrgUnit(ctx context.Conte
 				return ec.fieldContext_OrgUnit_orgAccounts(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_OrgUnit_modulePropagations(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgUnit_cloudAccessRoles(ctx, field)
+			case "inheritedCloudAccessRoles":
+				return ec.fieldContext_OrgUnit_inheritedCloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgUnit", field.Name)
 		},
@@ -12287,6 +14090,10 @@ func (ec *executionContext) fieldContext_OrgUnit_children(ctx context.Context, f
 				return ec.fieldContext_OrgUnit_orgAccounts(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_OrgUnit_modulePropagations(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgUnit_cloudAccessRoles(ctx, field)
+			case "inheritedCloudAccessRoles":
+				return ec.fieldContext_OrgUnit_inheritedCloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgUnit", field.Name)
 		},
@@ -12368,6 +14175,10 @@ func (ec *executionContext) fieldContext_OrgUnit_downstreamOrgUnits(ctx context.
 				return ec.fieldContext_OrgUnit_orgAccounts(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_OrgUnit_modulePropagations(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgUnit_cloudAccessRoles(ctx, field)
+			case "inheritedCloudAccessRoles":
+				return ec.fieldContext_OrgUnit_inheritedCloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgUnit", field.Name)
 		},
@@ -12449,6 +14260,10 @@ func (ec *executionContext) fieldContext_OrgUnit_upstreamOrgUnits(ctx context.Co
 				return ec.fieldContext_OrgUnit_orgAccounts(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_OrgUnit_modulePropagations(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgUnit_cloudAccessRoles(ctx, field)
+			case "inheritedCloudAccessRoles":
+				return ec.fieldContext_OrgUnit_inheritedCloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgUnit", field.Name)
 		},
@@ -12522,6 +14337,8 @@ func (ec *executionContext) fieldContext_OrgUnit_orgAccounts(ctx context.Context
 				return ec.fieldContext_OrgAccount_metadata(ctx, field)
 			case "moduleAssignments":
 				return ec.fieldContext_OrgAccount_moduleAssignments(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgAccount_cloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgAccount", field.Name)
 		},
@@ -12625,6 +14442,144 @@ func (ec *executionContext) fieldContext_OrgUnit_modulePropagations(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_OrgUnit_modulePropagations_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OrgUnit_cloudAccessRoles(ctx context.Context, field graphql.CollectedField, obj *models.OrgUnit) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OrgUnit_cloudAccessRoles(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.OrgUnit().CloudAccessRoles(rctx, obj, fc.Args["filters"].(*models.CloudAccessRoleFilters), fc.Args["limit"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.CloudAccessRole)
+	fc.Result = res
+	return ec.marshalNCloudAccessRole2ᚕᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRoleᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OrgUnit_cloudAccessRoles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OrgUnit",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CloudAccessRole_id(ctx, field)
+			case "name":
+				return ec.fieldContext_CloudAccessRole_name(ctx, field)
+			case "cloudPlatform":
+				return ec.fieldContext_CloudAccessRole_cloudPlatform(ctx, field)
+			case "awsIamPolicies":
+				return ec.fieldContext_CloudAccessRole_awsIamPolicies(ctx, field)
+			case "orgUnitID":
+				return ec.fieldContext_CloudAccessRole_orgUnitID(ctx, field)
+			case "orgUnit":
+				return ec.fieldContext_CloudAccessRole_orgUnit(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CloudAccessRole", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_OrgUnit_cloudAccessRoles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OrgUnit_inheritedCloudAccessRoles(ctx context.Context, field graphql.CollectedField, obj *models.OrgUnit) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OrgUnit_inheritedCloudAccessRoles(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.OrgUnit().InheritedCloudAccessRoles(rctx, obj, fc.Args["filters"].(*models.CloudAccessRoleFilters), fc.Args["limit"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.CloudAccessRole)
+	fc.Result = res
+	return ec.marshalNCloudAccessRole2ᚕᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRoleᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OrgUnit_inheritedCloudAccessRoles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OrgUnit",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CloudAccessRole_id(ctx, field)
+			case "name":
+				return ec.fieldContext_CloudAccessRole_name(ctx, field)
+			case "cloudPlatform":
+				return ec.fieldContext_CloudAccessRole_cloudPlatform(ctx, field)
+			case "awsIamPolicies":
+				return ec.fieldContext_CloudAccessRole_awsIamPolicies(ctx, field)
+			case "orgUnitID":
+				return ec.fieldContext_CloudAccessRole_orgUnitID(ctx, field)
+			case "orgUnit":
+				return ec.fieldContext_CloudAccessRole_orgUnit(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CloudAccessRole", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_OrgUnit_inheritedCloudAccessRoles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -12800,6 +14755,8 @@ func (ec *executionContext) fieldContext_PlanExecutionRequest_moduleAssignment(c
 				return ec.fieldContext_ModuleAssignment_terraformExecutionRequests(ctx, field)
 			case "terraformConfiguration":
 				return ec.fieldContext_ModuleAssignment_terraformConfiguration(ctx, field)
+			case "stateVersions":
+				return ec.fieldContext_ModuleAssignment_stateVersions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignment", field.Name)
 		},
@@ -13391,6 +15348,270 @@ func (ec *executionContext) fieldContext_Query_applyExecutionRequest(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_awsIamPolicy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_awsIamPolicy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AwsIamPolicy(rctx, fc.Args["awsIamPolicyID"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.AwsIamPolicy)
+	fc.Result = res
+	return ec.marshalNAwsIamPolicy2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsIamPolicy(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_awsIamPolicy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AwsIamPolicy_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AwsIamPolicy_name(ctx, field)
+			case "policyDocument":
+				return ec.fieldContext_AwsIamPolicy_policyDocument(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AwsIamPolicy", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_awsIamPolicy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_awsIamPolicies(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_awsIamPolicies(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AwsIamPolicies(rctx, fc.Args["filters"].(*models.AwsIamPolicyFilters), fc.Args["limit"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.AwsIamPolicy)
+	fc.Result = res
+	return ec.marshalNAwsIamPolicy2ᚕᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsIamPolicyᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_awsIamPolicies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AwsIamPolicy_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AwsIamPolicy_name(ctx, field)
+			case "policyDocument":
+				return ec.fieldContext_AwsIamPolicy_policyDocument(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AwsIamPolicy", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_awsIamPolicies_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_cloudAccessRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_cloudAccessRole(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CloudAccessRole(rctx, fc.Args["cloudAccessRoleID"].(uint))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.CloudAccessRole)
+	fc.Result = res
+	return ec.marshalNCloudAccessRole2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRole(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_cloudAccessRole(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CloudAccessRole_id(ctx, field)
+			case "name":
+				return ec.fieldContext_CloudAccessRole_name(ctx, field)
+			case "cloudPlatform":
+				return ec.fieldContext_CloudAccessRole_cloudPlatform(ctx, field)
+			case "awsIamPolicies":
+				return ec.fieldContext_CloudAccessRole_awsIamPolicies(ctx, field)
+			case "orgUnitID":
+				return ec.fieldContext_CloudAccessRole_orgUnitID(ctx, field)
+			case "orgUnit":
+				return ec.fieldContext_CloudAccessRole_orgUnit(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CloudAccessRole", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_cloudAccessRole_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_cloudAccessRoles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_cloudAccessRoles(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CloudAccessRoles(rctx, fc.Args["filters"].(*models.CloudAccessRoleFilters), fc.Args["limit"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.CloudAccessRole)
+	fc.Result = res
+	return ec.marshalNCloudAccessRole2ᚕᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRoleᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_cloudAccessRoles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CloudAccessRole_id(ctx, field)
+			case "name":
+				return ec.fieldContext_CloudAccessRole_name(ctx, field)
+			case "cloudPlatform":
+				return ec.fieldContext_CloudAccessRole_cloudPlatform(ctx, field)
+			case "awsIamPolicies":
+				return ec.fieldContext_CloudAccessRole_awsIamPolicies(ctx, field)
+			case "orgUnitID":
+				return ec.fieldContext_CloudAccessRole_orgUnitID(ctx, field)
+			case "orgUnit":
+				return ec.fieldContext_CloudAccessRole_orgUnit(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CloudAccessRole", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_cloudAccessRoles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_moduleAssignment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_moduleAssignment(ctx, field)
 	if err != nil {
@@ -13472,6 +15693,8 @@ func (ec *executionContext) fieldContext_Query_moduleAssignment(ctx context.Cont
 				return ec.fieldContext_ModuleAssignment_terraformExecutionRequests(ctx, field)
 			case "terraformConfiguration":
 				return ec.fieldContext_ModuleAssignment_terraformConfiguration(ctx, field)
+			case "stateVersions":
+				return ec.fieldContext_ModuleAssignment_stateVersions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignment", field.Name)
 		},
@@ -13571,6 +15794,8 @@ func (ec *executionContext) fieldContext_Query_moduleAssignments(ctx context.Con
 				return ec.fieldContext_ModuleAssignment_terraformExecutionRequests(ctx, field)
 			case "terraformConfiguration":
 				return ec.fieldContext_ModuleAssignment_terraformConfiguration(ctx, field)
+			case "stateVersions":
+				return ec.fieldContext_ModuleAssignment_stateVersions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignment", field.Name)
 		},
@@ -14402,6 +16627,8 @@ func (ec *executionContext) fieldContext_Query_orgAccount(ctx context.Context, f
 				return ec.fieldContext_OrgAccount_metadata(ctx, field)
 			case "moduleAssignments":
 				return ec.fieldContext_OrgAccount_moduleAssignments(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgAccount_cloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgAccount", field.Name)
 		},
@@ -14475,6 +16702,8 @@ func (ec *executionContext) fieldContext_Query_orgAccounts(ctx context.Context, 
 				return ec.fieldContext_OrgAccount_metadata(ctx, field)
 			case "moduleAssignments":
 				return ec.fieldContext_OrgAccount_moduleAssignments(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgAccount_cloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgAccount", field.Name)
 		},
@@ -14686,6 +16915,10 @@ func (ec *executionContext) fieldContext_Query_orgUnit(ctx context.Context, fiel
 				return ec.fieldContext_OrgUnit_orgAccounts(ctx, field)
 			case "modulePropagations":
 				return ec.fieldContext_OrgUnit_modulePropagations(ctx, field)
+			case "cloudAccessRoles":
+				return ec.fieldContext_OrgUnit_cloudAccessRoles(ctx, field)
+			case "inheritedCloudAccessRoles":
+				return ec.fieldContext_OrgUnit_inheritedCloudAccessRoles(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrgUnit", field.Name)
 		},
@@ -14785,6 +17018,65 @@ func (ec *executionContext) fieldContext_Query_planExecutionRequest(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_planExecutionRequest_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_stateFile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_stateFile(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().StateFile(rctx, fc.Args["bucket"].(string), fc.Args["key"].(string), fc.Args["versionID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.StateFile)
+	fc.Result = res
+	return ec.marshalNStateFile2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐStateFile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_stateFile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "resources":
+				return ec.fieldContext_StateFile_resources(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StateFile", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_stateFile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -14915,6 +17207,416 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StateFile_resources(ctx context.Context, field graphql.CollectedField, obj *models.StateFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StateFile_resources(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Resources, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]models.StateResource)
+	fc.Result = res
+	return ec.marshalNStateResource2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐStateResourceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StateFile_resources(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StateFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "type":
+				return ec.fieldContext_StateResource_type(ctx, field)
+			case "name":
+				return ec.fieldContext_StateResource_name(ctx, field)
+			case "id":
+				return ec.fieldContext_StateResource_id(ctx, field)
+			case "attributesJSON":
+				return ec.fieldContext_StateResource_attributesJSON(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StateResource", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StateResource_type(ctx context.Context, field graphql.CollectedField, obj *models.StateResource) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StateResource_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StateResource_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StateResource",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StateResource_name(ctx context.Context, field graphql.CollectedField, obj *models.StateResource) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StateResource_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StateResource_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StateResource",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StateResource_id(ctx context.Context, field graphql.CollectedField, obj *models.StateResource) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StateResource_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StateResource_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StateResource",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StateResource_attributesJSON(ctx context.Context, field graphql.CollectedField, obj *models.StateResource) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StateResource_attributesJSON(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.StateResource().AttributesJSON(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StateResource_attributesJSON(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StateResource",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StateVersion_versionID(ctx context.Context, field graphql.CollectedField, obj *models.StateVersion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StateVersion_versionID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.VersionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StateVersion_versionID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StateVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StateVersion_lastModified(ctx context.Context, field graphql.CollectedField, obj *models.StateVersion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StateVersion_lastModified(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastModified, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StateVersion_lastModified(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StateVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StateVersion_isCurrent(ctx context.Context, field graphql.CollectedField, obj *models.StateVersion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StateVersion_isCurrent(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsCurrent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StateVersion_isCurrent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StateVersion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StateVersion_stateFile(ctx context.Context, field graphql.CollectedField, obj *models.StateVersion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StateVersion_stateFile(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.StateVersion().StateFile(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.StateFile)
+	fc.Result = res
+	return ec.marshalNStateFile2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐStateFile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StateVersion_stateFile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StateVersion",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "resources":
+				return ec.fieldContext_StateFile_resources(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StateFile", field.Name)
 		},
 	}
 	return fc, nil
@@ -15089,6 +17791,8 @@ func (ec *executionContext) fieldContext_TerraformDriftCheckRequest_moduleAssign
 				return ec.fieldContext_ModuleAssignment_terraformExecutionRequests(ctx, field)
 			case "terraformConfiguration":
 				return ec.fieldContext_ModuleAssignment_terraformConfiguration(ctx, field)
+			case "stateVersions":
+				return ec.fieldContext_ModuleAssignment_stateVersions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignment", field.Name)
 		},
@@ -15770,6 +18474,8 @@ func (ec *executionContext) fieldContext_TerraformExecutionRequest_moduleAssignm
 				return ec.fieldContext_ModuleAssignment_terraformExecutionRequests(ctx, field)
 			case "terraformConfiguration":
 				return ec.fieldContext_ModuleAssignment_terraformConfiguration(ctx, field)
+			case "stateVersions":
+				return ec.fieldContext_ModuleAssignment_stateVersions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModuleAssignment", field.Name)
 		},
@@ -18182,6 +20888,70 @@ func (ec *executionContext) unmarshalInputArgumentInput(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputAwsIamPolicyFilters(ctx context.Context, obj interface{}) (models.AwsIamPolicyFilters, error) {
+	var it models.AwsIamPolicyFilters
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"nameContains"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "nameContains":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContains"))
+			it.NameContains, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputAwsIamPolicyUpdate(ctx context.Context, obj interface{}) (models.AwsIamPolicyUpdate, error) {
+	var it models.AwsIamPolicyUpdate
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "policyDocument"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "policyDocument":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("policyDocument"))
+			it.PolicyDocument, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputAwsProviderConfigurationInput(ctx context.Context, obj interface{}) (models.AwsProviderConfigurationInput, error) {
 	var it models.AwsProviderConfigurationInput
 	asMap := map[string]interface{}{}
@@ -18209,6 +20979,86 @@ func (ec *executionContext) unmarshalInputAwsProviderConfigurationInput(ctx cont
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
 			it.Alias, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCloudAccessRoleFilters(ctx context.Context, obj interface{}) (models.CloudAccessRoleFilters, error) {
+	var it models.CloudAccessRoleFilters
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"nameContains", "cloudPlatform"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "nameContains":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContains"))
+			it.NameContains, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "cloudPlatform":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cloudPlatform"))
+			it.CloudPlatform, err = ec.unmarshalOCloudPlatform2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudPlatform(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCloudAccessRoleUpdate(ctx context.Context, obj interface{}) (models.CloudAccessRoleUpdate, error) {
+	var it models.CloudAccessRoleUpdate
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "awsIamPolicies", "orgUnitID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "awsIamPolicies":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("awsIamPolicies"))
+			it.AwsIamPolicies, err = ec.unmarshalOID2ᚖᚕuintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "orgUnitID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orgUnitID"))
+			it.OrgUnitID, err = ec.unmarshalOID2ᚖuint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18729,6 +21579,94 @@ func (ec *executionContext) unmarshalInputModuleVersionFilters(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("terraformVersion"))
 			it.TerraformVersion, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewAwsIamPolicy(ctx context.Context, obj interface{}) (models.NewAwsIamPolicy, error) {
+	var it models.NewAwsIamPolicy
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "policyDocument"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "policyDocument":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("policyDocument"))
+			it.PolicyDocument, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewCloudAccessRole(ctx context.Context, obj interface{}) (models.NewCloudAccessRole, error) {
+	var it models.NewCloudAccessRole
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "cloudPlatform", "awsIamPolicies", "orgUnitID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "cloudPlatform":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cloudPlatform"))
+			it.CloudPlatform, err = ec.unmarshalNCloudPlatform2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudPlatform(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "awsIamPolicies":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("awsIamPolicies"))
+			it.AwsIamPolicies, err = ec.unmarshalNID2ᚕuintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "orgUnitID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orgUnitID"))
+			it.OrgUnitID, err = ec.unmarshalNID2uint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19867,6 +22805,48 @@ func (ec *executionContext) _Argument(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
+var awsIamPolicyImplementors = []string{"AwsIamPolicy"}
+
+func (ec *executionContext) _AwsIamPolicy(ctx context.Context, sel ast.SelectionSet, obj *models.AwsIamPolicy) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, awsIamPolicyImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AwsIamPolicy")
+		case "id":
+
+			out.Values[i] = ec._AwsIamPolicy_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._AwsIamPolicy_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "policyDocument":
+
+			out.Values[i] = ec._AwsIamPolicy_policyDocument(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var awsProviderConfigurationImplementors = []string{"AwsProviderConfiguration"}
 
 func (ec *executionContext) _AwsProviderConfiguration(ctx context.Context, sel ast.SelectionSet, obj *models.AwsProviderConfiguration) graphql.Marshaler {
@@ -19888,6 +22868,92 @@ func (ec *executionContext) _AwsProviderConfiguration(ctx context.Context, sel a
 
 			out.Values[i] = ec._AwsProviderConfiguration_alias(ctx, field, obj)
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var cloudAccessRoleImplementors = []string{"CloudAccessRole"}
+
+func (ec *executionContext) _CloudAccessRole(ctx context.Context, sel ast.SelectionSet, obj *models.CloudAccessRole) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, cloudAccessRoleImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CloudAccessRole")
+		case "id":
+
+			out.Values[i] = ec._CloudAccessRole_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "name":
+
+			out.Values[i] = ec._CloudAccessRole_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "cloudPlatform":
+
+			out.Values[i] = ec._CloudAccessRole_cloudPlatform(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "awsIamPolicies":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CloudAccessRole_awsIamPolicies(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "orgUnitID":
+
+			out.Values[i] = ec._CloudAccessRole_orgUnitID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "orgUnit":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CloudAccessRole_orgUnit(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -20192,6 +23258,26 @@ func (ec *executionContext) _ModuleAssignment(ctx context.Context, sel ast.Selec
 					}
 				}()
 				res = ec._ModuleAssignment_terraformConfiguration(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "stateVersions":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ModuleAssignment_stateVersions(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -20915,6 +24001,60 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "createAwsIamPolicy":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createAwsIamPolicy(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteAwsIamPolicy":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteAwsIamPolicy(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateAwsIamPolicy":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateAwsIamPolicy(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createCloudAccessRole":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createCloudAccessRole(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteCloudAccessRole":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteCloudAccessRole(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateCloudAccessRole":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateCloudAccessRole(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createModuleAssignment":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -21234,6 +24374,26 @@ func (ec *executionContext) _OrgAccount(ctx context.Context, sel ast.SelectionSe
 				return innerFunc(ctx)
 
 			})
+		case "cloudAccessRoles":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._OrgAccount_cloudAccessRoles(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21499,6 +24659,46 @@ func (ec *executionContext) _OrgUnit(ctx context.Context, sel ast.SelectionSet, 
 				return innerFunc(ctx)
 
 			})
+		case "cloudAccessRoles":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._OrgUnit_cloudAccessRoles(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "inheritedCloudAccessRoles":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._OrgUnit_inheritedCloudAccessRoles(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21716,6 +24916,98 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_applyExecutionRequest(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "awsIamPolicy":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_awsIamPolicy(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "awsIamPolicies":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_awsIamPolicies(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "cloudAccessRole":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_cloudAccessRole(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "cloudAccessRoles":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_cloudAccessRoles(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -22143,6 +25435,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "stateFile":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_stateFile(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -22155,6 +25470,158 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				return ec._Query___schema(ctx, field)
 			})
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var stateFileImplementors = []string{"StateFile"}
+
+func (ec *executionContext) _StateFile(ctx context.Context, sel ast.SelectionSet, obj *models.StateFile) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, stateFileImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StateFile")
+		case "resources":
+
+			out.Values[i] = ec._StateFile_resources(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var stateResourceImplementors = []string{"StateResource"}
+
+func (ec *executionContext) _StateResource(ctx context.Context, sel ast.SelectionSet, obj *models.StateResource) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, stateResourceImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StateResource")
+		case "type":
+
+			out.Values[i] = ec._StateResource_type(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "name":
+
+			out.Values[i] = ec._StateResource_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "id":
+
+			out.Values[i] = ec._StateResource_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "attributesJSON":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._StateResource_attributesJSON(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var stateVersionImplementors = []string{"StateVersion"}
+
+func (ec *executionContext) _StateVersion(ctx context.Context, sel ast.SelectionSet, obj *models.StateVersion) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, stateVersionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StateVersion")
+		case "versionID":
+
+			out.Values[i] = ec._StateVersion_versionID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "lastModified":
+
+			out.Values[i] = ec._StateVersion_lastModified(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "isCurrent":
+
+			out.Values[i] = ec._StateVersion_isCurrent(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "stateFile":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._StateVersion_stateFile(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -22864,6 +26331,69 @@ func (ec *executionContext) unmarshalNArgumentInput2ᚕgithubᚗcomᚋsheacloud�
 	return res, nil
 }
 
+func (ec *executionContext) marshalNAwsIamPolicy2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsIamPolicy(ctx context.Context, sel ast.SelectionSet, v models.AwsIamPolicy) graphql.Marshaler {
+	return ec._AwsIamPolicy(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAwsIamPolicy2ᚕᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsIamPolicyᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.AwsIamPolicy) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAwsIamPolicy2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsIamPolicy(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAwsIamPolicy2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsIamPolicy(ctx context.Context, sel ast.SelectionSet, v *models.AwsIamPolicy) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AwsIamPolicy(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNAwsIamPolicyUpdate2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsIamPolicyUpdate(ctx context.Context, v interface{}) (models.AwsIamPolicyUpdate, error) {
+	res, err := ec.unmarshalInputAwsIamPolicyUpdate(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNAwsProviderConfiguration2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsProviderConfiguration(ctx context.Context, sel ast.SelectionSet, v models.AwsProviderConfiguration) graphql.Marshaler {
 	return ec._AwsProviderConfiguration(ctx, sel, &v)
 }
@@ -22886,6 +26416,69 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNCloudAccessRole2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRole(ctx context.Context, sel ast.SelectionSet, v models.CloudAccessRole) graphql.Marshaler {
+	return ec._CloudAccessRole(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCloudAccessRole2ᚕᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRoleᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.CloudAccessRole) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCloudAccessRole2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRole(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCloudAccessRole2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRole(ctx context.Context, sel ast.SelectionSet, v *models.CloudAccessRole) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CloudAccessRole(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCloudAccessRoleUpdate2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRoleUpdate(ctx context.Context, v interface{}) (models.CloudAccessRoleUpdate, error) {
+	res, err := ec.unmarshalInputCloudAccessRoleUpdate(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNCloudPlatform2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudPlatform(ctx context.Context, v interface{}) (models.CloudPlatform, error) {
@@ -22926,6 +26519,38 @@ func (ec *executionContext) marshalNID2uint(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNID2ᚕuintᚄ(ctx context.Context, v interface{}) ([]uint, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]uint, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2uint(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNID2ᚕuintᚄ(ctx context.Context, sel ast.SelectionSet, v []uint) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2uint(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNMetadata2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐMetadata(ctx context.Context, sel ast.SelectionSet, v models.Metadata) graphql.Marshaler {
@@ -23426,6 +27051,16 @@ func (ec *executionContext) marshalNModuleVersion2ᚖgithubᚗcomᚋsheacloudᚋ
 	return ec._ModuleVersion(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNNewAwsIamPolicy2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewAwsIamPolicy(ctx context.Context, v interface{}) (models.NewAwsIamPolicy, error) {
+	res, err := ec.unmarshalInputNewAwsIamPolicy(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNNewCloudAccessRole2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewCloudAccessRole(ctx context.Context, v interface{}) (models.NewCloudAccessRole, error) {
+	res, err := ec.unmarshalInputNewCloudAccessRole(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNNewModuleAssignment2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐNewModuleAssignment(ctx context.Context, v interface{}) (models.NewModuleAssignment, error) {
 	res, err := ec.unmarshalInputNewModuleAssignment(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -23695,6 +27330,122 @@ func (ec *executionContext) marshalNRequestStatus2githubᚗcomᚋsheacloudᚋtfo
 	return res
 }
 
+func (ec *executionContext) marshalNStateFile2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐStateFile(ctx context.Context, sel ast.SelectionSet, v models.StateFile) graphql.Marshaler {
+	return ec._StateFile(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStateFile2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐStateFile(ctx context.Context, sel ast.SelectionSet, v *models.StateFile) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._StateFile(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNStateResource2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐStateResource(ctx context.Context, sel ast.SelectionSet, v models.StateResource) graphql.Marshaler {
+	return ec._StateResource(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStateResource2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐStateResourceᚄ(ctx context.Context, sel ast.SelectionSet, v []models.StateResource) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNStateResource2githubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐStateResource(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNStateVersion2ᚕᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐStateVersionᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.StateVersion) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNStateVersion2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐStateVersion(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNStateVersion2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐStateVersion(ctx context.Context, sel ast.SelectionSet, v *models.StateVersion) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._StateVersion(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -23840,6 +27591,21 @@ func (ec *executionContext) marshalNTerraformExecutionRequest2ᚖgithubᚗcomᚋ
 		return graphql.Null
 	}
 	return ec._TerraformExecutionRequest(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	res := graphql.MarshalTime(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -24122,6 +27888,61 @@ func (ec *executionContext) unmarshalOArgumentInput2ᚕgithubᚗcomᚋsheacloud�
 	return res, nil
 }
 
+func (ec *executionContext) marshalOAwsIamPolicy2ᚕᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsIamPolicyᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.AwsIamPolicy) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAwsIamPolicy2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsIamPolicy(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOAwsIamPolicyFilters2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsIamPolicyFilters(ctx context.Context, v interface{}) (*models.AwsIamPolicyFilters, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputAwsIamPolicyFilters(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalOAwsProviderConfiguration2ᚕgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐAwsProviderConfigurationᚄ(ctx context.Context, sel ast.SelectionSet, v []models.AwsProviderConfiguration) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -24215,6 +28036,14 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) unmarshalOCloudAccessRoleFilters2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudAccessRoleFilters(ctx context.Context, v interface{}) (*models.CloudAccessRoleFilters, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCloudAccessRoleFilters(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOCloudPlatform2ᚖgithubᚗcomᚋsheacloudᚋtfomᚋpkgᚋmodelsᚐCloudPlatform(ctx context.Context, v interface{}) (*models.CloudPlatform, error) {
 	if v == nil {
 		return nil, nil
@@ -24299,6 +28128,44 @@ func (ec *executionContext) unmarshalOGcpProviderConfigurationInput2ᚕgithubᚗ
 	return res, nil
 }
 
+func (ec *executionContext) unmarshalOID2ᚕuintᚄ(ctx context.Context, v interface{}) ([]uint, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]uint, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2uint(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOID2ᚕuintᚄ(ctx context.Context, sel ast.SelectionSet, v []uint) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2uint(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOID2ᚖuint(ctx context.Context, v interface{}) (*uint, error) {
 	if v == nil {
 		return nil, nil
@@ -24313,6 +28180,18 @@ func (ec *executionContext) marshalOID2ᚖuint(ctx context.Context, sel ast.Sele
 	}
 	res := graphql.MarshalUint(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOID2ᚖᚕuintᚄ(ctx context.Context, v interface{}) (*[]uint, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOID2ᚕuintᚄ(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖᚕuintᚄ(ctx context.Context, sel ast.SelectionSet, v *[]uint) graphql.Marshaler {
+	return ec.marshalOID2ᚕuintᚄ(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {

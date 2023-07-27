@@ -77,6 +77,16 @@ func (r *orgUnitResolver) ModulePropagations(ctx context.Context, obj *models.Or
 	return r.apiClient.GetModulePropagationsForOrgUnit(ctx, obj.ID, filters, limit, offset)
 }
 
+// CloudAccessRoles is the resolver for the cloudAccessRoles field.
+func (r *orgUnitResolver) CloudAccessRoles(ctx context.Context, obj *models.OrgUnit, filters *models.CloudAccessRoleFilters, limit *int, offset *int) ([]*models.CloudAccessRole, error) {
+	return r.apiClient.GetCloudAccessRolesForOrgUnit(ctx, obj.ID, filters, limit, offset)
+}
+
+// InheritedCloudAccessRoles is the resolver for the inheritedCloudAccessRoles field.
+func (r *orgUnitResolver) InheritedCloudAccessRoles(ctx context.Context, obj *models.OrgUnit, filters *models.CloudAccessRoleFilters, limit *int, offset *int) ([]*models.CloudAccessRole, error) {
+	return r.apiClient.GetInheritedCloudAccessRolesForOrgUnit(ctx, obj.ID, filters, limit, offset)
+}
+
 // OrgUnit is the resolver for the orgUnit field.
 func (r *queryResolver) OrgUnit(ctx context.Context, orgUnitID uint) (*models.OrgUnit, error) {
 	return r.apiClient.GetOrgUnit(ctx, orgUnitID)
